@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { colors } from './tokens'
 
-// Mockup asli (docs/design/html/styles.css) adalah sumber kebenaran visual.
+// The mockup stylesheet (docs/design/html/styles.css) is the visual source of truth.
 const css = readFileSync(new URL('../../../docs/design/html/styles.css', import.meta.url), 'utf8')
 
 function cssVar(name: string): string {

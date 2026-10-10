@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test'
 const PORT = 5173
 const baseURL = `http://localhost:${PORT}`
 
-// Dua proyek sesuai acuan: desktop 1280px dan mobile 390px (docs/role.md bagian 3).
+// Two projects matching the design reference: desktop 1280px and mobile 390px (docs/role.md section 3).
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,

@@ -11,7 +11,7 @@ export const colors = {
   muted: '#64748B',
   line: '#E2E8F0',
   canvas: '#FAFBFD',
-  // Status bulat (docs/role.md 4.1). Names follow the domain, not the color.
+  // Topic status colors (docs/role.md 4.1). Names follow the domain, not the color.
   status: {
     kuasai: '#16A34A',
     sedang: '#D97706',
@@ -27,7 +27,7 @@ export const fontFamily: Record<string, string[]> = {
   heading: ['"Plus Jakarta Sans"', 'Inter', 'Segoe UI', 'Arial', 'sans-serif'],
 }
 
-// Ukuran tata letak dari docs/role.md bagian 3.
+// Layout sizes from docs/role.md section 3.
 export const layout = {
   navHeight: '52px',
   bottomNavHeight: '60px',

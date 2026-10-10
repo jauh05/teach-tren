@@ -3,7 +3,7 @@ type LogoProps = {
   className?: string
 }
 
-// Logo dari mockup (docs/design/html/*.html), digambar sebagai SVG inline.
+// Logo from the mockup (docs/design/html/*.html), drawn as an inline SVG.
 export function Logo({ size = 20, className }: LogoProps) {
   return (
     <svg
