@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output and coverage
+dist/
+dist-ssr/
+coverage/
+
+# Environment and secrets (never commit real values)
+.env
+.env.*
+!.env.example
+
+# Test reports
+playwright-report/
+test-results/
+blob-report/
+
+# Editor and OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Berkas sumber asli dari pengguna (tidak dikirim ke repo)
+input/
