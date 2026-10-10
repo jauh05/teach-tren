@@ -61,6 +61,41 @@ h3 {
   font-size: 0.9em;
 }
 
+/* Learning canvas: idle drift of about 2px, paused while a topic is dragged (docs/role.md CC-03). */
+@keyframes topic-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(1.5px, -2px);
+  }
+}
+
+.topic-idle {
+  animation-name: topic-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.topic-node:focus {
+  outline: none;
+}
+
+.topic-ring {
+  opacity: 0;
+}
+
+.topic-node:focus-visible .topic-ring {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topic-idle {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

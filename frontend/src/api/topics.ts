@@ -1,0 +1,134 @@
+import { isTopicNameTaken } from '../domain/topicNames'
+import type { TopicGraph } from '../domain/types'
+
+// Mock data until the backend exists. Renames are kept in memory and reset on reload.
+// Positions come from the mockup (docs/design/html/02-learning-desktop.html), in world units.
+const graph: TopicGraph = {
+  topics: [
+    {
+      id: 'bilangan',
+      name: 'Bilangan',
+      lastScore: 90,
+      unlocked: true,
+      pendingSuggestion: false,
+      conversationCount: 2,
+      materials: ['Bilangan bulat dan pecahan'],
+      initialX: 100,
+      initialY: 110,
+    },
+    {
+      id: 'persamaan-linear',
+      name: 'Persamaan linear',
+      lastScore: 72,
+      unlocked: true,
+      pendingSuggestion: false,
+      conversationCount: 3,
+      materials: ['Modul persamaan linear satu variabel'],
+      initialX: 240,
+      initialY: 110,
+    },
+    {
+      id: 'fungsi-kuadrat',
+      name: 'Fungsi kuadrat',
+      lastScore: null,
+      unlocked: true,
+      pendingSuggestion: false,
+      conversationCount: 1,
+      materials: [],
+      initialX: 380,
+      initialY: 70,
+    },
+    {
+      id: 'sistem-persamaan',
+      name: 'Sistem persamaan',
+      lastScore: null,
+      unlocked: false,
+      pendingSuggestion: false,
+      conversationCount: 0,
+      materials: [],
+      initialX: 330,
+      initialY: 230,
+    },
+    {
+      id: 'bangun-datar',
+      name: 'Bangun datar',
+      lastScore: 85,
+      unlocked: true,
+      pendingSuggestion: false,
+      conversationCount: 2,
+      materials: ['Bangun datar dan luasnya'],
+      initialX: 110,
+      initialY: 240,
+    },
+    {
+      id: 'sel-tumbuhan',
+      name: 'Sel tumbuhan',
+      lastScore: 38,
+      unlocked: true,
+      pendingSuggestion: false,
+      conversationCount: 1,
+      materials: [],
+      initialX: 420,
+      initialY: 240,
+    },
+    {
+      id: 'fotosintesis',
+      name: 'Fotosintesis',
+      lastScore: null,
+      unlocked: false,
+      pendingSuggestion: false,
+      conversationCount: 0,
+      materials: [],
+      initialX: 455,
+      initialY: 150,
+    },
+    {
+      id: 'pertidaksamaan',
+      name: 'Pertidaksamaan',
+      lastScore: null,
+      unlocked: true,
+      pendingSuggestion: true,
+      conversationCount: 0,
+      materials: [],
+      initialX: 200,
+      initialY: 290,
+    },
+    {
+      id: 'grafik-fungsi',
+      name: 'Grafik fungsi',
+      lastScore: null,
+      unlocked: true,
+      pendingSuggestion: true,
+      conversationCount: 0,
+      materials: [],
+      initialX: 380,
+      initialY: 160,
+    },
+  ],
+  links: [
+    { source: 'bilangan', target: 'persamaan-linear', suggested: false },
+    { source: 'persamaan-linear', target: 'fungsi-kuadrat', suggested: false },
+    { source: 'persamaan-linear', target: 'sistem-persamaan', suggested: false },
+    { source: 'bilangan', target: 'bangun-datar', suggested: false },
+    { source: 'sel-tumbuhan', target: 'fotosintesis', suggested: false },
+    { source: 'bangun-datar', target: 'pertidaksamaan', suggested: true },
+    { source: 'fungsi-kuadrat', target: 'grafik-fungsi', suggested: true },
+  ],
+}
+
+// Returns copies so callers cannot mutate the stored graph directly.
+export async function fetchTopicGraph(): Promise<TopicGraph> {
+  return structuredClone(graph)
+}
+
+export async function renameTopic(topicId: string, name: string): Promise<void> {
+  const trimmed = name.trim()
+  if (isTopicNameTaken(graph.topics, trimmed, topicId)) {
+    throw new Error('Nama sudah dipakai bulat lain.')
+  }
+  const topic = graph.topics.find((item) => item.id === topicId)
+  if (!topic) {
+    throw new Error('Bulat tidak ditemukan.')
+  }
+  topic.name = trimmed
+}

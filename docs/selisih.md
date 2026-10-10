@@ -23,3 +23,11 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 15 | Rumus LaTeX | Tidak ada rumus di mockup chat | KaTeX dimuat hanya saat jawaban berisi rumus (bagian 5) | Dimuat lazy. Rumus gagal tampil sebagai teks abu-abu | Diterapkan |
 | 16 | Sisa kuota di header | Header hanya menampilkan nama pengguna | Sisa kuota tampil di header (bagian 4.3, CC-05) | Belum untuk pengguna masuk. Untuk tamu dikerjakan pada langkah 8 | Terbuka |
 | 17 | Jawaban chat | Teks statis di mockup | Jawaban streaming dari AI (CC-05, CC-06) | Streaming dummy dari contoh statis. AI dan backend belum dibuat | Terbuka |
+| 18 | Detail bulat (desktop) | Bar kecil di bawah kanvas | Panel kanan lebar 320px (bagian 4.1) | Panel kanan 320px | Diperbaiki |
+| 19 | Detail bulat (mobile) | Bottom sheet kecil | Bottom sheet tinggi 70% (bagian 3.1) | Tinggi 70% dengan pegangan | Diperbaiki |
+| 20 | Ukuran bulat | Diameter 40 sampai 76 px | Diameter 60 sampai 76 px pada zoom 100% (CC-03) | Sesuai role. Bulat terkecil 60 px | Diperbaiki |
+| 21 | Tombol plus di bulat | Tidak ada pada mockup | Ketuk plus membuka chat dengan konteks topik (bagian 4.1) | Ditambahkan di pojok kanan atas setiap bulat | Diterapkan |
+| 22 | Zoom awal di mobile | Viewbox diperkecil, seluruh kanvas terlihat | Zoom 100 persen, posisi awal di tengah (bagian 4.1) | Sebagian kanvas terlihat, geser untuk melihat sisanya | Terbuka |
+| 23 | Posisi dan tata letak | Tata letak statis dari mockup | Tidak disimpan. Refresh kembali ke tata letak awal (bagian 4.1) | Layout d3-force dari posisi mockup. Tidak disimpan ke server | Diterapkan |
+| 24 | Mode contoh untuk tamu | Tidak dibedakan di mockup | Tamu melihat contoh, tanpa ganti nama dan buat soal (bagian 2.2) | Diterapkan pada panel detail. Batas tamu lengkap di langkah 8 | Diterapkan |
+| 25 | Pengaturan di kanvas | Tidak ada | Tidak ada perubahan (dokumen acuan) | Ganti nama memakai validasi Zod dan cek nama unik tanpa huruf besar kecil | Diterapkan |

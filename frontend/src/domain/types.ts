@@ -18,3 +18,29 @@ export interface ChatMessage {
   content: string
   status: MessageStatus
 }
+
+// A learning topic (bulat). Status is derived from these fields with topicStatusOf.
+export interface Topic {
+  id: string
+  name: string
+  lastScore: number | null
+  unlocked: boolean
+  pendingSuggestion: boolean
+  conversationCount: number
+  materials: string[]
+  // Starting position on the canvas, in world units. Positions are not saved (docs/role.md 4.1).
+  initialX: number
+  initialY: number
+}
+
+export interface TopicLink {
+  source: string
+  target: string
+  // Dashed links connect to a suggested topic.
+  suggested: boolean
+}
+
+export interface TopicGraph {
+  topics: Topic[]
+  links: TopicLink[]
+}

@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { ChatConversationPage } from './features/chat/ChatConversationPage'
 import { ChatHomePage } from './features/chat/ChatHomePage'
+import { LearningPage } from './features/learning/LearningPage'
 import { ChatLayout } from './features/chat/ChatLayout'
 import { queryClient } from './lib/queryClient'
 import { PlaceholderPage } from './pages/PlaceholderPage'
@@ -14,7 +15,7 @@ export default function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route index element={<Navigate to="/chat" replace />} />
-            <Route path="learning" element={<PlaceholderPage title="Learning" />} />
+            <Route path="learning" element={<LearningPage />} />
             <Route path="jadwal" element={<PlaceholderPage title="Jadwal" />} />
             <Route element={<ChatLayout />}>
               <Route path="chat" element={<ChatHomePage />} />
