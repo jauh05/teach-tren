@@ -1,4 +1,4 @@
-import { ArrowUp, Plus, Square } from 'lucide-react'
+import { ArrowUp, Lock, Plus, Square } from 'lucide-react'
 import type { KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -10,6 +10,9 @@ interface ComposerProps {
   // While an answer streams, the send button becomes a stop button.
   streaming?: boolean
   onStop?: () => void
+  // Locked replaces the message box for guests who used their free actions (docs/role.md 2.3).
+  locked?: boolean
+  lockedMessage?: string
 }
 
 // Message box. Enter sends, Shift+Enter adds a line (docs/role.md CC-05).
@@ -20,6 +23,8 @@ export function Composer({
   placeholder = 'Tanyakan materi, minta soal latihan, atau unggah catatan',
   streaming = false,
   onStop,
+  locked = false,
+  lockedMessage = 'Untuk lanjut, daftar atau masuk dulu.',
 }: ComposerProps) {
   const canSend = value.trim().length > 0
 
@@ -30,6 +35,15 @@ export function Composer({
         onSubmit()
       }
     }
+  }
+
+  if (locked) {
+    return (
+      <div className="flex w-full items-center gap-2.5 rounded-[20px] border border-line bg-slate-50 px-4 py-3.5 text-sm text-muted">
+        <Lock size={16} aria-hidden="true" />
+        <span>{lockedMessage}</span>
+      </div>
+    )
   }
 
   return (

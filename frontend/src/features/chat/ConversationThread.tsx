@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createMockAnswer } from '../../api/mockAnswer'
+import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { ChatMessage } from '../../domain/types'
+import { useSessionStore } from '../../stores/sessionStore'
 import { Composer } from './Composer'
 import { MessageBubble } from './MessageBubble'
 import { NextStepsCard } from './NextStepsCard'
@@ -41,6 +43,10 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
   const [messages, setMessages] = useState<ChatMessage[]>(initial.messages)
   const [streaming, setStreaming] = useState(initial.streamingId !== null)
   const [draft, setDraft] = useState('')
+  const isGuest = useSessionStore((state) => state.mode === 'guest')
+  const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
+  // Guests who used both free actions cannot send. Their composer stays locked.
+  const limitReached = isGuest && isGuestLimitReached(guestActionsUsed)
   // The active stream. Older streams are ignored once replaced, which keeps React StrictMode safe.
   const runRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -81,6 +87,12 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
         return
       }
       runRef.current = null
+      // Every finished or stopped answer uses one guest action. Replaced runs do not count.
+      // Read the store at completion time, so the stream does not depend on render-time values.
+      const session = useSessionStore.getState()
+      if (session.mode === 'guest') {
+        session.recordGuestAction()
+      }
       setStreaming(false)
       setMessages((prev) =>
         prev.map((message) =>
@@ -92,7 +104,7 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
 
   function send(text: string) {
     const question = text.trim()
-    if (question === '' || streaming) {
+    if (question === '' || streaming || limitReached) {
       return
     }
     const assistantId = crypto.randomUUID()
@@ -112,7 +124,7 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
       .slice(0, index)
       .reverse()
       .find((message) => message.role === 'user')?.content
-    if (!question || streaming) {
+    if (!question || streaming || limitReached) {
       return
     }
     setStreaming(true)
@@ -152,6 +164,7 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
 
       <div className="mx-auto w-full max-w-[820px] px-4 pb-4 md:px-7">
         <Composer
+          locked={limitReached}
           value={draft}
           onChange={setDraft}
           onSubmit={() => send(draft)}

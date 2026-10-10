@@ -1,5 +1,7 @@
 import clsx from 'clsx'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useSessionStore } from '../../stores/sessionStore'
+import { Button } from '../ui/Button'
 import { AvatarMenu } from './AvatarMenu'
 import { BrandLink } from './BrandLink'
 import { ModeBadge } from './ModeBadge'
@@ -8,6 +10,8 @@ import { TABS, tabForPath } from './navigation'
 // Desktop and tablet top bar (768px and up). Mobile uses MobileHeader and BottomNav.
 export function TopNav() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const mode = useSessionStore((state) => state.mode)
   const activeTab = tabForPath(pathname)
 
   return (
@@ -33,6 +37,11 @@ export function TopNav() {
       </nav>
       <div className="flex items-center gap-2">
         <ModeBadge />
+        {mode === 'guest' && (
+          <Button className="min-h-[36px] md:min-h-[36px]" onClick={() => navigate('/masuk')}>
+            Masuk
+          </Button>
+        )}
         <AvatarMenu />
       </div>
     </header>

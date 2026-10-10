@@ -34,6 +34,7 @@ export function QuizRunner({ quiz }: QuizRunnerProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const mode = useSessionStore((state) => state.mode)
+  const recordGuestAction = useSessionStore((state) => state.recordGuestAction)
   const isGuest = mode === 'guest'
 
   const [index, setIndex] = useState(0)
@@ -86,7 +87,10 @@ export function QuizRunner({ quiz }: QuizRunnerProps) {
       setIndex(index + 1)
       return
     }
-    if (!isGuest) {
+    // A finished quiz uses one guest action. Signed-in users save the score instead.
+    if (isGuest) {
+      recordGuestAction()
+    } else {
       saveScore.mutate(score.percent)
     }
     setFinished(true)

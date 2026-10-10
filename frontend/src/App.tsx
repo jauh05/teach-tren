@@ -9,6 +9,7 @@ import { JadwalPage } from './features/jadwal/JadwalPage'
 import { MemoryPage } from './features/jadwal/MemoryPage'
 import { ChatLayout } from './features/chat/ChatLayout'
 import { queryClient } from './lib/queryClient'
+import { AuthPage } from './features/auth/AuthPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
 export default function App() {
@@ -31,8 +32,8 @@ export default function App() {
             <Route path="materi" element={<PlaceholderPage title="Materi" />} />
             <Route path="*" element={<PlaceholderPage title="Halaman tidak ditemukan" />} />
           </Route>
-          <Route path="masuk" element={<PlaceholderPage title="Masuk" />} />
-          <Route path="daftar" element={<PlaceholderPage title="Daftar" />} />
+          <Route path="masuk" element={<AuthPage kind="masuk" />} />
+          <Route path="daftar" element={<AuthPage kind="daftar" />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

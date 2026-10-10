@@ -45,3 +45,12 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 37 | Item yang sudah dikerjakan | Tidak ada di mockup | Berubah hijau atau tercoret ringan (bagian 4.2) | Belum ada status selesai | Terbuka |
 | 38 | Data jadwal dan Ingatan AI | Data contoh | Tersimpan di server, job saran harian (CC-08) | Data mock di memori browser. Hilang saat reload | Terbuka |
 | 39 | Jadwal tamu | Tidak ada di mockup | Contoh read-only dengan ajakan masuk (CC-08) | Diterapkan dengan banner dan panel Ingatan terkunci | Diterapkan |
+| 40 | Kuota tamu di header | Tamu · 2 dari 2 aksi terpakai, tombol Masuk | Sisa kuota di header, merah saat habis (bagian 4.3, CC-05) | Diterapkan. Tombol Masuk di desktop. Mobile hanya badge Tamu | Diterapkan |
+| 41 | Kuota per perangkat | Tidak dijelaskan | Per guestId (bagian 2.3) | Dihitung per perangkat dan tidak direset saat Keluar. Mencegah kuota diakali dengan keluar-masuk | Diterapkan |
+| 42 | Riwayat tamu | Dua percakapan di bawah Di perangkat ini | Maksimal 2 percakapan, disimpan di perangkat (bagian 2.3) | Menampilkan dua percakapan contoh dari data mock, bukan riwayat tamu yang tersimpan | Terbuka |
+| 43 | Langkah berikutnya untuk tamu | Pilihan dikunci dengan label Daftar dulu | Dikunci dengan ikon gembok (bagian 4.8) | Sesuai mockup, ditambah ikon gembok | Diterapkan |
+| 44 | Halaman Masuk dan Daftar | Tidak ada di mockup | Form sederhana dengan tombol Lanjut sebagai tamu (bagian 4.5) | Formulir simulasi dengan validasi Zod dan redirect aman. Belum terhubung ke server | Terbuka |
+| 45 | Penegakan batas tamu | Tampilan saja | Wajib di backend (bagian 2.3, CC-10) | Hanya di frontend. Backend belum dibuat | Terbuka |
+| 46 | Yang dihitung sebagai aksi | Pesan chat dan kuis 5 soal | Satu pesan chat atau satu kuis (bagian 2.3) | Pesan dihitung saat jawaban selesai atau dihentikan. Kuis dihitung saat selesai | Diterapkan |
+| 47 | Kuis saat kuota habis | Tidak ada di mockup | Tamu tidak bisa membuka kuis baru tanpa kuota | Kuis diblokir dengan kartu Lanjutkan belajar | Diterapkan |
+| 48 | Avatar tamu | Tidak ada avatar di header tamu | Menu avatar berisi Masuk dan Daftar (bagian 3.1) | Avatar dengan tanda tanya, dibuka menu Masuk, Daftar, dan Tentang | Diterapkan |

@@ -2,8 +2,18 @@ import clsx from 'clsx'
 import { PanelLeftClose, PanelLeftOpen, Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { GUEST_HISTORY_LIMIT } from '../../domain/guestQuota'
 import { groupConversations } from '../../domain/historyGroups'
+import type { Conversation } from '../../domain/types'
+import { useSessionStore } from '../../stores/sessionStore'
 import { useConversations } from './useConversations'
+
+// One labelled block in the history list.
+interface HistorySection {
+  key: string
+  label: string
+  items: Conversation[]
+}
 
 interface ChatSidebarProps {
   collapsed?: boolean
@@ -17,7 +27,18 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
   const { conversationId } = useParams()
   const { data: conversations = [] } = useConversations()
   const [now] = useState(() => new Date())
-  const groups = useMemo(() => groupConversations(conversations, now), [conversations, now])
+  const isGuest = useSessionStore((state) => state.mode === 'guest')
+  // Guests see only the conversations kept on this device, up to the limit (docs/role.md 2.3).
+  const sections = useMemo<HistorySection[]>(() => {
+    if (isGuest) {
+      return [{ key: 'device', label: 'Di perangkat ini', items: conversations.slice(0, GUEST_HISTORY_LIMIT) }]
+    }
+    return groupConversations(conversations, now).map((group) => ({
+      key: group.id,
+      label: group.label,
+      items: group.items,
+    }))
+  }, [conversations, isGuest, now])
 
   return (
     <aside
@@ -52,11 +73,11 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
 
       {!collapsed && (
         <nav aria-label="Riwayat percakapan" className="flex min-h-0 flex-col gap-3 overflow-y-auto">
-          {groups.map((group) => (
-            <div key={group.id}>
-              <p className="px-2.5 pb-1 text-micro text-muted">{group.label}</p>
+          {sections.map((section) => (
+            <div key={section.key}>
+              <p className="px-2.5 pb-1 text-micro text-muted">{section.label}</p>
               <ul className="flex flex-col gap-0.5">
-                {group.items.map((item) => {
+                {section.items.map((item) => {
                   const active = item.id === conversationId
                   return (
                     <li key={item.id}>
@@ -77,6 +98,7 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
               </ul>
             </div>
           ))}
+          {isGuest && <p className="px-2.5 text-micro text-muted">Maksimal {GUEST_HISTORY_LIMIT} percakapan.</p>}
         </nav>
       )}
     </aside>
