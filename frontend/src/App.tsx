@@ -4,6 +4,7 @@ import { AppShell } from './components/layout/AppShell'
 import { ChatConversationPage } from './features/chat/ChatConversationPage'
 import { ChatHomePage } from './features/chat/ChatHomePage'
 import { LearningPage } from './features/learning/LearningPage'
+import { QuizPage } from './features/kuis/QuizPage'
 import { ChatLayout } from './features/chat/ChatLayout'
 import { queryClient } from './lib/queryClient'
 import { PlaceholderPage } from './pages/PlaceholderPage'
@@ -21,6 +22,7 @@ export default function App() {
               <Route path="chat" element={<ChatHomePage />} />
               <Route path="c/:conversationId" element={<ChatConversationPage />} />
             </Route>
+            <Route path="kuis/:quizId" element={<QuizPage />} />
             <Route path="pengaturan" element={<PlaceholderPage title="Pengaturan" />} />
             <Route path="tentang" element={<PlaceholderPage title="Tentang" />} />
             <Route path="materi" element={<PlaceholderPage title="Materi" />} />

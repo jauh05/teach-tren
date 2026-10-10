@@ -31,3 +31,10 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 23 | Posisi dan tata letak | Tata letak statis dari mockup | Tidak disimpan. Refresh kembali ke tata letak awal (bagian 4.1) | Layout d3-force dari posisi mockup. Tidak disimpan ke server | Diterapkan |
 | 24 | Mode contoh untuk tamu | Tidak dibedakan di mockup | Tamu melihat contoh, tanpa ganti nama dan buat soal (bagian 2.2) | Diterapkan pada panel detail. Batas tamu lengkap di langkah 8 | Diterapkan |
 | 25 | Pengaturan di kanvas | Tidak ada | Tidak ada perubahan (dokumen acuan) | Ganti nama memakai validasi Zod dan cek nama unik tanpa huruf besar kecil | Diterapkan |
+| 26 | Sidebar Chat di halaman kuis | Tidak ada sidebar | Kuis berada di layar penuh (bagian 4.4) | Halaman kuis tanpa sidebar | Diterapkan |
+| 27 | Teks bacaan (stimulus) | Teks soal cerita langsung di kartu soal | Teks panjang di atas soal dan bisa dilipat (bagian 4.4) | Tampil di atas soal dalam elemen details yang bisa dilipat | Diterapkan |
+| 28 | Hasil akhir kuis | Tidak ada mockup 07-kuis-hasil di zip | Skor, daftar benar salah, dan pembahasan (bagian 4.4) | Layar hasil minimal: skor, daftar soal, dan dua tombol | Terbuka |
+| 29 | Bentuk soal isian dan esai | Hanya pilihan ganda di mockup | Isian singkat dan esai dengan penilaian AI (bagian 4.4, CC-07) | Belum dikerjakan. Konten mock hanya pilihan ganda | Terbuka |
+| 30 | Atur kuis | Tidak ada di mockup | Pilih sumber, jumlah soal, tingkat, dan gaya (bagian 4.4) | Belum dikerjakan. Kuis mock 5 soal | Terbuka |
+| 31 | Skor kuis memperbarui bulat | Tidak ada di mockup | Skor memperbarui status bulat (bagian 4.4) | Diterapkan. Skor persen menggantikan skor terakhir dan status dihitung ulang | Diterapkan |
+| 32 | Pembahasan untuk tamu | Tidak ada di mockup 04 | Tamu tidak melihat pembahasan, kartu ajakan masuk (bagian 2.2) | Diterapkan dengan kartu terkunci | Diterapkan |

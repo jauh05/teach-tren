@@ -5,12 +5,12 @@ import { containsMath } from './containsMath'
 const MathMarkdown = lazy(() => import('./MathMarkdown'))
 const PlainMarkdown = lazy(() => import('./PlainMarkdown'))
 
-interface MessageTextProps {
+interface RichTextProps {
   content: string
 }
 
-// Renders a finished answer as Markdown. While the answer streams, the parent shows plain text instead.
-export function MessageText({ content }: MessageTextProps) {
+// Markdown with optional LaTeX. KaTeX loads only when the text contains a formula.
+export function RichText({ content }: RichTextProps) {
   const Renderer = containsMath(content) ? MathMarkdown : PlainMarkdown
   return (
     <Suspense fallback={<div className="whitespace-pre-wrap">{content}</div>}>

@@ -121,6 +121,14 @@ export async function fetchTopicGraph(): Promise<TopicGraph> {
   return structuredClone(graph)
 }
 
+// Quiz scores update the topic status (docs/role.md 4.1). A missing topic is ignored: quizzes can exist without one.
+export async function recordTopicScore(topicId: string, percent: number): Promise<void> {
+  const topic = graph.topics.find((item) => item.id === topicId)
+  if (topic) {
+    topic.lastScore = percent
+  }
+}
+
 export async function renameTopic(topicId: string, name: string): Promise<void> {
   const trimmed = name.trim()
   if (isTopicNameTaken(graph.topics, trimmed, topicId)) {

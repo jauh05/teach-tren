@@ -1,6 +1,6 @@
 import { ClipboardList, Copy, RotateCcw } from 'lucide-react'
 import type { ChatMessage } from '../../domain/types'
-import { MessageText } from './MessageText'
+import { RichText } from '../../components/markdown/RichText'
 
 interface MessageBubbleProps {
   message: ChatMessage
@@ -30,7 +30,7 @@ export function MessageBubble({ message, onCopy, onRegenerate, onCreateQuiz }: M
             <span aria-hidden="true" className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-brand align-middle" />
           </div>
         ) : (
-          <MessageText content={message.content} />
+          <RichText content={message.content} />
         )}
       </div>
 
