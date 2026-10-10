@@ -1,3 +1,5 @@
+import type { TopicStatus } from './topicStatus'
+
 // Shared domain types. Keep field names aligned with the planned API contract (docs/api.md).
 
 export interface Conversation {
@@ -17,6 +19,16 @@ export interface ChatMessage {
   role: MessageRole
   content: string
   status: MessageStatus
+}
+
+// Ingatan AI: topics the user has already studied, with their latest score.
+export interface MemoryEntry {
+  id: string
+  topicName: string
+  status: TopicStatus
+  lastScore: number | null
+  // Calendar date of the last update, YYYY-MM-DD.
+  date: string
 }
 
 // A learning topic (bulat). Status is derived from these fields with topicStatusOf.

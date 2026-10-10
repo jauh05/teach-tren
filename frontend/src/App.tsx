@@ -5,6 +5,8 @@ import { ChatConversationPage } from './features/chat/ChatConversationPage'
 import { ChatHomePage } from './features/chat/ChatHomePage'
 import { LearningPage } from './features/learning/LearningPage'
 import { QuizPage } from './features/kuis/QuizPage'
+import { JadwalPage } from './features/jadwal/JadwalPage'
+import { MemoryPage } from './features/jadwal/MemoryPage'
 import { ChatLayout } from './features/chat/ChatLayout'
 import { queryClient } from './lib/queryClient'
 import { PlaceholderPage } from './pages/PlaceholderPage'
@@ -17,7 +19,8 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route index element={<Navigate to="/chat" replace />} />
             <Route path="learning" element={<LearningPage />} />
-            <Route path="jadwal" element={<PlaceholderPage title="Jadwal" />} />
+            <Route path="jadwal" element={<JadwalPage />} />
+            <Route path="jadwal/ingatan" element={<MemoryPage />} />
             <Route element={<ChatLayout />}>
               <Route path="chat" element={<ChatHomePage />} />
               <Route path="c/:conversationId" element={<ChatConversationPage />} />

@@ -35,4 +35,5 @@ export const layout = {
   sidebarMiniWidth: '64px',
   detailPanelWidth: '320px',
   legendWidth: '156px',
+  memoryPanelWidth: '200px',
 } as const

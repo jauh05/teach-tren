@@ -19,6 +19,7 @@ const config: Config = {
         'sidebar-mini': layout.sidebarMiniWidth,
         'detail-panel': layout.detailPanelWidth,
         legend: layout.legendWidth,
+        'memory-panel': layout.memoryPanelWidth,
       },
     },
   },

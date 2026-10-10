@@ -38,3 +38,10 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 30 | Atur kuis | Tidak ada di mockup | Pilih sumber, jumlah soal, tingkat, dan gaya (bagian 4.4) | Belum dikerjakan. Kuis mock 5 soal | Terbuka |
 | 31 | Skor kuis memperbarui bulat | Tidak ada di mockup | Skor memperbarui status bulat (bagian 4.4) | Diterapkan. Skor persen menggantikan skor terakhir dan status dihitung ulang | Diterapkan |
 | 32 | Pembahasan untuk tamu | Tidak ada di mockup 04 | Tamu tidak melihat pembahasan, kartu ajakan masuk (bagian 2.2) | Diterapkan dengan kartu terkunci | Diterapkan |
+| 33 | Minggu yang tampil | Saat hari ini Minggu 11 Oktober, mockup menampilkan 12 sampai 18 Oktober | Minggu ini dan minggu berikutnya (bagian 4.2) | Senin sampai Minggu yang memuat hari ini (5 sampai 11 Oktober). Minggu berikutnya lewat tombol panah | Diterapkan |
+| 34 | Lebar panel Ingatan AI | 220px | 200px (CC-08) | 200px | Diperbaiki |
+| 35 | Ingatan AI di mobile | Tombol Ingatan AI di header | Halaman terpisah dari tombol di header (CC-08) | Tombol ke halaman /jadwal/ingatan | Diterapkan |
+| 36 | Menerima dan memindah saran | Tidak ada cara menerima di mockup | Ketuk atau seret ke hari lain (bagian 4.2) | Tombol Terima di semua layar. Seret ke hari lain hanya di desktop (drag HTML5). Seret di layar sentuh belum ada | Terbuka |
+| 37 | Item yang sudah dikerjakan | Tidak ada di mockup | Berubah hijau atau tercoret ringan (bagian 4.2) | Belum ada status selesai | Terbuka |
+| 38 | Data jadwal dan Ingatan AI | Data contoh | Tersimpan di server, job saran harian (CC-08) | Data mock di memori browser. Hilang saat reload | Terbuka |
+| 39 | Jadwal tamu | Tidak ada di mockup | Contoh read-only dengan ajakan masuk (CC-08) | Diterapkan dengan banner dan panel Ingatan terkunci | Diterapkan |
