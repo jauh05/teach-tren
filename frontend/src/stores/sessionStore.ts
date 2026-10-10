@@ -19,6 +19,7 @@ interface SessionState {
   signIn: () => void
   signOut: () => void
   recordGuestAction: () => void
+  updateAccountName: (name: string) => void
 }
 
 // Demo account taken from the mockup. Real authentication arrives with the backend.
@@ -38,6 +39,7 @@ export const useSessionStore = create<SessionState>()(
       signIn: () => set({ mode: 'signedIn' }),
       // Signing out returns to guest mode with a new guestId (docs/role.md 2.4).
       signOut: () => set({ mode: 'guest', guestId: createGuestId() }),
+      updateAccountName: (name) => set((state) => ({ account: { ...state.account, name } })),
       recordGuestAction: () =>
         set((state) => ({ guestActionsUsed: Math.min(state.guestActionsUsed + 1, GUEST_ACTION_LIMIT) })),
     }),

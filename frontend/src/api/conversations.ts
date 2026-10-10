@@ -71,7 +71,17 @@ const MESSAGE_SEED: Record<string, SeedMessage[]> = {
 const DAY_MS = 24 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
 
+// Set by clearConversations. Stays for the rest of the page session.
+let historyCleared = false
+
+export async function clearConversations(): Promise<void> {
+  historyCleared = true
+}
+
 export async function fetchConversations(now: Date = new Date()): Promise<Conversation[]> {
+  if (historyCleared) {
+    return []
+  }
   return SEED.map((item, index) => ({
     id: item.id,
     title: item.title,

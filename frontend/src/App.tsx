@@ -9,6 +9,8 @@ import { JadwalPage } from './features/jadwal/JadwalPage'
 import { MemoryPage } from './features/jadwal/MemoryPage'
 import { ChatLayout } from './features/chat/ChatLayout'
 import { queryClient } from './lib/queryClient'
+import { RequireSignedIn } from './components/auth/RequireSignedIn'
+import { PengaturanPage } from './features/pengaturan/PengaturanPage'
 import { AuthPage } from './features/auth/AuthPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
@@ -27,9 +29,23 @@ export default function App() {
               <Route path="c/:conversationId" element={<ChatConversationPage />} />
             </Route>
             <Route path="kuis/:quizId" element={<QuizPage />} />
-            <Route path="pengaturan" element={<PlaceholderPage title="Pengaturan" />} />
+            <Route
+              path="pengaturan"
+              element={
+                <RequireSignedIn>
+                  <PengaturanPage />
+                </RequireSignedIn>
+              }
+            />
             <Route path="tentang" element={<PlaceholderPage title="Tentang" />} />
-            <Route path="materi" element={<PlaceholderPage title="Materi" />} />
+            <Route
+              path="materi"
+              element={
+                <RequireSignedIn>
+                  <PlaceholderPage title="Materi" />
+                </RequireSignedIn>
+              }
+            />
             <Route path="*" element={<PlaceholderPage title="Halaman tidak ditemukan" />} />
           </Route>
           <Route path="masuk" element={<AuthPage kind="masuk" />} />

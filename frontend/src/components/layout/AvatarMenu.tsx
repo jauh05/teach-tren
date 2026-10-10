@@ -53,8 +53,9 @@ export function AvatarMenu() {
           {
             label: 'Keluar',
             run: () => {
-              signOut()
+              // Navigate first: a signed-in page would redirect to sign-in once the session changes.
               go('/chat')
+              signOut()
             },
           },
         ]

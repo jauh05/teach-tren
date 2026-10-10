@@ -11,7 +11,7 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 3 | Judul halaman | Font Inter untuk semua teks | Plus Jakarta Sans untuk judul, Inter untuk isi | Judul memakai `font-heading` | Diperbaiki |
 | 4 | Header mobile | Hanya badge "Masuk" | Menu avatar dibuka dari header mobile (bagian 3.1) | Ditambah tombol avatar di header mobile | Diperbaiki |
 | 5 | Menu akun | Tidak ada pada mockup | Profil, Tentang, Keluar. Tamu melihat Masuk dan Daftar | Diterapkan sesuai role | Diterapkan |
-| 6 | Pengaturan mobile | Hanya Profil, Belajar, Data dan privasi | Bagian lengkap: profil, belajar, tampilan, notifikasi, data, bantuan, keluar (bagian 4.7) | Akan dikerjakan pada langkah 9 | Terbuka |
+| 6 | Pengaturan mobile | Hanya Profil, Belajar, Data dan privasi | Bagian lengkap: profil, belajar, tampilan, notifikasi, data, bantuan, keluar (bagian 4.7) | Semua bagian tampil di mobile dalam satu kolom | Diperbaiki |
 | 7 | Sidebar riwayat (Chat) | Lebar 248px | Lebar 264px, bisa diciutkan ke 64px (bagian 3.1, CC-02) | 264px, bisa diciutkan | Diperbaiki |
 | 8 | Header Chat mobile | Tidak ada ikon riwayat | Riwayat dibuka sebagai drawer dari ikon di header Chat (bagian 3.1) | Ikon "Buka riwayat" di atas konten Chat | Diterapkan |
 | 9 | Riwayat dikelompokkan | Hanya Hari ini dan Kemarin | Hari ini, Kemarin, 7 hari terakhir, Lebih lama (CC-05) | Empat grup, grup kosong disembunyikan | Diterapkan |
@@ -54,3 +54,11 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 46 | Yang dihitung sebagai aksi | Pesan chat dan kuis 5 soal | Satu pesan chat atau satu kuis (bagian 2.3) | Pesan dihitung saat jawaban selesai atau dihentikan. Kuis dihitung saat selesai | Diterapkan |
 | 47 | Kuis saat kuota habis | Tidak ada di mockup | Tamu tidak bisa membuka kuis baru tanpa kuota | Kuis diblokir dengan kartu Lanjutkan belajar | Diterapkan |
 | 48 | Avatar tamu | Tidak ada avatar di header tamu | Menu avatar berisi Masuk dan Daftar (bagian 3.1) | Avatar dengan tanda tanya, dibuka menu Masuk, Daftar, dan Tentang | Diterapkan |
+| 49 | Bantuan dan Keluar di mobile | Tidak ada di mockup mobile | Bagian bantuan dan keluar (bagian 4.7) | Ditambahkan di bawah konten | Diterapkan |
+| 50 | Formulir umpan balik | Tautan di mockup bantuan | Formulir umpan balik (bagian 4.7) | Tombol nonaktif dengan label Segera hadir | Terbuka |
+| 51 | Ubah kata sandi | Tidak ada di mockup | Kata sandi lama diverifikasi (CC-09) | Hanya validasi form. Kata sandi lama belum dicek karena belum ada backend | Terbuka |
+| 52 | Hapus akun dan hapus riwayat | Tidak ada di mockup detail | Konfirmasi kata sandi dan ketik HAPUS (CC-09) | Konfirmasi dan ketikan HAPUS sudah ada. Hapus akun masih simulasi tanpa backend | Terbuka |
+| 53 | Preferensi belajar dan tampilan | Tidak dijelaskan | Disimpan di akun (bagian 4.7) | Disimpan di browser perangkat ini. Belum sinkron ke akun | Terbuka |
+| 54 | Ekspor riwayat | Tidak ada di mockup | Ekspor riwayat chat dan kuis dalam JSON (CC-09) | Berkas JSON dari data mock di sisi klien | Diterapkan |
+| 55 | Halaman Pengaturan untuk tamu | Tamu melihat tombol Masuk dan Daftar (bagian 4.7) | Tamu diarahkan ke Masuk dengan parameter redirect (CC-01) | Diterapkan. Setelah masuk, kembali ke Pengaturan | Diterapkan |
+| 56 | Mode gelap | Ditandai segera hadir | Segera hadir (bagian 4.7) | Pilihan nonaktif dengan label Segera hadir | Diterapkan |
