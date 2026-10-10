@@ -17,3 +17,9 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 9 | Riwayat dikelompokkan | Hanya Hari ini dan Kemarin | Hari ini, Kemarin, 7 hari terakhir, Lebih lama (CC-05) | Empat grup, grup kosong disembunyikan | Diterapkan |
 | 10 | Kolom tulis Chat | Teks placeholder dan tombol kirim | Enter kirim, Shift+Enter baris baru (CC-05) | Sesuai role. Tombol kirim berubah jadi berhenti saat streaming (langkah 4) | Diterapkan |
 | 11 | Fitur CC-05 di luar mockup | Tidak ada cari, ganti nama, dan hapus riwayat | Cari judul, ganti nama, hapus dengan konfirmasi (CC-05) | Belum dikerjakan. Data riwayat masih mock | Terbuka |
+| 12 | Aksi di bawah jawaban | Tidak ada pada mockup | Salin, ulangi, dan buat latihan (bagian 4.3) | Ditambah di bawah setiap jawaban yang selesai | Diterapkan |
+| 13 | Kartu Langkah berikutnya | Tiga baris dengan tombol Mulai, Atur, Buat | Sama, dan AI tidak dipanggil sebelum pilihan (bagian 4.8) | Sesuai mockup. Tombol mengarah ke rute yang sudah ada | Diterapkan |
+| 14 | Tombol kirim saat streaming | Tidak ada pada mockup | Tombol berubah menjadi berhenti dan membatalkan jawaban (CC-05) | Berhenti menandai jawaban "Jawaban dihentikan." | Diterapkan |
+| 15 | Rumus LaTeX | Tidak ada rumus di mockup chat | KaTeX dimuat hanya saat jawaban berisi rumus (bagian 5) | Dimuat lazy. Rumus gagal tampil sebagai teks abu-abu | Diterapkan |
+| 16 | Sisa kuota di header | Header hanya menampilkan nama pengguna | Sisa kuota tampil di header (bagian 4.3, CC-05) | Belum untuk pengguna masuk. Untuk tamu dikerjakan pada langkah 8 | Terbuka |
+| 17 | Jawaban chat | Teks statis di mockup | Jawaban streaming dari AI (CC-05, CC-06) | Streaming dummy dari contoh statis. AI dan backend belum dibuat | Terbuka |

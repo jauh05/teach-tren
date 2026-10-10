@@ -23,6 +23,44 @@ h3 {
   @apply font-heading;
 }
 
+/* Answer Markdown. Tailwind typography is not installed, so the few rules needed are written here. */
+.markdown-body p + p {
+  margin-top: 0.75em;
+}
+
+.markdown-body ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+  list-style: decimal;
+}
+
+.markdown-body ul {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+  list-style: disc;
+}
+
+.markdown-body strong {
+  font-weight: 600;
+}
+
+/* Long formulas scroll inside their own box instead of breaking the layout at 360px. */
+.markdown-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25em 0;
+}
+
+/* A formula that fails to render shows its raw text on a gray background (docs/role.md section 5). */
+.katex-error {
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  padding: 0 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
