@@ -30,7 +30,7 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 22 | Zoom awal di mobile | Viewbox diperkecil, seluruh kanvas terlihat | Zoom 100 persen, posisi awal di tengah (bagian 4.1) | Sebagian kanvas terlihat, geser untuk melihat sisanya | Terbuka |
 | 23 | Posisi dan tata letak | Tata letak statis dari mockup | Tidak disimpan. Refresh kembali ke tata letak awal (bagian 4.1) | Layout d3-force dari posisi mockup. Tidak disimpan ke server | Diterapkan |
 | 24 | Mode contoh untuk tamu | Tidak dibedakan di mockup | Tamu melihat contoh, tanpa ganti nama dan buat soal (bagian 2.2) | Diterapkan pada panel detail. Batas tamu lengkap di langkah 8 | Diterapkan |
-| 25 | Pengaturan di kanvas | Tidak ada | Tidak ada perubahan (dokumen acuan) | Ganti nama memakai validasi Zod dan cek nama unik tanpa huruf besar kecil | Diterapkan |
+| 25 | Ganti nama bulat | Tidak ada di mockup 02 | Ganti nama dari panel detail, nama unik tanpa huruf besar kecil (bagian 6.2, CC-04) | Diterapkan dengan validasi Zod dan pesan nama sudah dipakai | Diterapkan |
 | 26 | Sidebar Chat di halaman kuis | Tidak ada sidebar | Kuis berada di layar penuh (bagian 4.4) | Halaman kuis tanpa sidebar | Diterapkan |
 | 27 | Teks bacaan (stimulus) | Teks soal cerita langsung di kartu soal | Teks panjang di atas soal dan bisa dilipat (bagian 4.4) | Tampil di atas soal dalam elemen details yang bisa dilipat | Diterapkan |
 | 28 | Hasil akhir kuis | Tidak ada mockup 07-kuis-hasil di zip | Skor, daftar benar salah, dan pembahasan (bagian 4.4) | Layar hasil minimal: skor, daftar soal, dan dua tombol | Terbuka |
@@ -62,3 +62,7 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 54 | Ekspor riwayat | Tidak ada di mockup | Ekspor riwayat chat dan kuis dalam JSON (CC-09) | Berkas JSON dari data mock di sisi klien | Diterapkan |
 | 55 | Halaman Pengaturan untuk tamu | Tamu melihat tombol Masuk dan Daftar (bagian 4.7) | Tamu diarahkan ke Masuk dengan parameter redirect (CC-01) | Diterapkan. Setelah masuk, kembali ke Pengaturan | Diterapkan |
 | 56 | Mode gelap | Ditandai segera hadir | Segera hadir (bagian 4.7) | Pilihan nonaktif dengan label Segera hadir | Diterapkan |
+| 57 | Halaman Tentang dan Materi | Tidak ada mockup | Halaman Tentang dari docs/tentang.md, Materi dengan unggah berkas (bagian 4.5, 4.6, CC-09) | Hanya placeholder. Tidak termasuk sembilan langkah frontend | Terbuka |
+| 58 | Riwayat chat tingkat lanjut | Tidak ada di mockup | Cari judul, ganti nama, dan hapus per percakapan (CC-05) | Belum dikerjakan. Hanya hapus semua riwayat di Pengaturan | Terbuka |
+| 59 | Backend dan docs/api.md | Tidak ada | Express, Prisma, PostgreSQL, OpenRouter, dan kontrak API (CLAUDE.md) | Belum dibuat. Semua data berasal dari mock di frontend | Terbuka |
+| 60 | Posisi scroll antar tab | Tidak ada di mockup | Posisi scroll dipertahankan saat berpindah tab (CC-02) | Belum dikerjakan. Setiap pindah tab mulai dari atas | Terbuka |
