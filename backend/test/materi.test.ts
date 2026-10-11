@@ -2,10 +2,10 @@ import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from '../src/db.js'
 import { createTestApp, registerAgent, resetDatabase } from './helpers.js'
+import { makeDocx, makePdf } from './materiFiles.js'
 
 const app = createTestApp()
 const PDF_BYTES = Buffer.from('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF')
-const ZIP_BYTES = Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(64)])
 
 // Waits until the material has finished processing. Processing is quick in tests.
 async function waitUntilReady(agent: ReturnType<typeof request.agent>, id: string) {
@@ -25,7 +25,7 @@ describe('materi', () => {
 
   it('unggah PDF membuat materi yang berubah menjadi Siap dengan ringkasan', async () => {
     const agent = await registerAgent(app)
-    const uploaded = await agent.post('/api/materi').attach('berkas', PDF_BYTES, 'modul-persamaan.pdf')
+    const uploaded = await agent.post('/api/materi').attach('berkas', makePdf(['Persamaan linear satu variabel adalah persamaan yang pangkat variabelnya satu.']), 'modul-persamaan.pdf')
     expect(uploaded.status).toBe(201)
     expect(uploaded.body.material.status).toBe('MEMPROSES')
     expect(uploaded.body.material.title).toBe('modul-persamaan')
@@ -33,7 +33,7 @@ describe('materi', () => {
     const ready = await waitUntilReady(agent, uploaded.body.material.id)
     expect(ready.status).toBe('SIAP')
     expect(ready.summary).toHaveLength(4)
-    expect(ready.suggestedTopics).toContain('Pengantar modul-persamaan')
+    expect(ready.suggestedTopics).toEqual(['Pengantar materi', 'Latihan materi'])
   })
 
   it('teks dengan ekstensi pdf ditolak dengan status 422', async () => {
@@ -79,7 +79,7 @@ describe('materi', () => {
 
   it('materi dikaitkan ke bulat dan tampil di daftar bulat', async () => {
     const agent = await registerAgent(app)
-    const uploaded = await agent.post('/api/materi').attach('berkas', ZIP_BYTES, 'catatan-fungsi.docx')
+    const uploaded = await agent.post('/api/materi').attach('berkas', await makeDocx(['Fungsi kuadrat adalah fungsi berderajat dua.']), 'catatan-fungsi.docx')
     const id = uploaded.body.material.id
     await waitUntilReady(agent, id)
 

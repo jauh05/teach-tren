@@ -9,8 +9,6 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   LOG_LEVEL: z.string().default('info'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  // Time a material stays in "Memproses" before its summary is ready. Tests use a short delay.
-  MATERI_PROCESSING_MS: z.coerce.number().int().nonnegative().default(1200),
   // AI. "mock" answers without calling any model. "live" calls OpenRouter with the key and the model chains below.
   AI_MODE: z.enum(['live', 'mock']).default('mock'),
   OPENROUTER_API_KEY: z.string().optional(),

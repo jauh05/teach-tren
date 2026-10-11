@@ -92,7 +92,7 @@ materiRouter.post('/', receiveFile, async (req, res) => {
       status: 'MEMPROSES',
     },
   })
-  scheduleProcessing(material.id)
+  scheduleProcessing(material.id, { buffer: file.buffer, type: check.type })
   res.status(201).json({ material: toMaterial(material) })
 })
 

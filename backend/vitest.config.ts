@@ -14,7 +14,6 @@ export default defineConfig({
       DATABASE_URL: process.env.TEST_DATABASE_URL ?? '',
       JWT_SECRET: 'rahasia-uji-minimal-32-karakter-untuk-test',
       CORS_ORIGIN: 'http://localhost:5173',
-      MATERI_PROCESSING_MS: '50',
       AI_MODE: 'mock',
       AI_MOCK_DELAY_MS: '0',
       CHAT_RATE_PER_MINUTE: '1000',

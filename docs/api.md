@@ -72,7 +72,9 @@ Aturan unggahan:
 - Maksimal 50 materi per pengguna.
 - Status: `MENGUNGGAH`, `MEMPROSES`, `SIAP`, `GAGAL`. Setelah diproses, materi berstatus `SIAP` dengan `summary` (3 sampai 5 poin) dan `suggestedTopics`.
 - Kesalahan: format, ukuran, batas 50, dan berkas kosong memakai status 400. Isi berkas yang tidak sesuai jenisnya memakai status 422.
-- Berkas tidak disimpan di server. Ringkasan saat ini masih teks contoh sampai pembuatan ringkasan dengan AI tersedia.
+- Berkas tidak disimpan. Teks yang berhasil dibaca disimpan (sampai 200.000 karakter) untuk ringkasan.
+- Ringkasan dibuat AI dari teks materi. Hanya 12.000 karakter pertama yang dikirim. Nama file, nama pengguna, dan email tidak pernah dikirim.
+- Materi yang gagal diproses berstatus `GAGAL` dengan pesan di `error`. Penyebabnya: teks tidak bisa dibaca (misalnya hasil scan), teks kurang dari 40 karakter, atau AI belum bisa membuat ringkasan.
 
 Setiap materi: `id`, `title`, `type` (`PDF`, `DOCX`, atau `PPTX`), `sizeBytes`, `status`, `summary`, `suggestedTopics`, `linkedTopicId`, `error`.
 

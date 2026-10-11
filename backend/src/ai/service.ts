@@ -17,6 +17,7 @@ export type AiTask =
   | 'VERIFIKASI_KUNCI'
   | 'REPAIR_JSON'
   | 'MODERASI'
+  | 'MATERI_RINGKAS'
 
 export type ChainName = 'chat' | 'kuis' | 'ringan'
 
@@ -27,6 +28,8 @@ const CHAIN_OF: Record<AiTask, ChainName> = {
   KUIS_GENERATE: 'kuis',
   PEMBAHASAN: 'kuis',
   NILAI_ESAI: 'kuis',
+  // A summary reads a long text, so it gets the quiz chain and its longer time limit.
+  MATERI_RINGKAS: 'kuis',
   VERIFIKASI_KUNCI: 'ringan',
   JADWAL_SARAN: 'ringan',
   KLASIFIKASI: 'ringan',

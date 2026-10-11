@@ -33,6 +33,8 @@ model Material {
   status          MaterialStatus
   summary         String[]       @default([])
   suggestedTopics String[]       @default([])
+  // Text read from the file (docs/role.md, Materi). Kept up to MAX_STORED_CHARS.
+  teksEkstrak     String?
   error           String?
   // Id of the topic (bulat) this material is linked to. Null when not linked.
   topicId         String?
