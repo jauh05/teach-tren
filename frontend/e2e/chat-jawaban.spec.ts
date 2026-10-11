@@ -12,11 +12,13 @@ test.describe('Chat jawaban', () => {
     await expectNoHorizontalScroll(page)
   })
 
-  test('kartu langkah berikutnya membuka kuis dari topik ini', async ({ page }) => {
+  test('kartu langkah berikutnya membuka atur kuis dari topik ini sebagai pop-up', async ({ page }) => {
     await page.goto('/c/persamaan-linear')
     const card = page.getByRole('region', { name: 'Langkah berikutnya' })
     await card.getByRole('listitem').filter({ hasText: 'Kerjakan kuis' }).getByRole('button', { name: 'Mulai' }).click()
-    await expect(page).toHaveURL(/\/kuis\/persamaan-linear\/atur$/)
+    await expect(page.getByRole('dialog', { name: 'Atur kuis' })).toBeVisible()
+    await expect(page.getByText('Kuis dari Persamaan linear')).toBeVisible()
+    await expect(page).toHaveURL(/\/c\/persamaan-linear$/)
   })
 
   test('pertanyaan baru tampil bertahap sampai selesai', async ({ page }) => {

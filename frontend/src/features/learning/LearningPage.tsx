@@ -1,16 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { fetchTopicGraph } from '../../api/topics'
 import { useSessionStore } from '../../stores/sessionStore'
+import { useUiStore } from '../../stores/uiStore'
 import { LearningChatPanel } from './TopicChatPanel'
 import { TopicCanvas } from './TopicCanvas'
 
 // Learning (/learning): topic canvas on top, chat below it. The chat is always visible.
 // The board can be enlarged for exploring topics, then shrunk to give the chat more room.
 export function LearningPage() {
-  const navigate = useNavigate()
+  const openQuizSetup = useUiStore((state) => state.openQuizSetup)
   const mode = useSessionStore((state) => state.mode)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [boardExpanded, setBoardExpanded] = useState(false)
@@ -55,7 +55,7 @@ export function LearningPage() {
           onClose={() => setSelectedId(null)}
           onGenerateQuiz={() => {
             if (selected) {
-              navigate(`/kuis/${selected.id}/atur`)
+              openQuizSetup(selected.id)
             }
           }}
         />

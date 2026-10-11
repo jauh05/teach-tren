@@ -7,6 +7,29 @@ async function answerChoice(page: Page, letter: string, next: string) {
 }
 
 test.describe('Kuis lanjutan', () => {
+  test('atur kuis dari chat tampil sebagai pop-up dan memulai kuis dari sana', async ({ page }) => {
+    await page.goto('/c/persamaan-linear')
+    await page.getByRole('region', { name: 'Langkah berikutnya' }).getByRole('button', { name: 'Mulai' }).click()
+
+    const dialog = page.getByRole('dialog', { name: 'Atur kuis' })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('radiogroup', { name: 'Jumlah soal' }).getByRole('radio', { name: '5', exact: true }).click()
+    await dialog.getByRole('button', { name: 'Mulai kuis' }).click()
+
+    await expect(page).toHaveURL(/\/kuis\/persamaan-linear\?jumlah=5/)
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(page.getByText('Soal 1 dari 5')).toBeVisible()
+  })
+
+  test('pop-up atur kuis bisa ditutup tanpa memulai kuis', async ({ page }) => {
+    await page.goto('/c/persamaan-linear')
+    await page.getByRole('region', { name: 'Langkah berikutnya' }).getByRole('button', { name: 'Mulai' }).click()
+    await expect(page.getByRole('dialog', { name: 'Atur kuis' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(page).toHaveURL(/\/c\/persamaan-linear$/)
+  })
+
   test('atur kuis membuat kuis sesuai jumlah dan gaya yang dipilih', async ({ page }) => {
     await page.goto('/kuis/persamaan-linear/atur')
     await page.getByRole('radiogroup', { name: 'Jumlah soal' }).getByRole('radio', { name: '10', exact: true }).click()

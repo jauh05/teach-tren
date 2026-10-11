@@ -16,11 +16,13 @@ import { PlaceholderPage } from './pages/PlaceholderPage'
 import { TentangPage } from './features/tentang/TentangPage'
 import { MateriPage } from './features/materi/MateriPage'
 import { KuisAturPage } from './features/kuis/KuisAturPage'
+import { QuizSetupDialog } from './features/kuis/QuizSetupDialog'
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <QuizSetupDialog />
         <Routes>
           <Route element={<AppShell />}>
             <Route index element={<Navigate to="/chat" replace />} />

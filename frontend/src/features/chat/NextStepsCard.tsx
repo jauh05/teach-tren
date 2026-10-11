@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import { useSessionStore } from '../../stores/sessionStore'
+import { useUiStore } from '../../stores/uiStore'
 import { GuestLimitCard } from '../guest/GuestLimitCard'
 
 interface NextStepsCardProps {
@@ -15,11 +16,13 @@ export function NextStepsCard({ conversationId }: NextStepsCardProps) {
   const navigate = useNavigate()
   const isGuest = useSessionStore((state) => state.mode === 'guest')
   const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
+  const openQuizSetup = useUiStore((state) => state.openQuizSetup)
 
+  // Quiz settings open as a pop-up over the chat. The other steps are pages.
   const steps = [
-    { label: 'Kerjakan kuis', action: 'Mulai', path: `/kuis/${conversationId}/atur` },
-    { label: 'Jadwalkan belajar', action: 'Atur', path: '/jadwal' },
-    { label: 'Buat materi lanjutan (tambah bulat)', action: 'Buat', path: '/learning' },
+    { label: 'Kerjakan kuis', action: 'Mulai', run: () => openQuizSetup(conversationId) },
+    { label: 'Jadwalkan belajar', action: 'Atur', run: () => navigate('/jadwal') },
+    { label: 'Buat materi lanjutan (tambah bulat)', action: 'Buat', run: () => navigate('/learning') },
   ]
 
   return (
@@ -47,7 +50,7 @@ export function NextStepsCard({ conversationId }: NextStepsCardProps) {
                 <Button
                   variant="secondary"
                   className="min-h-[36px] px-3 py-1.5 text-xs md:min-h-0"
-                  onClick={() => navigate(step.path)}
+                  onClick={step.run}
                 >
                   {step.action}
                 </Button>

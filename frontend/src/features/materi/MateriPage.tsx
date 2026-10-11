@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { fetchMaterials, linkMaterialToTopic, uploadMaterial, type Material } from '../../api/materi'
 import { createTopic, fetchTopicGraph } from '../../api/topics'
 import { Button } from '../../components/ui/Button'
+import { Dialog } from '../../components/ui/Dialog'
 import { MAX_MATERIALS_PER_USER, MAX_MATERIAL_BYTES } from '../../domain/materi'
 import type { MaterialStatus } from '../../domain/materi'
 
@@ -23,12 +24,13 @@ const STATUS_CLASS: Record<MaterialStatus, string> = {
   GAGAL: 'bg-red-50 text-red-800',
 }
 
-// Study materials (/materi). Upload PDF, DOCX, or PPTX, then get a summary and topic suggestions.
+// Study materials (/materi). Upload PDF, DOCX, or PPTX from a pop-up, then get a summary and topic suggestions.
 export function MateriPage() {
   const queryClient = useQueryClient()
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(false)
 
   const materials = useQuery({
     queryKey: ['materi'],
@@ -42,6 +44,8 @@ export function MateriPage() {
     mutationFn: uploadMaterial,
     onSuccess: async () => {
       setError(null)
+      // The new file shows up in the list behind the pop-up, already in progress.
+      setUploadOpen(false)
       await queryClient.invalidateQueries({ queryKey: ['materi'] })
     },
     onError: (failure) => setError(failure.message),
@@ -59,7 +63,13 @@ export function MateriPage() {
     handleFile(event.dataTransfer.files[0])
   }
 
+  function closeUpload() {
+    setUploadOpen(false)
+    setError(null)
+  }
+
   const list = materials.data ?? []
+  const full = list.length >= MAX_MATERIALS_PER_USER
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
@@ -71,45 +81,51 @@ export function MateriPage() {
               {list.length} dari {MAX_MATERIALS_PER_USER} materi
             </p>
           </div>
+          <Button disabled={full} onClick={() => setUploadOpen(true)}>
+            <FileUp size={16} aria-hidden="true" />
+            Unggah materi
+          </Button>
         </header>
 
-        <div
-          onDragOver={(event) => {
-            event.preventDefault()
-            setDragging(true)
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          className={clsx(
-            'flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed bg-white p-6 text-center',
-            dragging ? 'border-brand bg-soft' : 'border-[#CBD5E1]',
-          )}
-        >
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-brand-dark">
-            <FileUp size={20} aria-hidden="true" />
-          </span>
-          <p className="text-sm text-ink">Seret berkas ke sini, atau pilih dari perangkatmu.</p>
-          <p className="text-xs text-muted">PDF, DOCX, atau PPTX. Maksimal {MAX_MATERIAL_BYTES / (1024 * 1024)} MB per berkas.</p>
-          <Button variant="secondary" disabled={upload.isPending || list.length >= MAX_MATERIALS_PER_USER} onClick={() => inputRef.current?.click()}>
-            Pilih berkas
-          </Button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            aria-label="Pilih berkas materi"
-            className="sr-only"
-            onChange={(event) => {
-              handleFile(event.target.files?.[0])
-              event.target.value = ''
+        <Dialog open={uploadOpen} title="Unggah materi" description="Berkas PDF, DOCX, atau PPTX." onClose={closeUpload}>
+          <div
+            onDragOver={(event) => {
+              event.preventDefault()
+              setDragging(true)
             }}
-          />
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            className={clsx(
+              'flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed bg-white p-6 text-center',
+              dragging ? 'border-brand bg-soft' : 'border-[#CBD5E1]',
+            )}
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-brand-dark">
+              <FileUp size={20} aria-hidden="true" />
+            </span>
+            <p className="text-sm text-ink">Seret berkas ke sini, atau pilih dari perangkatmu.</p>
+            <p className="text-xs text-muted">Maksimal {MAX_MATERIAL_BYTES / (1024 * 1024)} MB per berkas.</p>
+            <Button variant="secondary" disabled={upload.isPending || full} onClick={() => inputRef.current?.click()}>
+              Pilih berkas
+            </Button>
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+              aria-label="Pilih berkas materi"
+              className="sr-only"
+              onChange={(event) => {
+                handleFile(event.target.files?.[0])
+                event.target.value = ''
+              }}
+            />
+          </div>
           {error && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="mt-3 text-sm text-red-700">
               {error}
             </p>
           )}
-        </div>
+        </Dialog>
 
         {list.length === 0 ? (
           <p className="text-center text-sm text-muted">Belum ada materi. Unggah modul atau catatan untuk mulai.</p>
