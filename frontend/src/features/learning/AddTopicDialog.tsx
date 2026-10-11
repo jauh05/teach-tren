@@ -1,20 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import clsx from 'clsx'
 import { Lock } from 'lucide-react'
 import { useId, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
-import { z } from 'zod'
+import { ApiError } from '../../api/http'
 import { createTopic, fetchTopicGraph, linkTopics, suggestPatterns, type PatternSuggestion } from '../../api/topics'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
-import { topicNameSchema } from '../../domain/topicNames'
 import { topicStatusOf } from '../../domain/topicStatus'
 import { useSessionStore } from '../../stores/sessionStore'
-
-const schema = z.object({ name: topicNameSchema })
-type Values = z.infer<typeof schema>
 
 interface CreatedTopic {
   id: string
@@ -23,29 +16,27 @@ interface CreatedTopic {
 
 interface AddTopicDialogProps {
   open: boolean
-  // A guest who already holds the topics of the device sees the sign-in prompt instead of the form.
+  // A guest who already holds the one topic of the device sees the sign-in prompt instead of the form.
   locked: boolean
   onClose: () => void
   // Called with the id of the new topic, so the canvas can select it.
   onCreated: (topicId: string) => void
 }
 
-// Adds a pattern (pola belajar). The user writes the name, or asks the AI for ideas from a goal.
-// After a pattern is added, the user chooses what comes next: AI suggestions, or a finished pattern as its start.
+// Adds a pattern (pola belajar). The user says what they want to learn, and the AI proposes three patterns.
+// After a pattern is added, the user chooses what comes next.
 export function AddTopicDialog({ open, locked, onClose, onCreated }: AddTopicDialogProps) {
   const [created, setCreated] = useState<CreatedTopic | null>(null)
-  const [tab, setTab] = useState<'tulis' | 'ai'>('tulis')
   const [panel, setPanel] = useState<'menu' | 'ai' | 'selesai'>('menu')
   const queryClient = useQueryClient()
 
   function close() {
     setCreated(null)
-    setTab('tulis')
     setPanel('menu')
     onClose()
   }
 
-  // Shared by the name form and the AI suggestions: the topic exists now, so the next step opens.
+  // The topic exists now, so the next step opens.
   async function finishCreate(topicId: string, name: string) {
     await queryClient.invalidateQueries({ queryKey: ['topics'] })
     setCreated({ id: topicId, name })
@@ -54,10 +45,10 @@ export function AddTopicDialog({ open, locked, onClose, onCreated }: AddTopicDia
 
   if (locked && !created) {
     return (
-      <Dialog open={open} title="Tambah belajar" description="Pola belajar kedua dan seterusnya dibuat di akun." onClose={close}>
+      <Dialog open={open} title="Tambah belajar" description="Bulat dari perangkat ini sudah dibuat." onClose={close}>
         <div className="flex flex-col gap-3">
           <p className="text-sm text-muted">
-            Pola di perangkat ini sudah penuh untuk tamu. Masuk untuk menambah pola lagi, dan pola ini ikut pindah ke akunmu.
+            Masuk untuk membuat bulat lagi. Bulat dari perangkat ini ikut pindah ke akunmu.
           </p>
           <Link
             to="/masuk?redirect=%2Flearning"
@@ -81,31 +72,8 @@ export function AddTopicDialog({ open, locked, onClose, onCreated }: AddTopicDia
   }
 
   return (
-    <Dialog open={open} title="Tambah belajar" description="Tulis nama pola belajar, atau minta AI mengusulkan dari tujuanmu." onClose={close}>
-      <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="group" aria-label="Cara menambah pola">
-          {(
-            [
-              { value: 'tulis', label: 'Tulis nama' },
-              { value: 'ai', label: 'Generate dengan AI' },
-            ] as const
-          ).map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={tab === option.value}
-              onClick={() => setTab(option.value)}
-              className={clsx(
-                'rounded-lg py-1.5 text-center text-sm font-semibold',
-                tab === option.value ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink',
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        {tab === 'tulis' ? <NameForm onCreated={finishCreate} onCancel={close} /> : <GoalPanel onAdded={finishCreate} />}
-      </div>
+    <Dialog open={open} title="Tambah belajar" description="Tulis tujuanmu. AI mengusulkan tiga pola belajar untuk dipilih." onClose={close}>
+      <GoalPanel onAdded={finishCreate} />
     </Dialog>
   )
 }
@@ -116,68 +84,12 @@ function useTopicNames(): string[] {
   return (graph.data?.topics ?? []).map((topic) => topic.name)
 }
 
-interface NameFormProps {
-  onCreated: (topicId: string, name: string) => Promise<void>
-  onCancel: () => void
-}
-
-function NameForm({ onCreated, onCancel }: NameFormProps) {
-  const inputId = useId()
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors },
-  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: '' } })
-
-  const create = useMutation({
-    mutationFn: (name: string) => createTopic(name),
-    onSuccess: async (topicId, name) => {
-      reset()
-      await onCreated(topicId, name)
-    },
-    onError: (error) => {
-      setError('name', { message: error.message })
-    },
-  })
-
-  return (
-    <form onSubmit={handleSubmit((values) => create.mutate(values.name))} noValidate className="flex flex-col gap-3">
-      <label htmlFor={inputId} className="text-sm font-semibold text-ink">
-        Nama pola belajar
-      </label>
-      <input
-        id={inputId}
-        type="text"
-        autoComplete="off"
-        placeholder="Contoh: Persamaan linear"
-        aria-invalid={errors.name ? 'true' : undefined}
-        className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-ink outline-none focus:border-brand"
-        {...register('name')}
-      />
-      {errors.name && (
-        <p role="alert" className="text-xs text-red-700">
-          {errors.name.message}
-        </p>
-      )}
-      <div className="flex justify-end gap-2">
-        <Button variant="secondary" onClick={onCancel}>
-          Batal
-        </Button>
-        <Button type="submit" disabled={create.isPending}>
-          Tambah
-        </Button>
-      </div>
-    </form>
-  )
-}
-
 interface GoalPanelProps {
   onAdded: (topicId: string, name: string) => Promise<void>
 }
 
 // The user says what they want to learn. The AI proposes three patterns, and each one is added only when chosen.
+// A guest may do this once on the device. A second time asks for sign-in.
 function GoalPanel({ onAdded }: GoalPanelProps) {
   const inputId = useId()
   const names = useTopicNames()
@@ -190,6 +102,7 @@ function GoalPanel({ onAdded }: GoalPanelProps) {
     retry: false,
     staleTime: Infinity,
   })
+  const quotaUsed = suggestions.error instanceof ApiError && suggestions.error.code === 'KUOTA_HABIS'
 
   return (
     <div className="flex flex-col gap-3">
@@ -211,18 +124,23 @@ function GoalPanel({ onAdded }: GoalPanelProps) {
           type="text"
           maxLength={120}
           autoComplete="off"
-          placeholder="Contoh: Dasar pecahan untuk kelas 5"
+          placeholder="Contoh: Aljabar linier SMA"
           value={goal}
           onChange={(event) => setGoal(event.target.value)}
           className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-ink outline-none focus:border-brand"
         />
         <div className="flex justify-end">
-          <Button type="submit" disabled={goal.trim() === '' || suggestions.isFetching}>
+          <Button type="submit" disabled={goal.trim() === '' || suggestions.isFetching || quotaUsed}>
             Generate
           </Button>
         </div>
       </form>
       <SuggestionState query={suggestions} />
+      {quotaUsed && (
+        <Link to="/masuk?redirect=%2Flearning" className="text-sm font-semibold text-brand-dark underline">
+          Masuk untuk membuat bulat lagi
+        </Link>
+      )}
       {suggestions.data && <SuggestionList items={suggestions.data} onAdd={(name, id) => onAdded(id, name)} />}
     </div>
   )
@@ -235,13 +153,11 @@ interface NextAiPanelProps {
   onDone: () => void
 }
 
-// Patterns that follow the new one, from the AI. A guest uses the same suggestion, and the quota counts it.
+// Patterns that follow the new one, from the AI. Only signed-in users reach this step.
 function NextAiPanel({ created, onBack, onAdded, onDone }: NextAiPanelProps) {
-  const names = useTopicNames()
-  const isSignedIn = useSessionStore((state) => state.mode === 'signedIn')
   const suggestions = useQuery({
     queryKey: ['pola-saran', created.id],
-    queryFn: () => suggestPatterns(isSignedIn ? { polaId: created.id } : { nama: created.name, sudahAda: names }),
+    queryFn: () => suggestPatterns({ polaId: created.id }),
     retry: false,
     staleTime: Infinity,
   })
@@ -250,12 +166,7 @@ function NextAiPanel({ created, onBack, onAdded, onDone }: NextAiPanelProps) {
     <div className="flex flex-col gap-3">
       <SuggestionState query={suggestions} />
       {suggestions.data && (
-        <SuggestionList
-          items={suggestions.data}
-          onAdd={(name, id) => onAdded(id, name)}
-          // A pattern of the account is linked from the new one. A guest's second pattern is only kept on the device.
-          linkFrom={isSignedIn ? created.id : undefined}
-        />
+        <SuggestionList items={suggestions.data} onAdd={(name, id) => onAdded(id, name)} linkFrom={created.id} />
       )}
       <PanelFooter onBack={onBack} onDone={onDone} />
     </div>
@@ -296,7 +207,7 @@ function SuggestionState({ query }: SuggestionStateProps) {
 
 interface SuggestionListProps {
   items: PatternSuggestion[]
-  // Creates the chosen pattern. Returns after it exists.
+  // Called after the pattern exists.
   onAdd: (name: string, id: string) => Promise<void>
   linkFrom?: string
 }
@@ -342,13 +253,18 @@ interface NextMenuProps {
   onDone: () => void
 }
 
-// The AI option is open to guests once. The finished-pattern option needs an account.
+// Guests have used their one AI bulat, so both options ask for an account.
 function NextMenu({ onChoose, onDone }: NextMenuProps) {
   const isGuest = useSessionStore((state) => state.mode !== 'signedIn')
   return (
     <div className="flex flex-col gap-2.5">
       <p className="text-sm text-muted">Mau lanjut dengan apa?</p>
-      <OptionButton title="Generate pola berikutnya dengan AI" text="AI mengusulkan tiga pola yang bisa dipelajari sesudahnya." onClick={() => onChoose('ai')} />
+      <OptionButton
+        title="Generate pola berikutnya dengan AI"
+        text="AI mengusulkan tiga pola yang bisa dipelajari sesudahnya."
+        locked={isGuest}
+        onClick={() => onChoose('ai')}
+      />
       <OptionButton
         title="Dari pola yang sudah diselesaikan"
         text="Pilih pola yang sudah kamu kuasai sebagai awalan pola ini."

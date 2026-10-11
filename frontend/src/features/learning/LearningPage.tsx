@@ -5,6 +5,7 @@ import { fetchTopicGraph, GUEST_TOPIC_LIMIT } from '../../api/topics'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUiStore } from '../../stores/uiStore'
 import { AddTopicDialog } from './AddTopicDialog'
+import { EmptyCanvasIllustration } from './EmptyCanvasIllustration'
 import { EmptyTopicSlot } from './EmptyTopicSlot'
 import { LearningChatPanel } from './TopicChatPanel'
 import { TopicCanvas } from './TopicCanvas'
@@ -140,8 +141,11 @@ export function LearningPage() {
           </button>
         </div>
         {data.topics.length === 0 && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6">
-            <EmptyTopicSlot onAdd={() => setAdding(true)} />
+          <div className="pointer-events-none absolute inset-0 overflow-y-auto">
+            <div className="flex min-h-full flex-col items-center justify-center gap-5 px-6 py-12">
+              <EmptyTopicSlot onAdd={() => setAdding(true)} />
+              <EmptyCanvasIllustration />
+            </div>
           </div>
         )}
         <AddTopicDialog
