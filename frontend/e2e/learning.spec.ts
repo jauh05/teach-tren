@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from './fixtures'
-import { expectNoHorizontalScroll, visibleOnly } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu, visibleOnly } from './helpers'
 
 const DESKTOP_NAV = 'Navigasi utama'
 const MOBILE_NAV = 'Navigasi bawah'
@@ -211,5 +211,52 @@ test.describe('Learning tamu', () => {
     await expect(page.getByLabel('Kontrol zoom')).toBeVisible()
     await expect(page.getByRole('button', { name: /simpan/i })).toHaveCount(0)
     await expectNoHorizontalScroll(page)
+  })
+})
+
+test.describe('Tambah bulat', () => {
+  test('akun tanpa bulat melihat arahan, dan bulat pertama bisa ditambah', async ({ page }) => {
+    // The e2e server gives every account example topics, so the first list answer is replaced with an empty one.
+    let answered = false
+    await page.route('**/api/topics', async (route) => {
+      if (route.request().method() === 'GET' && !answered) {
+        answered = true
+        await route.fulfill({ json: { topics: [], links: [] } })
+        return
+      }
+      await route.continue()
+    })
+    await page.goto('/learning')
+    await expect(page.getByRole('heading', { name: 'Belum ada bulat' })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Tambah bulat pertama' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Tambah bulat' })
+    await dialog.getByLabel('Nama bulat').fill('Pecahan')
+    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
+
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(page.getByRole('heading', { name: 'Belum ada bulat' })).toBeHidden()
+    await expect(page.locator('[data-topic-id][role="button"]').filter({ hasText: 'Pecahan' })).toBeVisible()
+  })
+
+  test('nama kosong dan nama yang sudah dipakai ditolak dengan pesan', async ({ page }) => {
+    await page.goto('/learning')
+    await page.getByRole('button', { name: 'Tambah bulat', exact: true }).click()
+    const dialog = page.getByRole('dialog', { name: 'Tambah bulat' })
+
+    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
+    await expect(dialog.getByRole('alert')).toHaveText('Nama bulat tidak boleh kosong.')
+
+    await dialog.getByLabel('Nama bulat').fill('bilangan')
+    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
+    await expect(dialog.getByRole('alert')).toHaveText('Nama bulat sudah dipakai.')
+  })
+
+  test('tamu tidak melihat tombol tambah bulat', async ({ page }) => {
+    await page.goto('/chat')
+    await signOutFromMenu(page)
+    await page.goto('/learning')
+    await expect(page.getByRole('button', { name: 'Perbesar papan' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Tambah bulat' })).toHaveCount(0)
   })
 })

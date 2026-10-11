@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { Maximize2, Minimize2 } from 'lucide-react'
+import { Maximize2, Minimize2, Plus } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { fetchTopicGraph } from '../../api/topics'
+import { Button } from '../../components/ui/Button'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUiStore } from '../../stores/uiStore'
+import { AddTopicDialog } from './AddTopicDialog'
 import { LearningChatPanel } from './TopicChatPanel'
 import { TopicCanvas } from './TopicCanvas'
 
@@ -56,6 +58,7 @@ export function LearningPage() {
   const isDesktop = useIsDesktop()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [boardExpanded, setBoardExpanded] = useState(false)
+  const [adding, setAdding] = useState(false)
   const [ratio, setRatio] = useState(readStoredRatio)
   const sectionRef = useRef<HTMLElement>(null)
   const { data, isPending, isError } = useQuery({
@@ -117,15 +120,46 @@ export function LearningPage() {
         style={{ flex: isDesktop ? `0 0 ${boardShare * 100}%` : boardExpanded ? 3 : 1 }}
       >
         <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} />
-        <button
-          type="button"
-          aria-pressed={boardExpanded}
-          onClick={() => setBoardExpanded((value) => !value)}
-          className="absolute left-3 top-3 flex min-h-[36px] items-center gap-1.5 rounded-xl border border-line bg-white px-3 text-micro font-semibold text-ink shadow-sm hover:bg-slate-50 md:min-h-[32px]"
-        >
-          {boardExpanded ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
-          {boardExpanded ? 'Kecilkan papan' : 'Perbesar papan'}
-        </button>
+        <div className="absolute left-3 top-3 flex gap-2">
+          <button
+            type="button"
+            aria-pressed={boardExpanded}
+            onClick={() => setBoardExpanded((value) => !value)}
+            className="flex min-h-[36px] items-center gap-1.5 rounded-xl border border-line bg-white px-3 text-micro font-semibold text-ink shadow-sm hover:bg-slate-50 md:min-h-[32px]"
+          >
+            {boardExpanded ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
+            {boardExpanded ? 'Kecilkan papan' : 'Perbesar papan'}
+          </button>
+          {mode === 'signedIn' && (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="flex min-h-[36px] items-center gap-1.5 rounded-xl border border-line bg-white px-3 text-micro font-semibold text-ink shadow-sm hover:bg-slate-50 md:min-h-[32px]"
+            >
+              <Plus size={14} aria-hidden="true" />
+              Tambah bulat
+            </button>
+          )}
+        </div>
+        {mode === 'signedIn' && data.topics.length === 0 && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6">
+            <div className="pointer-events-auto flex max-w-[320px] flex-col items-center gap-3 text-center">
+              <h2 className="font-heading text-base font-semibold text-ink">Belum ada bulat</h2>
+              <p className="text-sm text-muted">
+                Tambah topik yang ingin kamu pelajari. Kamu juga bisa bertanya di chat atau mengunggah materi.
+              </p>
+              <Button onClick={() => setAdding(true)}>Tambah bulat pertama</Button>
+            </div>
+          </div>
+        )}
+        <AddTopicDialog
+          open={adding}
+          onClose={() => setAdding(false)}
+          onCreated={(topicId) => {
+            setAdding(false)
+            setSelectedId(topicId)
+          }}
+        />
       </div>
 
       <div

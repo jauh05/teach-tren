@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { ApiError } from '../../api/http'
 import { fetchQuiz, type QuizView } from '../../api/quizzes'
+import { Button } from '../../components/ui/Button'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { QuizSettings } from '../../domain/quiz'
 import { useSessionStore } from '../../stores/sessionStore'
@@ -19,10 +21,13 @@ export function QuizSession({ quizId, settings, onExit }: QuizSessionProps) {
   const isGuest = useSessionStore((state) => state.mode === 'guest')
   const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
   const [current, setCurrent] = useState<QuizView | null>(null)
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['quiz', quizId, settings.count, settings.level, settings.style],
     queryFn: () => fetchQuiz(quizId, settings),
     enabled: !(isGuest && isGuestLimitReached(guestActionsUsed)),
+    // Making a quiz uses AI and counts against the guest limit, so a failed request is never repeated on its own.
+    // The user decides with the "Coba lagi" button.
+    retry: false,
   })
 
   // Guests who used their free actions cannot start another quiz.
@@ -35,16 +40,27 @@ export function QuizSession({ quizId, settings, onExit }: QuizSessionProps) {
   }
 
   if (isError) {
+    // The server's own message says what happened (busy, or too many quizzes), in Bahasa Indonesia.
+    const message = error instanceof ApiError ? error.message : 'Kuis belum bisa dibuat. Coba lagi beberapa saat.'
     return (
-      <p role="alert" className="p-6 text-sm text-red-700">
-        Kuis belum bisa dibuat. Coba lagi beberapa saat.
-      </p>
+      <div className="flex flex-col items-start gap-3 p-6">
+        <p role="alert" className="text-sm text-red-700">
+          {message}
+        </p>
+        <Button onClick={() => void refetch()} disabled={isFetching}>
+          Coba lagi
+        </Button>
+      </div>
     )
   }
 
   const quiz = current ?? data
   if (isPending && !quiz) {
-    return <p className="p-6 text-sm text-muted">Menyiapkan soal...</p>
+    return (
+      <p role="status" className="p-6 text-sm text-muted">
+        Menyiapkan soal... Ini bisa memakan waktu sampai dua menit.
+      </p>
+    )
   }
   if (!quiz) {
     return <p className="p-6 text-sm text-muted">Menyiapkan soal...</p>

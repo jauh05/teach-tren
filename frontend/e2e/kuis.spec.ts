@@ -81,4 +81,25 @@ test.describe('Kuis', () => {
     await expect(page.getByRole('region', { name: 'Pembahasan', exact: true })).toHaveCount(0)
     await expectNoHorizontalScroll(page)
   })
+
+  test('kuis yang gagal dibuat menampilkan pesan server dan bisa dicoba lagi', async ({ page }) => {
+    let requests = 0
+    await page.route('**/api/kuis/generate', async (route) => {
+      requests += 1
+      if (requests === 1) {
+        await route.fulfill({ status: 503, json: { pesan: 'Layanan belajar sedang sibuk. Coba lagi beberapa saat.', kode: 'AI_TIDAK_TERSEDIA' } })
+        return
+      }
+      await route.continue()
+    })
+    await page.goto('/kuis/persamaan-linear')
+    await expect(page.getByRole('alert')).toHaveText('Layanan belajar sedang sibuk. Coba lagi beberapa saat.')
+    // The failed request is not repeated on its own, so the message stays until the user asks again.
+    await page.waitForTimeout(1500)
+    expect(requests).toBe(1)
+
+    await page.getByRole('button', { name: 'Coba lagi' }).click()
+    await expect(page.getByText('Soal 1 dari 5')).toBeVisible()
+    expect(requests).toBe(2)
+  })
 })
