@@ -223,7 +223,6 @@ test.describe('Learning tamu', () => {
     if (!before) {
       throw new Error('Bulat contoh tidak terlihat')
     }
-    // Moves left, where the example has free space.
     const startX = before.x + before.width / 2
     const startY = before.y + before.height / 2
     await page.mouse.move(startX, startY)
@@ -231,35 +230,33 @@ test.describe('Learning tamu', () => {
     await page.mouse.move(startX - 16, startY, { steps: 8 })
     await page.mouse.up()
 
-    const after = await sample.boundingBox()
-    expect(after).not.toBeNull()
-    expect(before.x - (after?.x ?? 0)).toBeGreaterThan(4)
+    await expect.poll(async () => before.x - ((await sample.boundingBox())?.x ?? 0)).toBeGreaterThan(4)
   })
 
-  test('semua bulat contoh ikut bergerak saat satu bulat ditarik', async ({ page }) => {
+  test('bulat contoh yang terhubung ikut bergerak saat satu bulat ditarik', async ({ page }) => {
     await page.goto('/learning')
     const dragged = page.locator('[data-sample="BARU"] circle')
-    const other = page.locator('[data-sample="PERLU_DIULANG"] circle')
-    // The first circle of the sample is the bulat itself. The second is the progress ring of its score.
-    const far = page.locator('[data-sample="SEDANG"] circle').first()
+    const linked = page.locator('[data-sample="PERLU_DIULANG"] circle')
     const draggedBox = await dragged.boundingBox()
-    const otherBefore = await other.boundingBox()
-    const farBefore = await far.boundingBox()
-    if (!draggedBox || !otherBefore || !farBefore) {
+    const linkedBefore = await linked.boundingBox()
+    if (!draggedBox || !linkedBefore) {
       throw new Error('Bulat contoh tidak terlihat')
     }
-    // Pulled a little to the left, where the sample has room. Every circle moves by the same amount.
+    // Pulled a little to the left. The circle linked to it follows, as on the real canvas.
     const startX = draggedBox.x + draggedBox.width / 2
     const startY = draggedBox.y + draggedBox.height / 2
     await page.mouse.move(startX, startY)
     await page.mouse.down()
-    await page.mouse.move(startX - 16, startY, { steps: 8 })
+    await page.mouse.move(startX - 30, startY, { steps: 8 })
     await page.mouse.up()
 
-    const otherAfter = await other.boundingBox()
-    const farAfter = await far.boundingBox()
-    expect(otherBefore.x - (otherAfter?.x ?? 0)).toBeGreaterThan(4)
-    expect(farBefore.x - (farAfter?.x ?? 0)).toBeGreaterThan(4)
+    // The direction depends on the spring between the circles. The circle must move, which is what "follows" means here.
+    await expect
+      .poll(async () => {
+        const after = await linked.boundingBox()
+        return Math.hypot((after?.x ?? 0) - linkedBefore.x, (after?.y ?? 0) - linkedBefore.y)
+      })
+      .toBeGreaterThan(3)
   })
 
   test('tamu generate sekali di perangkat, lalu diminta masuk', async ({ page }) => {

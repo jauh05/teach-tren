@@ -31,8 +31,16 @@ interface SimLink extends SimulationLinkDatum<SimNode> {
 // Layout time after a drag ends. The simulation stops within this window (docs/role.md 4.1).
 const SETTLE_MS = 1000
 
+export interface LayoutBounds {
+  width: number
+  height: number
+}
+
 // d3-force layout for topics. Positions are kept in memory only and reset on every page load.
-export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[], center: Point) {
+// With bounds, every circle stays inside the rectangle (the sample on an empty canvas). Without them, the canvas is unbounded.
+export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[], center: Point, bounds?: LayoutBounds) {
+  const boundsWidth = bounds?.width ?? null
+  const boundsHeight = bounds?.height ?? null
   const simulationRef = useRef<Simulation<SimNode, undefined> | null>(null)
   const nodesByIdRef = useRef(new Map<string, SimNode>())
   const stopTimerRef = useRef<number | null>(null)
@@ -48,7 +56,7 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
     }))
     const simLinks: SimLink[] = links.map((link) => ({ source: link.source, target: link.target }))
 
-    const simulation = forceSimulation<SimNode>(simNodes)
+    let simulation = forceSimulation<SimNode>(simNodes)
       .force(
         'link',
         forceLink<SimNode, SimLink>(simLinks)
@@ -62,7 +70,17 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
       )
       .force('center', forceCenter(center.x, center.y).strength(0.04))
       .alphaDecay(0.1)
-      .stop()
+    if (boundsWidth !== null && boundsHeight !== null) {
+      const width = boundsWidth
+      const height = boundsHeight
+      simulation = simulation.force('bounds', () => {
+        for (const node of simNodes) {
+          node.x = Math.min(width - node.radius, Math.max(node.radius, node.x ?? 0))
+          node.y = Math.min(height - node.radius, Math.max(node.radius, node.y ?? 0))
+        }
+      })
+    }
+    simulation = simulation.stop()
 
     // Settle the layout from the seed positions, then publish once after the first frame.
     simulation.tick(300)
@@ -112,7 +130,7 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
       }
       simulationRef.current = null
     }
-  }, [nodes, links, center.x, center.y])
+  }, [nodes, links, center.x, center.y, boundsWidth, boundsHeight])
 
   const scheduleStop = useCallback(() => {
     if (stopTimerRef.current !== null) {

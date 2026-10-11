@@ -1,176 +1,195 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
 import type { TopicStatus } from '../../domain/topicStatus'
+import type { Point } from './canvasMath'
 import { TOPIC_VISUALS } from './topicVisual'
+import { useTopicLayout, type LayoutLinkInput, type LayoutNodeInput } from './useTopicLayout'
 
-// Sample circles on an empty canvas, in the colors and with the icons of the legend. They have no text.
-// Dragging any circle moves the whole sample together, so the links and the layout stay as they are.
-// Nothing is saved and clicking does nothing else. They are an example, not data.
-interface SampleNode {
+// Sample circles on an empty canvas, in the colors and with the icons of the legend. They use the same layout as the
+// real canvas: dragging one moves the circles linked to it, the others move out of the way, and the layout settles
+// after the drag (docs/role.md 4.1). Nothing is saved, and clicking does nothing else. They are an example, not data.
+interface SampleSpec {
+  id: string
   status: TopicStatus
-  x: number
-  y: number
-  radius: number
   score?: number
+  // Starting place, as a fraction of the canvas width and height.
+  seed: Point
 }
 
-const WIDTH = 340
-const HEIGHT = 220
-// Space kept between the sample and its edges.
-const PAD = 4
+interface SampleLink {
+  source: string
+  target: string
+  suggested: boolean
+}
 
-// Positions are uneven on purpose, so the sample looks like a hand-arranged canvas.
-const NODES: SampleNode[] = [
-  { status: 'BARU', x: 58, y: 58, radius: 24 },
-  { status: 'DIKUASAI', x: 168, y: 46, radius: 26 },
-  { status: 'SEDANG', x: 282, y: 70, radius: 30, score: 72 },
-  { status: 'PERLU_DIULANG', x: 74, y: 162, radius: 24 },
-  { status: 'BELUM_DIBUKA', x: 184, y: 166, radius: 24 },
-  { status: 'SARAN', x: 288, y: 172, radius: 22 },
+const SAMPLES: SampleSpec[] = [
+  { id: 'kosong', status: 'BARU', seed: { x: 0.2, y: 0.6 } },
+  { id: 'dikuasai', status: 'DIKUASAI', seed: { x: 0.42, y: 0.48 } },
+  { id: 'sedang', status: 'SEDANG', score: 72, seed: { x: 0.7, y: 0.58 } },
+  { id: 'perlu', status: 'PERLU_DIULANG', seed: { x: 0.3, y: 0.86 } },
+  { id: 'belum', status: 'BELUM_DIBUKA', seed: { x: 0.58, y: 0.86 } },
+  { id: 'saran', status: 'SARAN', seed: { x: 0.82, y: 0.8 } },
 ]
 
-const LINKS: { from: number; to: number; suggested: boolean }[] = [
-  { from: 0, to: 1, suggested: false },
-  { from: 1, to: 2, suggested: false },
-  { from: 0, to: 3, suggested: false },
-  { from: 1, to: 4, suggested: false },
-  { from: 4, to: 5, suggested: true },
-  { from: 2, to: 5, suggested: true },
+const SAMPLE_LINKS: SampleLink[] = [
+  { source: 'kosong', target: 'dikuasai', suggested: false },
+  { source: 'dikuasai', target: 'sedang', suggested: false },
+  { source: 'kosong', target: 'perlu', suggested: false },
+  { source: 'dikuasai', target: 'belum', suggested: false },
+  { source: 'belum', target: 'saran', suggested: true },
+  { source: 'sedang', target: 'saran', suggested: true },
 ]
 
-interface Point {
-  x: number
-  y: number
+// The sample is smaller than the real circles, so several fit on a phone.
+const SAMPLE_SCALE = 0.7
+
+function radiusOf(status: TopicStatus): number {
+  return TOPIC_VISUALS[status].radius * SAMPLE_SCALE
 }
 
-interface DragSession {
-  pointer: Point
-  start: Point[]
+const LAYOUT_LINKS: LayoutLinkInput[] = SAMPLE_LINKS.map((link) => ({ source: link.source, target: link.target }))
+const NO_NODES: LayoutNodeInput[] = []
+const NO_LINKS: LayoutLinkInput[] = []
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
 }
 
-// Moves the whole sample by (dx, dy), but only as far as every circle stays inside the sample.
-function clampMove(points: Point[], dx: number, dy: number): Point {
-  let minX = Infinity
-  let maxX = -Infinity
-  let minY = Infinity
-  let maxY = -Infinity
-  points.forEach((point, index) => {
-    const radius = NODES[index].radius
-    minX = Math.min(minX, point.x - radius)
-    maxX = Math.max(maxX, point.x + radius)
-    minY = Math.min(minY, point.y - radius)
-    maxY = Math.max(maxY, point.y + radius)
+// Measures the canvas, so the sample can use its real size. Updates when the window or the layout changes.
+function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>) {
+  const [size, setSize] = useState({ width: 0, height: 0 })
+
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element) {
+      return
+    }
+    const update = () => setSize({ width: element.clientWidth, height: element.clientHeight })
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [ref])
+
+  return size
+}
+
+// Starting positions in pixels, from the fractions above. A circle always starts inside the canvas.
+function seedNodes(width: number, height: number): LayoutNodeInput[] {
+  return SAMPLES.map((sample) => {
+    const radius = radiusOf(sample.status)
+    return {
+      id: sample.id,
+      name: '',
+      radius,
+      x: clamp(sample.seed.x * width, radius + 4, width - radius - 4),
+      y: clamp(sample.seed.y * height, radius + 4, height - radius - 4),
+    }
   })
-  return {
-    x: Math.min(WIDTH - PAD - maxX, Math.max(PAD - minX, dx)),
-    y: Math.min(HEIGHT - PAD - maxY, Math.max(PAD - minY, dy)),
-  }
 }
 
 export function EmptyCanvasIllustration() {
-  const svgRef = useRef<SVGSVGElement>(null)
-  const sessionRef = useRef<DragSession | null>(null)
-  const [points, setPoints] = useState<Point[]>(() => NODES.map((node) => ({ x: node.x, y: node.y })))
-  const [dragging, setDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const size = useElementSize(containerRef)
+  const ready = size.width > 0 && size.height > 0
+  const nodes = useMemo(() => (ready ? seedNodes(size.width, size.height) : NO_NODES), [ready, size.width, size.height])
+  const links = ready ? LAYOUT_LINKS : NO_LINKS
+  const center = useMemo(() => ({ x: size.width / 2, y: size.height * 0.6 }), [size.width, size.height])
+  const bounds = useMemo(() => ({ width: size.width, height: size.height }), [size.width, size.height])
+  const { positions, startDrag, dragTo, endDrag } = useTopicLayout(nodes, links, center, bounds)
+  const [dragId, setDragId] = useState<string | null>(null)
 
-  // Converts the pointer position to sample units, so the sample follows the pointer at any size.
-  function toSamplePoint(event: ReactPointerEvent<SVGGElement>): Point | null {
-    const svg = svgRef.current
-    const matrix = svg?.getScreenCTM()
-    if (!svg || !matrix) {
-      return null
-    }
-    const point = svg.createSVGPoint()
-    point.x = event.clientX
-    point.y = event.clientY
-    const inSample = point.matrixTransform(matrix.inverse())
-    return { x: inSample.x, y: inSample.y }
+  // Pointer position inside the canvas, in pixels.
+  function localPoint(event: ReactPointerEvent<SVGGElement>): Point {
+    const rect = containerRef.current?.getBoundingClientRect()
+    return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) }
   }
 
-  function startDrag(event: ReactPointerEvent<SVGGElement>) {
-    const pointer = toSamplePoint(event)
-    if (!pointer) {
-      return
-    }
+  function beginDrag(id: string, event: ReactPointerEvent<SVGGElement>) {
     event.currentTarget.setPointerCapture(event.pointerId)
-    sessionRef.current = { pointer, start: points }
-    setDragging(true)
+    setDragId(id)
+    startDrag(id)
   }
 
-  function moveDrag(event: ReactPointerEvent<SVGGElement>) {
-    const session = sessionRef.current
-    const pointer = toSamplePoint(event)
-    if (!session || !pointer) {
+  function moveDrag(id: string, radius: number, event: ReactPointerEvent<SVGGElement>) {
+    if (dragId !== id) {
       return
     }
-    const move = clampMove(session.start, pointer.x - session.pointer.x, pointer.y - session.pointer.y)
-    setPoints(session.start.map((point) => ({ x: point.x + move.x, y: point.y + move.y })))
+    const point = localPoint(event)
+    dragTo(id, {
+      x: clamp(point.x, radius, size.width - radius),
+      y: clamp(point.y, radius, size.height - radius),
+    })
   }
 
-  function endDrag(event: ReactPointerEvent<SVGGElement>) {
+  function finishDrag(id: string, event: ReactPointerEvent<SVGGElement>) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
-    sessionRef.current = null
-    setDragging(false)
+    setDragId(null)
+    endDrag(id)
   }
 
   return (
-    <svg
-      ref={svgRef}
-      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-      preserveAspectRatio="xMidYMid meet"
-      aria-hidden="true"
-      focusable="false"
-      className="pointer-events-none absolute inset-0 h-full w-full touch-none select-none"
-    >
-      {LINKS.map((link) => {
-        const from = points[link.from]
-        const to = points[link.to]
-        return (
-          <line
-            key={`${link.from}-${link.to}`}
-            x1={from.x}
-            y1={from.y}
-            x2={to.x}
-            y2={to.y}
-            stroke={link.suggested ? '#C4B5FD' : '#CBD5E1'}
-            strokeWidth={1.5}
-            strokeDasharray={link.suggested ? '4 3' : undefined}
-          />
-        )
-      })}
-      {NODES.map((node, index) => {
-        const point = points[index]
-        const visual = TOPIC_VISUALS[node.status]
-        return (
-          <g
-            key={node.status}
-            data-sample={node.status}
-            style={{ pointerEvents: 'auto', cursor: dragging ? 'grabbing' : 'grab' }}
-            onPointerDown={startDrag}
-            onPointerMove={moveDrag}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
-          >
-            <g
-              className={dragging ? undefined : 'topic-idle'}
-              style={dragging ? undefined : { animationDelay: `${index * 0.6}s`, animationDuration: `${5 + index * 0.7}s` }}
-            >
-              <g transform={`translate(${point.x} ${point.y})`}>
-                <circle
-                  r={node.radius}
-                  fill={visual.fill}
-                  stroke={visual.stroke}
-                  strokeWidth={visual.strokeWidth}
-                  strokeDasharray={visual.dashed ? '4 3' : undefined}
-                />
-                <Icon status={node.status} radius={node.radius} score={node.score} />
+    <div ref={containerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      {ready && (
+        <svg width={size.width} height={size.height} className="absolute inset-0 block touch-none select-none" focusable="false">
+          {SAMPLE_LINKS.map((link) => {
+            const from = positions[link.source]
+            const to = positions[link.target]
+            if (!from || !to) {
+              return null
+            }
+            return (
+              <line
+                key={`${link.source}-${link.target}`}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke={link.suggested ? '#C4B5FD' : '#CBD5E1'}
+                strokeWidth={1.5}
+                strokeDasharray={link.suggested ? '4 3' : undefined}
+              />
+            )
+          })}
+          {SAMPLES.map((sample, index) => {
+            const point = positions[sample.id]
+            if (!point) {
+              return null
+            }
+            const visual = TOPIC_VISUALS[sample.status]
+            const radius = radiusOf(sample.status)
+            return (
+              <g
+                key={sample.id}
+                data-sample={sample.status}
+                style={{ pointerEvents: 'auto', cursor: dragId === sample.id ? 'grabbing' : 'grab' }}
+                onPointerDown={(event) => beginDrag(sample.id, event)}
+                onPointerMove={(event) => moveDrag(sample.id, radius, event)}
+                onPointerUp={(event) => finishDrag(sample.id, event)}
+                onPointerCancel={(event) => finishDrag(sample.id, event)}
+              >
+                <g transform={`translate(${point.x} ${point.y})`}>
+                  <g
+                    className={dragId === null ? 'topic-idle' : undefined}
+                    style={dragId === null ? { animationDelay: `${index * 0.6}s`, animationDuration: `${5 + index * 0.7}s` } : undefined}
+                  >
+                    <circle
+                      r={radius}
+                      fill={visual.fill}
+                      stroke={visual.stroke}
+                      strokeWidth={visual.strokeWidth}
+                      strokeDasharray={visual.dashed ? '4 3' : undefined}
+                    />
+                    <Icon status={sample.status} radius={radius} score={sample.score} />
+                  </g>
+                </g>
               </g>
-            </g>
-          </g>
-        )
-      })}
-    </svg>
+            )
+          })}
+        </svg>
+      )}
+    </div>
   )
 }
 
@@ -195,9 +214,7 @@ function Icon({ status, radius, score }: IconProps) {
         </g>
       )
     case 'DIKUASAI':
-      return (
-        <path d="M20 6 9 17l-5-5" transform={transform} stroke="#FFFFFF" strokeWidth={2.6} {...common} />
-      )
+      return <path d="M20 6 9 17l-5-5" transform={transform} stroke="#FFFFFF" strokeWidth={2.6} {...common} />
     case 'SEDANG': {
       // A progress ring for the score, with the number in the middle.
       const ring = radius * 0.7

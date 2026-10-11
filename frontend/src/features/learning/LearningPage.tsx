@@ -121,6 +121,12 @@ export function LearningPage() {
         style={{ flex: isDesktop ? `0 0 ${boardShare * 100}%` : boardExpanded ? 3 : 1 }}
       >
         <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} />
+        {/* The sample sits under the add circle and its caption, so no circle passes over the text. */}
+        {data.topics.length === 0 && (
+          <div className="absolute inset-x-0 bottom-0 top-[160px]">
+            <EmptyCanvasIllustration />
+          </div>
+        )}
         <div className="absolute left-3 top-3 flex gap-2">
           <button
             type="button"
@@ -141,11 +147,8 @@ export function LearningPage() {
           </button>
         </div>
         {data.topics.length === 0 && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14 pb-3">
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14">
             <EmptyTopicSlot onAdd={() => setAdding(true)} />
-            <div className="relative mt-2 min-h-[120px] w-full max-w-[360px] flex-1">
-              <EmptyCanvasIllustration />
-            </div>
           </div>
         )}
         <AddTopicDialog
