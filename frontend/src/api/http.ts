@@ -24,14 +24,19 @@ export function apiUrl(path: string): string {
 }
 
 // Plain objects are sent as JSON. FormData (file uploads) is sent as it is, so the browser sets its boundary.
-export async function apiRequest(method: HttpMethod, path: string, body?: unknown): Promise<unknown> {
+export async function apiRequest(
+  method: HttpMethod,
+  path: string,
+  body?: unknown,
+  extraHeaders?: Record<string, string>,
+): Promise<unknown> {
   const isForm = body instanceof FormData
   let response: Response
   try {
     response = await fetch(apiUrl(path), {
       method,
       credentials: 'include',
-      headers: body === undefined || isForm ? undefined : { 'Content-Type': 'application/json' },
+      headers: { ...(body === undefined || isForm ? {} : { 'Content-Type': 'application/json' }), ...extraHeaders },
       body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     })
   } catch {

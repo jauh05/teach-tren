@@ -20,6 +20,8 @@ const ANSWER_MAX_CHARS = 1000
 export const generateSchema = z.object({
   sumberId: z.string().trim().min(1).max(100),
   topicName: z.string().trim().max(60).optional(),
+  // Subject for sources that are not a stored topic, such as guests' topics. Stored topics use their own subject.
+  mapel: z.string().trim().max(40).optional(),
   count: z.union([z.literal(5), z.literal(10), z.literal(15), z.literal(20)]),
   level: z.enum(LEVELS),
   style: z.enum(STYLES),
@@ -173,7 +175,7 @@ export async function createQuiz(actor: Actor, body: unknown) {
       ? await prisma.topic.findUnique({ where: { userId_id: { userId: actor.userId, id: input.sumberId } } })
       : null
   const topicName = topic?.name ?? input.topicName ?? 'Latihan umum'
-  const subject = topic?.subject ?? 'Umum'
+  const subject = topic?.subject ?? input.mapel ?? 'Umum'
 
   const generated = await generateQuiz(ai, {
     sourceKey: input.sumberId,
@@ -324,11 +326,13 @@ async function gradeEssays(essays: ItemRow[]): Promise<Map<string, { score: numb
     rubrik: ((item.rubric as { point: string; weight: number }[] | null) ?? []).map((rule) => ({ poin: rule.point, bobot: rule.weight })),
     jawaban: item.userAnswer ?? '',
   }))
-  const keywordFallback = (item: ItemRow) => {
+  // Keyword grading as the rule of the first version. "lowConfidence" follows the answer itself.
+  const keywordGrade = (item: ItemRow) => {
     const rubric = (item.rubric as { point: string; keywords: string[]; weight: number }[] | null) ?? []
-    const graded = gradeEssayByKeywords(item.userAnswer ?? '', rubric)
-    return { score: graded.score, feedback: null, lowConfidence: true }
+    return gradeEssayByKeywords(item.userAnswer ?? '', rubric)
   }
+  // Used when the AI grader cannot be reached. Every such answer is marked for review.
+  const unavailableGrade = (item: ItemRow) => ({ score: keywordGrade(item).score, feedback: null, lowConfidence: true })
   try {
     const grading: EssayGrading = await ai.complete({
       task: 'NILAI_ESAI',
@@ -338,7 +342,7 @@ async function gradeEssays(essays: ItemRow[]): Promise<Map<string, { score: numb
       mock: () =>
         JSON.stringify({
           hasil: essays.map((item) => {
-            const graded = keywordFallback(item)
+            const graded = keywordGrade(item)
             return { id: item.id, skor: graded.score, umpanBalik: 'Penilaian contoh untuk mode mock.', keyakinan: graded.lowConfidence ? 'RENDAH' : 'TINGGI' }
           }),
         }),
@@ -354,7 +358,7 @@ async function gradeEssays(essays: ItemRow[]): Promise<Map<string, { score: numb
   }
   for (const item of essays) {
     if (!result.has(item.id)) {
-      result.set(item.id, keywordFallback(item))
+      result.set(item.id, unavailableGrade(item))
     }
   }
   return result

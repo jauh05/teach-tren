@@ -96,8 +96,8 @@ test.describe('Kuis lanjutan', () => {
     await expect(page.getByText('Nilai 0', { exact: true })).toBeVisible()
   })
 
-  test('esai dinilai dengan rubrik dan jawaban pendek ditandai', async ({ page }) => {
-    // Campuran is not used here. The "Banyak cerita" pool puts an essay at position four.
+  test('esai disimpan saat dijawab dan dinilai saat kuis dikumpulkan', async ({ page }) => {
+    // Campuran is not used here. The "Banyak cerita" pool puts two essays at positions four and five.
     await page.goto('/kuis/persamaan-linear?jumlah=5&gaya=Banyak+cerita')
     await answerChoice(page, 'B', 'Soal berikutnya')
     await answerChoice(page, 'A', 'Soal berikutnya')
@@ -106,7 +106,16 @@ test.describe('Kuis lanjutan', () => {
     await expect(page.getByText('Esai singkat', { exact: true })).toBeVisible()
     await page.getByRole('textbox', { name: 'Jawaban esai' }).fill('Pertama kurangi 3000 dari kedua ruas, lalu bagi dengan 2, dan periksa dengan substitusi.')
     await page.getByRole('button', { name: 'Kirim jawaban' }).click()
-    await expect(page.getByText('Nilai esai: 100')).toBeVisible()
+    await expect(page.getByText('Tersimpan. Dinilai saat kuis dikumpulkan.')).toBeVisible()
+    await page.getByRole('button', { name: 'Soal berikutnya' }).click()
+
+    await page.getByRole('textbox', { name: 'Jawaban esai' }).fill('Sel tumbuhan memiliki dinding sel dan kloroplas.')
+    await page.getByRole('button', { name: 'Kirim jawaban' }).click()
+    await page.getByRole('button', { name: 'Lihat hasil' }).click()
+
+    await expect(page.getByText('Skor kuis')).toBeVisible()
+    await page.getByText('Soal 4', { exact: true }).click()
+    await expect(page.getByText('Nilai esai: 100').first()).toBeVisible()
     await expect(page.getByText('Ditandai untuk ditinjau.')).toHaveCount(0)
   })
 

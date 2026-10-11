@@ -75,6 +75,8 @@ test.describe('Kuis', () => {
     await page.goto('/chat')
     await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
     await page.getByRole('menuitem', { name: 'Keluar' }).click()
+    // Signing out finishes before the page moves on, so wait for it.
+    await expect(page).toHaveURL(/\/chat$/)
 
     await page.goto('/kuis/persamaan-linear')
     await answer(page, 'A')
