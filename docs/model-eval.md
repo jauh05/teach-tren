@@ -64,13 +64,14 @@ Uji langsung dengan kuis 10 soal, bank dikosongkan setiap kali. Semua hasil di b
 | Batas token 3000, batch 5, timeout 90 detik | 4 dari 8 |
 | Batas token 3000, batch 3, tiga percobaan | 4 dari 8 |
 | Batas token 6000, batch 5, timeout 90 detik | 7 dari 8 |
-| **Batas token 6000, batch 5, timeout 120 detik, mulai percobaan baru sebelum 120 detik** | **15 dari 16** (dua putaran) |
+| Batas token 6000, batch 5, timeout 120 detik, mulai percobaan baru sebelum 120 detik | 15 dari 16 (dua putaran) |
+| **Batas token 7000, batch 5, timeout 120 detik, mulai percobaan baru sebelum 150 detik, route 360 detik** | **16 dari 16** (waktu 29 sampai 155 detik, median sekitar 60 detik) |
 
 **Keputusan dan selisih:**
-- Batas token kuis **6000**, bukan 3000 seperti di `docs/role.md`. Ini dicatat di `docs/selisih.md` (baris 96) dan memerlukan persetujuan. Dengan 3000, sekitar separuh kuis gagal.
-- Timeout panggilan kuis naik ke 120 detik, dan percobaan baru hanya dimulai sebelum 120 detik. Dengan begitu satu percobaan selesai di bawah batas 300 detik route.
-- Keberhasilan terukur sekitar 94 persen. Sisanya: keluaran yang masih terpotong pada 6000 token, dan kadang jendela waktu habis sebelum putaran kedua. Mencapai angka yang lebih tinggi perlu batas token lebih besar atau waktu total lebih panjang, dan keduanya perlu keputusan Anda.
-
+- Batas token kuis **7000**, bukan 3000 seperti di `docs/role.md`. Ini dicatat di `docs/selisih.md` (baris 96) dan memerlukan persetujuan. Dengan 3000, sekitar separuh kuis gagal. Batas chat tetap 1200.
+- Timeout panggilan kuis 120 detik. Percobaan baru dimulai hanya sebelum 150 detik, dan route generate diberi 360 detik supaya percobaan terakhir beserta pemeriksaan kuncinya selesai.
+- Keberhasilan terukur 16 dari 16 pada konfigurasi akhir (dan 8 dari 8 pada putaran sebelumnya dengan angka yang sama), jadi total 24 dari 24. Jumlah ini belum cukup untuk menjamin 100 persen. Sisa risiko: keluaran yang masih terpotong pada 7000 token, gangguan penyedia, dan jendela waktu yang habis. Jika semua itu terjadi, pengguna melihat pesan kesalahan dan tombol Coba lagi, bukan kuis rusak.
+- Biaya sekitar Rp20 per kuis 10 soal (kurs Rp17.889 per dolar).
 
 ### Putaran 2: batas waktu kuis 90 detik (gpt-oss-20b saja)
 

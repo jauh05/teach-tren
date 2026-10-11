@@ -22,6 +22,9 @@ blob-report/
 !.vscode/extensions.json
 .idea/
 
+# Database lokal untuk pengembangan (npm run db:start)
+backend/.dev-db/
+
 # Logs
 logs/
 *.log

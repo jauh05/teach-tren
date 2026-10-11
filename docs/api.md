@@ -8,19 +8,19 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 - Sesi: cookie `tt_sesi` (httpOnly, SameSite=Lax, berlaku 15 menit). Dibuat saat daftar atau masuk, dihapus saat keluar.
 - Perpanjangan sesi: cookie `tt_segar` (httpOnly, SameSite=Lax, berlaku 30 hari, hanya dikirim ke `/api/auth`). Isinya token acak yang disimpan di server dalam bentuk hash. Setiap pemakaian diganti dengan token baru. Token lama yang dipakai lagi berarti pencurian: semua token milik akun itu dicabut.
 - Error selalu berbentuk `{ "pesan": "..." }`. Jika data tidak valid, ada tambahan `rincian: [{ "path": "email", "pesan": "..." }]` dengan status 400.
-- Status yang dipakai: 200, 201, 204, 400 (data tidak valid), 401 (belum masuk atau salah kata sandi), 404 (tidak ditemukan atau milik orang lain), 409 (data sudah ada).
+- Status yang dipakai: 200, 201, 204, 400 (data tidak valid), 401 (belum masuk atau salah kata sandi), 404 (tidak ditemukan atau milik orang lain), 409 (data sudah ada), 429 (terlalu sering, dengan `kode` `TERLALU_CEPAT` atau `KUOTA_HABIS`), 503 (layanan AI sedang sibuk, dengan `kode` `AI_TIDAK_TERSEDIA`).
 
 ## Akun
 
 | Metode | Alamat | Isi permintaan | Hasil |
 | --- | --- | --- | --- |
-| POST | `/api/auth/register` | `name` (1 sampai 60 karakter), `email`, `password` (8 sampai 72 karakter) | 201 `{ user }`. Membuat sesi dan 9 bulat awal beserta 7 tautan |
-| POST | `/api/auth/login` | `email`, `password` | 200 `{ user }`. Salah email atau kata sandi: 401 dengan pesan yang sama |
+| POST | `/api/auth/register` | `name` (1 sampai 60 karakter), `email`, `password` (8 sampai 72 karakter) | 201 `{ user }`. Membuat sesi. Akun baru mulai tanpa bulat (kanvas Learning kosong). Dengan `SEED_EXAMPLE_TOPICS=true` di server, akun baru mendapat 9 bulat contoh beserta 7 tautan. Melewati batas pendaftaran per alamat IP (30 per jam): 429 `TERLALU_CEPAT` |
+| POST | `/api/auth/login` | `email`, `password` | 200 `{ user }`. Salah email atau kata sandi: 401 dengan pesan yang sama. Percobaan dibatasi 10 per 15 menit untuk satu email dari satu alamat IP, dan 100 per 15 menit per alamat IP: 429 `TERLALU_CEPAT` |
 | POST | `/api/auth/logout` | - | 204. Mencabut token `tt_segar` yang dikirim |
 | POST | `/api/auth/refresh` | - (memakai cookie `tt_segar`) | 200 `{ user }` dengan cookie `tt_sesi` dan `tt_segar` baru. Tanpa cookie yang sah, token kedaluwarsa, atau token yang sudah dipakai: 401 `Sesi sudah berakhir. Masuk lagi.` |
 | GET | `/api/auth/me` | - | 200 `{ user }`, atau 401 |
 | PATCH | `/api/auth/me` | `name` (1 sampai 60 karakter) | 200 `{ user }`. Email tidak bisa diubah |
-| POST | `/api/auth/password` | `currentPassword`, `newPassword` (8 sampai 72 karakter) | 204. Kata sandi lama salah: 400 |
+| POST | `/api/auth/password` | `currentPassword`, `newPassword` (8 sampai 72 karakter) | 204. Sesi di perangkat lain berakhir, dan perangkat ini mendapat sesi baru. Kata sandi lama salah: 400 |
 | DELETE | `/api/auth/me` | `password` | 204. Akun dijadwalkan dihapus dan sesi berakhir. Salah kata sandi: 400. Masuk lagi dalam 30 hari memulihkan akun |
 
 `user` berisi `id`, `name`, dan `email`. Kata sandi tidak pernah dikembalikan.

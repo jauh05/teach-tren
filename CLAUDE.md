@@ -36,4 +36,4 @@ Materi, Kuis, Masuk, dan Daftar adalah halaman pendukung.
 - Jangan mengubah kontrak API di docs/api.md tanpa memperbarui dokumennya.
 
 ## Perintah
-- npm run dev (frontend), npm run dev (backend), npm test, npm run e2e, npm run db:migrate, npm run db:seed.
+- npm run dev (frontend), npm run dev (backend), npm test, npm run e2e, npm run db:migrate, npm run db:seed, npm run db:start (PostgreSQL lokal di backend), npm run db:setup (buat database dan terapkan migrasi).
