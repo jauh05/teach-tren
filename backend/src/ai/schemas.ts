@@ -31,3 +31,10 @@ export const polaSuggestionsSchema = z.object({
 })
 
 export type PolaSuggestions = z.infer<typeof polaSuggestionsSchema>
+
+export const materiBulatSchema = z.object({
+  judul: z.string().min(1).max(80),
+  isi: z.string().min(1).max(4000),
+})
+
+export type MateriBulat = z.infer<typeof materiBulatSchema>

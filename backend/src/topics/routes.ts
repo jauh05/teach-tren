@@ -1,26 +1,86 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { prisma } from '../db.js'
+import { resolveActor } from '../auth/actor.js'
 import { requireUser, userIdOf } from '../auth/requireUser.js'
+import { prisma } from '../db.js'
 import { AppError } from '../http/errors.js'
 import { SlidingWindowLimiter } from '../chat/rateLimit.js'
+import { GUEST_ACTION_LIMIT } from '../chat/quota.js'
 import { config } from '../config/index.js'
 import { normalizeTopicName, topicNameSchema } from './names.js'
 import { freePosition } from './placement.js'
+import { generateMateriBulat } from './materiBulat.js'
 import { suggestPatterns } from './saran.js'
 
 export const topicsRouter = Router()
-topicsRouter.use(requireUser)
 
 const percentSchema = z.number().int().min(0, 'Skor minimal 0.').max(100, 'Skor maksimal 100.')
 const idSchema = z.string().min(1).max(64)
 const createSchema = z.object({ name: topicNameSchema, dariId: idSchema.nullish() })
 const linkSchema = z.object({ dariId: idSchema, keId: idSchema })
-const suggestSchema = z.object({ polaId: idSchema })
+const saranSchema = z
+  .object({
+    polaId: idSchema.optional(),
+    nama: z.string().trim().min(1).max(60).optional(),
+    tujuan: z.string().trim().min(1).max(120).optional(),
+    // Names of the patterns on the device, sent by a guest so that suggestions do not repeat them.
+    sudahAda: z.array(z.string().trim().max(60)).max(10).optional(),
+  })
+  .refine((value) => value.polaId !== undefined || value.nama !== undefined || value.tujuan !== undefined, {
+    message: 'Isi tujuan atau nama pola.',
+  })
 // Passing this score or more means the pattern is finished (docs/role.md 4.1).
 const FINISHED_MIN_SCORE = 80
-const SUGGEST_WINDOW_MS = 60 * 60 * 1000
-const suggestLimiter = new SlidingWindowLimiter(config.POLA_SARAN_PER_HOUR, SUGGEST_WINDOW_MS)
+const HOUR_MS = 60 * 60 * 1000
+const suggestLimiter = new SlidingWindowLimiter(config.POLA_SARAN_PER_HOUR, HOUR_MS)
+const materiLimiter = new SlidingWindowLimiter(config.MATERI_BULAT_PER_HOUR, HOUR_MS)
+// Parts of study material per pattern. Each part is one AI call.
+const MAX_MATERI_PER_TOPIC = 20
+
+// Patterns that could come next. A guest may use this with the guest AI quota, once the pattern is on the device.
+// A guest sends the pattern name, because the pattern is not on the server. A signed-in user sends the pattern id.
+topicsRouter.post('/saran', async (req, res) => {
+  const actor = resolveActor(req)
+  const input = saranSchema.parse(req.body ?? {})
+
+  if (actor.kind === 'guest') {
+    if (input.polaId !== undefined) {
+      throw new AppError(400, 'Pola di perangkat ini belum tersimpan di akun. Masuk untuk memakai pola yang tersimpan.')
+    }
+    await checkGuestAi(actor.guestId)
+    const saran = await suggestPatterns({
+      name: input.nama,
+      tujuan: input.tujuan,
+      existingNames: input.sudahAda ?? [],
+      completedNames: [],
+    })
+    await countGuestAi(actor.guestId)
+    res.json({ saran })
+    return
+  }
+
+  if (!suggestLimiter.take(actor.userId)) {
+    throw new AppError(429, 'Saran pola sudah sering diminta. Coba lagi nanti.', 'TERLALU_CEPAT')
+  }
+  let name = input.nama
+  if (input.polaId !== undefined) {
+    const topic = await findOwnTopic(actor.userId, input.polaId)
+    if (!topic) {
+      throw new AppError(404, 'Bulat tidak ditemukan.')
+    }
+    name = topic.name
+  }
+  const topics = await prisma.topic.findMany({ where: { userId: actor.userId }, select: { name: true, lastScore: true } })
+  const saran = await suggestPatterns({
+    name,
+    tujuan: input.tujuan,
+    existingNames: topics.map((item) => item.name),
+    completedNames: topics.filter((item) => item.lastScore !== null && item.lastScore >= FINISHED_MIN_SCORE).map((item) => item.name),
+  })
+  res.json({ saran })
+})
+
+topicsRouter.use(requireUser)
 
 // Returns true when another topic of the same user already has this name (case and spaces ignored).
 async function isNameTaken(userId: string, name: string, exceptId: string | null): Promise<boolean> {
@@ -94,26 +154,6 @@ topicsRouter.post('/tautan', async (req, res) => {
   res.status(201).json({ link: { source: input.dariId, target: input.keId, suggested: false } })
 })
 
-// Three patterns that could follow this one. Nothing is created until the user accepts one.
-topicsRouter.post('/saran', async (req, res) => {
-  const input = suggestSchema.parse(req.body ?? {})
-  const userId = userIdOf(req)
-  if (!suggestLimiter.take(userId)) {
-    throw new AppError(429, 'Saran pola sudah sering diminta. Coba lagi nanti.', 'TERLALU_CEPAT')
-  }
-  const topic = await findOwnTopic(userId, input.polaId)
-  if (!topic) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
-  }
-  const topics = await prisma.topic.findMany({ where: { userId }, select: { name: true, lastScore: true } })
-  const saran = await suggestPatterns({
-    name: topic.name,
-    existingNames: topics.map((item) => item.name),
-    completedNames: topics.filter((item) => item.lastScore !== null && item.lastScore >= FINISHED_MIN_SCORE).map((item) => item.name),
-  })
-  res.json({ saran })
-})
-
 async function findOwnTopic(userId: string, id: string) {
   return prisma.topic.findUnique({ where: { userId_id: { userId, id } } })
 }
@@ -150,3 +190,65 @@ topicsRouter.post('/:id/scores', async (req, res) => {
   ])
   res.status(201).json({ lastScore: updated.lastScore })
 })
+
+// Study material of one pattern: the parts that the AI has written so far, in order.
+topicsRouter.get('/:id/materi-ai', async (req, res) => {
+  const userId = userIdOf(req)
+  const id = String(req.params.id)
+  if (!(await findOwnTopic(userId, id))) {
+    throw new AppError(404, 'Bulat tidak ditemukan.')
+  }
+  const parts = await prisma.generatedMaterial.findMany({ where: { userId, topicId: id }, orderBy: { position: 'asc' } })
+  res.json({ materi: parts.map(toMateriView) })
+})
+
+// Writes one more part of the study material. One click gives one part, never several.
+topicsRouter.post('/:id/materi-ai', async (req, res) => {
+  const userId = userIdOf(req)
+  const id = String(req.params.id)
+  const topic = await findOwnTopic(userId, id)
+  if (!topic) {
+    throw new AppError(404, 'Bulat tidak ditemukan.')
+  }
+  if (!materiLimiter.take(userId)) {
+    throw new AppError(429, 'Terlalu sering membuat materi. Coba lagi nanti.', 'TERLALU_CEPAT')
+  }
+  const existing = await prisma.generatedMaterial.findMany({
+    where: { userId, topicId: id },
+    orderBy: { position: 'asc' },
+    select: { title: true, position: true },
+  })
+  if (existing.length >= MAX_MATERI_PER_TOPIC) {
+    throw new AppError(409, `Batas ${MAX_MATERI_PER_TOPIC} bagian materi untuk bulat ini sudah tercapai.`)
+  }
+  const position = (existing[existing.length - 1]?.position ?? 0) + 1
+  const part = await generateMateriBulat({
+    topicName: topic.name,
+    position,
+    previousTitles: existing.map((item) => item.title),
+  })
+  const created = await prisma.generatedMaterial.create({
+    data: { userId, topicId: id, position, title: part.judul, content: part.isi },
+  })
+  res.status(201).json({ materi: toMateriView(created) })
+})
+
+function toMateriView(part: { id: string; position: number; title: string; content: string }) {
+  return { id: part.id, position: part.position, judul: part.title, isi: part.content }
+}
+
+// Guest AI actions are counted per device, the same as in chat (docs/role.md 2.3).
+async function checkGuestAi(guestId: string): Promise<void> {
+  const usage = await prisma.guestUsage.findUnique({ where: { guestId } })
+  if ((usage?.actions ?? 0) >= GUEST_ACTION_LIMIT) {
+    throw new AppError(429, 'Aksi AI gratis sudah habis. Daftar atau masuk untuk lanjut.', 'KUOTA_HABIS')
+  }
+}
+
+async function countGuestAi(guestId: string): Promise<void> {
+  await prisma.guestUsage.upsert({
+    where: { guestId },
+    create: { guestId, actions: 1 },
+    update: { actions: { increment: 1 } },
+  })
+}

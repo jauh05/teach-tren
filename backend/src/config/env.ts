@@ -36,6 +36,8 @@ const envSchema = z.object({
   GUEST_SESSION_RATE_PER_HOUR: z.coerce.number().int().positive().default(30),
   // Pattern suggestions (AI) per account per hour.
   POLA_SARAN_PER_HOUR: z.coerce.number().int().positive().default(20),
+  // Material parts (AI) per account per hour.
+  MATERI_BULAT_PER_HOUR: z.coerce.number().int().positive().default(30),
   // Sign-in attempts per 15 minutes for one email from one IP address, and for one IP address in total.
   // The per-email limit stops password guessing. The per-IP limit is higher, so a school network is not blocked.
   AUTH_ATTEMPTS_PER_15_MIN: z.coerce.number().int().positive().default(10),

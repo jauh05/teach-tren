@@ -67,11 +67,31 @@ export function polaSuggestionSystemPrompt(contextJson: string): string {
     'KONTEKS (alias, ringkas)',
     contextJson,
     'ATURAN',
-    '1. Usulkan 3 pola belajar yang masuk akal sesudah pola utama. Setiap pola bisa dipelajari sendiri.',
+    '1. Usulkan 3 pola belajar. Jika ada pola utama, usulkan pola yang masuk akal sesudahnya. Jika ada tujuan, usulkan pola yang membantu mencapainya. Setiap pola bisa dipelajari sendiri.',
     '2. Jangan mengulang nama yang sudah ada di daftar pola pengguna.',
     '3. Nama pola singkat, maksimal 60 karakter. Alasan maksimal 160 karakter dan menyebut hubungannya dengan pola utama.',
     'SKEMA JSON',
     '{ "saran": [ { "nama": "string", "alasan": "string" } ] }',
+    'Keluarkan HANYA JSON valid.',
+  ].join('\n')
+}
+
+// Task MATERI_BULAT: one part of the study material of a topic. The parts are written in order.
+export function materiBulatSystemPrompt(contextJson: string): string {
+  return [
+    RULES,
+    '',
+    'PERAN',
+    'Kamu menulis materi belajar untuk pelajar Indonesia, dalam Bahasa Indonesia. Satu permintaan menghasilkan satu bagian.',
+    'KONTEKS (alias, ringkas)',
+    contextJson,
+    'ATURAN',
+    '1. Tulis tepat satu bagian materi tentang bulat itu. Bagian ini melanjutkan bagian sebelumnya dan tidak mengulang judul yang sudah ada.',
+    '2. Isi 150 sampai 350 kata. Jelaskan konsep dengan contoh singkat.',
+    '3. Rumus ditulis dengan LaTeX di antara tanda dolar, misalnya $x = 2$.',
+    '4. Jangan mengarang fakta. Jika tidak yakin, tulis bagian yang lebih umum.',
+    'SKEMA JSON',
+    '{ "judul": "string, maksimal 80 karakter", "isi": "string, teks Markdown" }',
     'Keluarkan HANYA JSON valid.',
   ].join('\n')
 }

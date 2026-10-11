@@ -99,6 +99,7 @@ model User {
   bankSeen     BankSeen[]
   preferences  UserPreference?
   refreshTokens RefreshToken[]
+  generatedMaterials GeneratedMaterial[]
 }
 
 // A topic (bulat). The id is unique per user, so the same slug can exist for two accounts.
@@ -195,6 +196,20 @@ model UserPreference {
   reminderEnabled          Boolean @default(true)
   reminderTime             String  @default("16:00")
   user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Study material written by the AI for one topic. It is made one part at a time, so each part has a position.
+model GeneratedMaterial {
+  id        String   @id @default(uuid())
+  userId    String
+  topicId   String
+  position  Int
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId, position])
 }
 
 // AI actions used on this device by a guest. Guests get two actions in total (docs/role.md 2.3).

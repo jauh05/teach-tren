@@ -13,6 +13,7 @@ export type AiTask =
   | 'PEMBAHASAN'
   | 'JADWAL_SARAN'
   | 'POLA_SARAN'
+  | 'MATERI_BULAT'
   | 'KLASIFIKASI'
   | 'NILAI_ESAI'
   | 'VERIFIKASI_KUNCI'
@@ -34,6 +35,8 @@ const CHAIN_OF: Record<AiTask, ChainName> = {
   VERIFIKASI_KUNCI: 'ringan',
   JADWAL_SARAN: 'ringan',
   POLA_SARAN: 'ringan',
+  // A material part is a longer text, so it gets the quiz chain and its longer time limit.
+  MATERI_BULAT: 'kuis',
   KLASIFIKASI: 'ringan',
   REPAIR_JSON: 'ringan',
   MODERASI: 'ringan',
