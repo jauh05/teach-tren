@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { changePassword, updateProfileName } from '../../api/auth'
 import { Button } from '../../components/ui/Button'
 import { passwordChangeSchema, profileSchema } from '../../domain/settings'
 import { initialsOf } from '../../lib/format'
@@ -87,6 +88,7 @@ interface ProfileFormProps {
 function ProfileForm({ onSaved, onCancel }: ProfileFormProps) {
   const account = useSessionStore((state) => state.account)
   const updateAccountName = useSessionStore((state) => state.updateAccountName)
+  const [serverError, setServerError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -96,15 +98,19 @@ function ProfileForm({ onSaved, onCancel }: ProfileFormProps) {
     defaultValues: { name: account.name },
   })
 
+  async function save(values: ProfileValues) {
+    setServerError(null)
+    try {
+      const user = await updateProfileName(values.name)
+      updateAccountName(user.name)
+      onSaved()
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : 'Terjadi kesalahan. Coba lagi.')
+    }
+  }
+
   return (
-    <form
-      noValidate
-      onSubmit={handleSubmit((values) => {
-        updateAccountName(values.name)
-        onSaved()
-      })}
-      className="flex flex-col gap-2"
-    >
+    <form noValidate onSubmit={handleSubmit(save)} className="flex flex-col gap-2">
       <label htmlFor="profil-nama" className="text-xs font-semibold text-ink">
         Nama tampilan
       </label>
@@ -112,6 +118,11 @@ function ProfileForm({ onSaved, onCancel }: ProfileFormProps) {
       {errors.name && (
         <p role="alert" className="text-xs text-red-700">
           {errors.name.message}
+        </p>
+      )}
+      {serverError && (
+        <p role="alert" className="text-xs text-red-700">
+          {serverError}
         </p>
       )}
       <div className="flex gap-2">
@@ -131,6 +142,7 @@ interface PasswordFormProps {
 
 // The current password is checked by the backend later. This form only validates the input for now.
 function PasswordForm({ onSaved, onCancel }: PasswordFormProps) {
+  const [serverError, setServerError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -140,8 +152,18 @@ function PasswordForm({ onSaved, onCancel }: PasswordFormProps) {
     defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
   })
 
+  async function save(values: PasswordValues) {
+    setServerError(null)
+    try {
+      await changePassword(values.currentPassword, values.newPassword)
+      onSaved()
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : 'Terjadi kesalahan. Coba lagi.')
+    }
+  }
+
   return (
-    <form noValidate onSubmit={handleSubmit(() => onSaved())} className="flex flex-col gap-2">
+    <form noValidate onSubmit={handleSubmit(save)} className="flex flex-col gap-2">
       <label htmlFor="sandi-lama" className="text-xs font-semibold text-ink">
         Kata sandi lama
       </label>
@@ -173,6 +195,11 @@ function PasswordForm({ onSaved, onCancel }: PasswordFormProps) {
       {errors.confirmPassword && (
         <p role="alert" className="text-xs text-red-700">
           {errors.confirmPassword.message}
+        </p>
+      )}
+      {serverError && (
+        <p role="alert" className="text-xs text-red-700">
+          {serverError}
         </p>
       )}
       <div className="flex gap-2">

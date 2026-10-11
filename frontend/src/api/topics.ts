@@ -1,5 +1,35 @@
+import { z } from 'zod'
 import { isTopicNameTaken } from '../domain/topicNames'
 import type { TopicGraph } from '../domain/types'
+import { useSessionStore } from '../stores/sessionStore'
+import { ApiError, apiRequest } from './http'
+
+// Signed-in users read and change topics through the backend. Guests keep the mock graph below.
+function usesServer(): boolean {
+  return useSessionStore.getState().mode === 'signedIn'
+}
+
+const graphSchema = z.object({
+  topics: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      x: z.number(),
+      y: z.number(),
+      lastScore: z.number().nullable(),
+      unlocked: z.boolean(),
+      pendingSuggestion: z.boolean(),
+    }),
+  ),
+  links: z.array(z.object({ source: z.string(), target: z.string(), suggested: z.boolean() })),
+})
+
+// Materials are still mock data (src/api/materi.ts). Their links to topics are kept here for the signed-in graph.
+const materialsByTopic = new Map<string, string[]>()
+
+function encodeId(id: string): string {
+  return encodeURIComponent(id)
+}
 
 // Mock data until the backend exists. Renames are kept in memory and reset on reload.
 // Positions come from the mockup (docs/design/html/02-learning-desktop.html), in world units.
@@ -118,11 +148,40 @@ const graph: TopicGraph = {
 
 // Returns copies so callers cannot mutate the stored graph directly.
 export async function fetchTopicGraph(): Promise<TopicGraph> {
+  if (usesServer()) {
+    const data = graphSchema.parse(await apiRequest('GET', '/api/topics'))
+    return {
+      topics: data.topics.map((topic) => ({
+        id: topic.id,
+        name: topic.name,
+        lastScore: topic.lastScore,
+        unlocked: topic.unlocked,
+        pendingSuggestion: topic.pendingSuggestion,
+        // The backend does not count conversations per topic yet. The UI does not show this value.
+        conversationCount: 0,
+        materials: [...(materialsByTopic.get(topic.id) ?? [])],
+        initialX: topic.x,
+        initialY: topic.y,
+      })),
+      links: data.links.map((link) => ({ source: link.source, target: link.target, suggested: link.suggested })),
+    }
+  }
   return structuredClone(graph)
 }
 
 // Quiz scores update the topic status (docs/role.md 4.1). A missing topic is ignored: quizzes can exist without one.
 export async function recordTopicScore(topicId: string, percent: number): Promise<void> {
+  if (usesServer()) {
+    try {
+      await apiRequest('POST', `/api/topics/${encodeId(topicId)}/scores`, { percent })
+    } catch (error) {
+      // Quizzes can exist without a topic, so a missing topic is ignored here too.
+      if (!(error instanceof ApiError && error.status === 404)) {
+        throw error
+      }
+    }
+    return
+  }
   const topic = graph.topics.find((item) => item.id === topicId)
   if (topic) {
     topic.lastScore = percent
@@ -131,6 +190,10 @@ export async function recordTopicScore(topicId: string, percent: number): Promis
 
 export async function renameTopic(topicId: string, name: string): Promise<void> {
   const trimmed = name.trim()
+  if (usesServer()) {
+    await apiRequest('PATCH', `/api/topics/${encodeId(topicId)}`, { name: trimmed })
+    return
+  }
   if (isTopicNameTaken(graph.topics, trimmed, topicId)) {
     throw new Error('Nama sudah dipakai bulat lain.')
   }
@@ -144,6 +207,9 @@ export async function renameTopic(topicId: string, name: string): Promise<void> 
 // Creates a topic from a material suggestion. Returns the new topic id.
 export async function createTopic(name: string): Promise<string> {
   const trimmed = name.trim()
+  if (usesServer()) {
+    return z.object({ topic: z.object({ id: z.string() }) }).parse(await apiRequest('POST', '/api/topics', { name: trimmed })).topic.id
+  }
   if (isTopicNameTaken(graph.topics, trimmed, '')) {
     throw new Error('Nama sudah dipakai bulat lain.')
   }
@@ -175,6 +241,13 @@ export async function createTopic(name: string): Promise<string> {
 
 // Links a material title to a topic, so the topic lists it under "Materi terkait".
 export async function addTopicMaterial(topicId: string, materialTitle: string): Promise<void> {
+  if (usesServer()) {
+    const current = materialsByTopic.get(topicId) ?? []
+    if (!current.includes(materialTitle)) {
+      materialsByTopic.set(topicId, [...current, materialTitle])
+    }
+    return
+  }
   const topic = graph.topics.find((item) => item.id === topicId)
   if (!topic) {
     throw new Error('Bulat tidak ditemukan.')

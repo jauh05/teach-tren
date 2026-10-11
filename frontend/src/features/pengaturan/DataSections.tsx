@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
+import { deleteAccount } from '../../api/auth'
 import { clearConversations, fetchConversations } from '../../api/conversations'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
@@ -151,6 +152,7 @@ interface DeleteAccountValues {
 
 // Account deletion asks for the password. Data is removed within 30 days (docs/role.md 2.4).
 function DeleteAccountDialog({ open, onClose, onDeleted }: DeleteAccountDialogProps) {
+  const [serverError, setServerError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -163,7 +165,19 @@ function DeleteAccountDialog({ open, onClose, onDeleted }: DeleteAccountDialogPr
 
   function close() {
     reset()
+    setServerError(null)
     onClose()
+  }
+
+  async function confirm(values: DeleteAccountValues) {
+    setServerError(null)
+    try {
+      await deleteAccount(values.password)
+      reset()
+      onDeleted()
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : 'Terjadi kesalahan. Coba lagi.')
+    }
   }
 
   return (
@@ -172,14 +186,7 @@ function DeleteAccountDialog({ open, onClose, onDeleted }: DeleteAccountDialogPr
         Akunmu dijadwalkan dihapus. Data dihapus dalam 30 hari. Selama masa itu, akun bisa dipulihkan dengan masuk
         kembali.
       </p>
-      <form
-        noValidate
-        onSubmit={handleSubmit(() => {
-          reset()
-          onDeleted()
-        })}
-        className="mt-3 flex flex-col gap-2"
-      >
+      <form noValidate onSubmit={handleSubmit(confirm)} className="mt-3 flex flex-col gap-2">
         <label htmlFor="hapus-akun-sandi" className="text-xs font-semibold text-ink">
           Kata sandi untuk konfirmasi
         </label>
@@ -187,6 +194,11 @@ function DeleteAccountDialog({ open, onClose, onDeleted }: DeleteAccountDialogPr
         {errors.password && (
           <p role="alert" className="text-xs text-red-700">
             {errors.password.message}
+          </p>
+        )}
+        {serverError && (
+          <p role="alert" className="text-xs text-red-700">
+            {serverError}
           </p>
         )}
         <div className="mt-2 flex justify-end gap-2">

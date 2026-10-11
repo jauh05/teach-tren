@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { loginAccount, registerAccount, type AuthUser } from '../../api/auth'
 import { Button } from '../../components/ui/Button'
 import { BrandLink } from '../../components/layout/BrandLink'
 import { safeRedirect, signInSchema, signUpSchema, type SignInValues, type SignUpValues } from '../../domain/auth'
@@ -10,15 +12,15 @@ interface AuthPageProps {
   kind: 'masuk' | 'daftar'
 }
 
-// Sign-in and sign-up forms. The frontend only simulates authentication until the backend exists.
+// Sign-in and sign-up forms. They call the backend, which sets the session cookie.
 export function AuthPage({ kind }: AuthPageProps) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const signIn = useSessionStore((state) => state.signIn)
   const isSignUp = kind === 'daftar'
 
-  function finish() {
-    signIn()
+  function finish(user: AuthUser) {
+    signIn({ name: user.name, email: user.email })
     navigate(safeRedirect(params.get('redirect')), { replace: true })
   }
 
@@ -43,29 +45,36 @@ export function AuthPage({ kind }: AuthPageProps) {
           Lanjut sebagai tamu
         </Button>
       </div>
-      <p className="max-w-[380px] text-center text-xs text-muted">
-        Formulir ini hanya simulasi di tampilan. Belum terhubung ke server.
-      </p>
     </main>
   )
 }
 
-interface SignInFormProps {
-  onDone: () => void
+interface FormProps {
+  onDone: (user: AuthUser) => void
 }
 
-function SignInForm({ onDone }: SignInFormProps) {
+function SignInForm({ onDone }: FormProps) {
+  const [serverError, setServerError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: '', password: '' },
   })
 
+  async function submit(values: SignInValues) {
+    setServerError(null)
+    try {
+      onDone(await loginAccount(values))
+    } catch (error) {
+      setServerError(errorMessage(error))
+    }
+  }
+
   return (
-    <form noValidate onSubmit={handleSubmit(() => onDone())} className="flex flex-col gap-3.5">
+    <form noValidate onSubmit={handleSubmit(submit)} className="flex flex-col gap-3.5">
       <Field id="masuk-email" label="Email" type="email" autoComplete="email" error={errors.email?.message} inputProps={register('email')} />
       <Field
         id="masuk-password"
@@ -75,29 +84,40 @@ function SignInForm({ onDone }: SignInFormProps) {
         error={errors.password?.message}
         inputProps={register('password')}
       />
-      <Button type="submit" className="w-full">
+      {serverError && (
+        <p role="alert" className="text-sm text-red-700">
+          {serverError}
+        </p>
+      )}
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
         Masuk
       </Button>
     </form>
   )
 }
 
-interface SignUpFormProps {
-  onDone: () => void
-}
-
-function SignUpForm({ onDone }: SignUpFormProps) {
+function SignUpForm({ onDone }: FormProps) {
+  const [serverError, setServerError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { name: '', email: '', password: '' },
   })
 
+  async function submit(values: SignUpValues) {
+    setServerError(null)
+    try {
+      onDone(await registerAccount(values))
+    } catch (error) {
+      setServerError(errorMessage(error))
+    }
+  }
+
   return (
-    <form noValidate onSubmit={handleSubmit(() => onDone())} className="flex flex-col gap-3.5">
+    <form noValidate onSubmit={handleSubmit(submit)} className="flex flex-col gap-3.5">
       <Field id="daftar-name" label="Nama" autoComplete="name" error={errors.name?.message} inputProps={register('name')} />
       <Field id="daftar-email" label="Email" type="email" autoComplete="email" error={errors.email?.message} inputProps={register('email')} />
       <Field
@@ -108,11 +128,20 @@ function SignUpForm({ onDone }: SignUpFormProps) {
         error={errors.password?.message}
         inputProps={register('password')}
       />
-      <Button type="submit" className="w-full">
+      {serverError && (
+        <p role="alert" className="text-sm text-red-700">
+          {serverError}
+        </p>
+      )}
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
         Daftar
       </Button>
     </form>
   )
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Terjadi kesalahan. Coba lagi.'
 }
 
 interface FieldProps {

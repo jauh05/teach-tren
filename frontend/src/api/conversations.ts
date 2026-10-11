@@ -1,4 +1,7 @@
-import type { ChatMessage, Conversation } from '../domain/types'
+import { z } from 'zod'
+import type { ChatMessage, Conversation, MessageStatus } from '../domain/types'
+import { useSessionStore } from '../stores/sessionStore'
+import { ApiError, apiRequest } from './http'
 
 // Mock data until the backend exists. Replace this module with real requests later.
 interface SeedConversation {
@@ -96,6 +99,10 @@ const messageStore = new Map<string, ChatMessage[]>(
 )
 
 export async function clearConversations(): Promise<void> {
+  if (usesServer()) {
+    await apiRequest('DELETE', '/api/conversations')
+    return
+  }
   seedVisible = false
   created = []
   messageStore.clear()
@@ -108,16 +115,27 @@ export async function renameConversation(conversationId: string, title: string):
   if (trimmed === '') {
     throw new Error('Judul percakapan tidak boleh kosong.')
   }
+  if (usesServer()) {
+    await apiRequest('PATCH', `/api/conversations/${encodeId(conversationId)}`, { title: trimmed })
+    return
+  }
   renamedTitles.set(conversationId, trimmed)
 }
 
 export async function deleteConversation(conversationId: string): Promise<void> {
+  if (usesServer()) {
+    await apiRequest('DELETE', `/api/conversations/${encodeId(conversationId)}`)
+    return
+  }
   deletedIds.add(conversationId)
   messageStore.delete(conversationId)
   created = created.filter((item) => item.id !== conversationId)
 }
 
 export async function fetchConversations(now: Date = new Date()): Promise<Conversation[]> {
+  if (usesServer()) {
+    return listSchema.parse(await apiRequest('GET', '/api/conversations')).conversations
+  }
   const seeded: Conversation[] = seedVisible
     ? SEED.map((item, index) => ({
         id: item.id,
@@ -134,6 +152,17 @@ export async function fetchConversations(now: Date = new Date()): Promise<Conver
 // Returns null when the conversation has no messages stored, so the page can show "not found".
 // A streaming message left over from an earlier visit is shown as stopped.
 export async function fetchConversationMessages(conversationId: string): Promise<ChatMessage[] | null> {
+  if (usesServer()) {
+    try {
+      const detail = detailSchema.parse(await apiRequest('GET', `/api/conversations/${encodeId(conversationId)}`))
+      return detail.conversation.messages.map(toChatMessage)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return null
+      }
+      throw error
+    }
+  }
   const stored = messageStore.get(conversationId)
   if (!stored) {
     return null
@@ -150,6 +179,22 @@ export async function saveConversationMessages(
   messages: ChatMessage[],
   title?: string,
 ): Promise<void> {
+  if (usesServer()) {
+    // Empty threads are not saved, as before. The title is optional: the backend uses the first question.
+    if (messages.length === 0) {
+      return
+    }
+    await apiRequest('PUT', `/api/conversations/${encodeId(conversationId)}`, {
+      messages: messages.map((message) => ({
+        id: message.id,
+        role: message.role,
+        content: message.content,
+        status: message.status,
+      })),
+      ...(title ? { title } : {}),
+    })
+    return
+  }
   if (messages.length === 0 || deletedIds.has(conversationId)) {
     return
   }
@@ -176,6 +221,36 @@ export async function saveConversationMessages(
       updatedAt,
     },
   ]
+}
+
+// Signed-in users read and write through the backend. Guests keep their conversations on this page session only.
+function usesServer(): boolean {
+  return useSessionStore.getState().mode === 'signedIn'
+}
+
+function encodeId(id: string): string {
+  return encodeURIComponent(id)
+}
+
+const summarySchema = z.object({ id: z.string(), title: z.string(), updatedAt: z.string() })
+const listSchema = z.object({ conversations: z.array(summarySchema) })
+const detailSchema = z.object({
+  conversation: summarySchema.extend({
+    messages: z.array(
+      z.object({
+        id: z.string(),
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
+        status: z.enum(['streaming', 'done', 'stopped']),
+      }),
+    ),
+  }),
+})
+
+// A stream left over from an earlier visit cannot continue, so it is shown as stopped.
+function toChatMessage(message: z.infer<typeof detailSchema>['conversation']['messages'][number]): ChatMessage {
+  const status: MessageStatus = message.status === 'streaming' ? 'stopped' : message.status
+  return { id: message.id, role: message.role, content: message.content, status }
 }
 
 function truncateTitle(text: string): string {

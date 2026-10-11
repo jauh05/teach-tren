@@ -4,6 +4,12 @@ import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    // Requests to /api go to the backend, so the session cookie stays on the frontend's origin.
+    proxy: {
+      '/api': { target: process.env.API_PROXY_TARGET ?? 'http://localhost:3001' },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

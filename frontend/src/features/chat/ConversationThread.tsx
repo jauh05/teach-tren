@@ -97,25 +97,22 @@ export function ConversationThread({
     }
   }, [messages])
 
-  // Keep the conversation in the history store, so it survives navigation and shows in the chat list.
-  useEffect(() => {
-    void saveConversationMessages(storageId, messages, title)
-  }, [storageId, messages, title])
-
-  // Refresh the chat list once an answer has finished, not on every streamed chunk.
+  // Keep the conversation in the history, so it survives navigation and shows in the chat list.
+  // Saved once each answer has finished, not on every streamed chunk. A failed save is retried on the next change.
+  // The chat list is refreshed and a new chat changes its address only after the save is stored.
   useEffect(() => {
     if (streaming) {
       return
     }
-    void queryClient.invalidateQueries({ queryKey: ['conversations'] })
-  }, [streaming, queryClient])
-
-  // Declared after the save effect, so the first answer is stored before the address changes.
-  useEffect(() => {
-    if (!streaming && conversationId === UNSAVED_CONVERSATION_ID && messages.length > 0) {
-      navigate(`/c/${draftId}`, { replace: true })
-    }
-  }, [streaming, conversationId, messages.length, draftId, navigate])
+    saveConversationMessages(storageId, messages, title)
+      .then(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['conversations'] })
+        if (conversationId === UNSAVED_CONVERSATION_ID && messages.length > 0) {
+          navigate(`/c/${draftId}`, { replace: true })
+        }
+      })
+      .catch(() => undefined)
+  }, [storageId, messages, title, streaming, conversationId, draftId, navigate, queryClient])
 
   function runStream(assistantId: string, question: string) {
     runRef.current?.abort()
