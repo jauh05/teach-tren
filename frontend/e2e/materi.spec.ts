@@ -68,18 +68,15 @@ test.describe('Materi', () => {
     const created = page.getByRole('button', { name: /Pengantar modul-persamaan/ })
     await expect(created).toBeVisible()
 
-    // Desktop opens the topic chat from the plus button. Mobile is not checked here: the new topic is not
-    // tappable in the first view there, and that is still to be looked into (see docs/visual-report.md).
-    if (testInfo.project.name === 'desktop') {
-      const id = await created.getAttribute('data-topic-id')
-      // Topics drift slowly, so click the center of the element instead of waiting for it to stop moving.
-      const box = await page.locator(`[data-topic-action="chat"][data-topic-id="${id}"]`).boundingBox()
-      if (!box) {
-        throw new Error('Tombol chat bulat tidak terlihat')
-      }
-      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-      await expect(page.getByRole('complementary', { name: 'Chat topik' }).getByRole('heading', { name: /Pengantar modul-persamaan/ })).toBeVisible()
+    // The new topic is placed in the middle of the canvas, so the plus button can be clicked on both layouts.
+    const id = await created.getAttribute('data-topic-id')
+    // Topics drift slowly, so click the center of the element instead of waiting for it to stop moving.
+    const box = await page.locator(`[data-topic-action="chat"][data-topic-id="${id}"]`).boundingBox()
+    if (!box) {
+      throw new Error('Tombol chat bulat tidak terlihat')
     }
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    await expect(page.getByRole('complementary', { name: 'Chat topik' }).getByRole('heading', { name: /Pengantar modul-persamaan/ })).toBeVisible()
   })
 
   test('materi dikaitkan ke bulat dan tampil di topiknya', async ({ page }) => {
