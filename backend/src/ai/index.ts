@@ -14,6 +14,7 @@ export const ai = new AiService({
   },
   timeoutMs: config.AI_TIMEOUT_MS,
   maxTokens: { chat: config.AI_MAX_TOKENS_CHAT, kuis: config.AI_MAX_TOKENS_KUIS },
+  reasoningEffort: config.AI_REASONING_EFFORT,
   fetchImpl: fetch,
   mockDelayMs: config.AI_MOCK_DELAY_MS,
 })

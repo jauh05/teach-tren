@@ -38,6 +38,7 @@ function serviceWith(overrides: Partial<AiOptions>): AiService {
     chains: { chat: ['m1', 'm2'], kuis: ['k1', 'k2'], ringan: ['r1'] },
     timeoutMs: 5000,
     maxTokens: { chat: 1200, kuis: 3000 },
+    reasoningEffort: 'medium',
     fetchImpl: fetch,
     mockDelayMs: 0,
     ...overrides,

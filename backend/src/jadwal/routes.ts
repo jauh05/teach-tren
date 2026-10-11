@@ -13,7 +13,7 @@ export const jadwalRouter = Router()
 jadwalRouter.use(requireUser)
 
 // Waits for the suggestion job for at most this long. The job keeps running after a longer wait.
-const SUGGESTION_WAIT_MS = 4000
+const SUGGESTION_WAIT_MS = 12000
 
 const dateSchema = z.string().regex(DATE_PATTERN, 'Tanggal harus berformat YYYY-MM-DD.')
 

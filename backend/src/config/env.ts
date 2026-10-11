@@ -22,6 +22,8 @@ const envSchema = z.object({
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(45000),
   AI_MAX_TOKENS_CHAT: z.coerce.number().int().positive().default(1200),
   AI_MAX_TOKENS_KUIS: z.coerce.number().int().positive().default(3000),
+  // Reasoning effort sent with every live call. "low" was tested and gave identical quiz options, so medium is the default.
+  AI_REASONING_EFFORT: z.enum(['low', 'medium', 'high']).default('medium'),
   // Pause between pieces of a mock answer. Tests use zero.
   AI_MOCK_DELAY_MS: z.coerce.number().int().nonnegative().default(20),
   // Chat messages allowed per minute, per IP and per account or guest (docs/role.md CC-10).

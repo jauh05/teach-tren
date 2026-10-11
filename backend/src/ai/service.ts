@@ -41,6 +41,7 @@ export interface AiOptions {
   chains: Record<ChainName, string[]>
   timeoutMs: number
   maxTokens: { chat: number; kuis: number }
+  reasoningEffort: 'low' | 'medium' | 'high'
   fetchImpl: typeof fetch
   breaker?: CircuitBreaker
   // Pause between mock stream pieces. Tests set it to zero.
@@ -131,6 +132,7 @@ export class AiService {
             maxTokens: this.options.maxTokens.chat,
             temperature: CHAT_TEMPERATURE,
             timeoutMs: this.options.timeoutMs,
+            reasoningEffort: this.options.reasoningEffort,
             signal: request.signal,
           },
           (text) => {
@@ -160,12 +162,13 @@ export class AiService {
   }
 
   private async completeWithModel<T>(model: string, request: CompleteRequest<T>): Promise<T> {
-    const maxTokens = request.task === 'CHAT' ? this.options.maxTokens.chat : this.maxTokensForJson(request.task)
+    // JSON tasks get the larger budget. Reasoning models spend part of it before the JSON starts.
     const call = {
       model,
-      maxTokens,
+      maxTokens: request.task === 'CHAT' ? this.options.maxTokens.chat : this.options.maxTokens.kuis,
       temperature: JSON_TEMPERATURE,
       timeoutMs: this.options.timeoutMs,
+      reasoningEffort: this.options.reasoningEffort,
     }
     const first = await completeText(this.settings(), {
       ...call,
@@ -192,10 +195,6 @@ export class AiService {
       return second.value
     }
     throw new ProviderError('keluaran tidak lolos validasi', null)
-  }
-
-  private maxTokensForJson(task: AiTask): number {
-    return CHAIN_OF[task] === 'kuis' ? this.options.maxTokens.kuis : this.options.maxTokens.chat
   }
 
   private async playMock(request: StreamRequest): Promise<void> {

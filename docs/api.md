@@ -111,7 +111,7 @@ Job saran harian:
 - Jika skor dan nama topik tidak berubah sejak job terakhir, AI tidak dipanggil.
 - Saran dibuat untuk minggu ini (Senin sampai Minggu). Maksimal lima saran.
 - Jika AI gagal, tidak ada yang disimpan dan percobaan berikutnya dilakukan saat jadwal dibuka lagi.
-- Respons GET menunggu job paling lama empat detik. Jika lebih lama, job tetap berjalan di latar belakang.
+- Respons GET menunggu job paling lama dua belas detik, karena model berbayar bisa memakan sekitar sepuluh detik. Jika lebih lama, job tetap berjalan di latar belakang.
 
 ## Kesehatan server
 

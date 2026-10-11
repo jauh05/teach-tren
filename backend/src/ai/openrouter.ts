@@ -11,6 +11,7 @@ export interface ProviderCall {
   maxTokens: number
   temperature: number
   timeoutMs: number
+  reasoningEffort: 'low' | 'medium' | 'high'
   signal?: AbortSignal
 }
 
@@ -52,6 +53,7 @@ async function post(settings: ProviderSettings, call: ProviderCall, stream: bool
         messages: call.messages,
         max_tokens: call.maxTokens,
         temperature: call.temperature,
+        reasoning: { effort: call.reasoningEffort },
         stream,
       }),
       signal: requestSignal(call),
