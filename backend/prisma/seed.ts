@@ -27,7 +27,6 @@ if (!email || !password) {
             messages: {
               create: conversation.messages.map((message, position) => ({
                 id: message.id,
-                userId: user.id,
                 role: message.role,
                 content: message.content,
                 status: 'done',
