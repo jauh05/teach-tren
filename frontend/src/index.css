@@ -40,6 +40,14 @@ h3 {
   list-style: disc;
 }
 
+.markdown-body h2 {
+  margin-top: 1.25em;
+  font-family: var(--font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 .markdown-body strong {
   font-weight: 600;
 }

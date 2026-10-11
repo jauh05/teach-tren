@@ -80,6 +80,17 @@ test.describe('Jadwal', () => {
   })
 })
 
+test.describe('Default kalender', () => {
+  test('tampilan awal selalu Minggu', async ({ page }) => {
+    await page.goto('/jadwal')
+    await expect(page.getByRole('radio', { name: 'Minggu' })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.getByRole('radio', { name: 'Bulan' })).toHaveAttribute('aria-checked', 'false')
+    await page.getByRole('radio', { name: 'Bulan' }).click()
+    await page.goto('/jadwal')
+    await expect(page.getByRole('radio', { name: 'Minggu' })).toHaveAttribute('aria-checked', 'true')
+  })
+})
+
 test.describe('Kalender bulan', () => {
   test('tampilan bulan menampilkan kotak kalender enam minggu di semua layar', async ({ page }) => {
     await page.goto('/jadwal')

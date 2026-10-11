@@ -13,6 +13,7 @@ import { RequireSignedIn } from './components/auth/RequireSignedIn'
 import { PengaturanPage } from './features/pengaturan/PengaturanPage'
 import { AuthPage } from './features/auth/AuthPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { TentangPage } from './features/tentang/TentangPage'
 
 export default function App() {
   return (
@@ -37,7 +38,7 @@ export default function App() {
                 </RequireSignedIn>
               }
             />
-            <Route path="tentang" element={<PlaceholderPage title="Tentang" />} />
+            <Route path="tentang" element={<TentangPage />} />
             <Route
               path="materi"
               element={
