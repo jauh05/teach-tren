@@ -39,6 +39,26 @@ Buka `http://localhost:5173`. Aplikasi langsung masuk ke halaman Chat dalam mode
 
 Opsional: salin `.env.example` ke `frontend/.env` untuk mengubah `VITE_API_BASE_URL`. Frontend tidak boleh berisi kunci API.
 
+## Backend
+
+Backend memakai Express, Prisma, dan PostgreSQL 16 atau lebih baru. Jalankan dulu database PostgreSQL, lalu:
+
+```bash
+cd backend
+cp .env.example .env          # isi DATABASE_URL, JWT_SECRET (minimal 32 karakter), dan TEST_DATABASE_URL
+npm install
+npm run db:migrate            # membuat tabel
+npm run db:seed              # opsional: akun demo, butuh DEMO_EMAIL dan DEMO_PASSWORD di .env
+npm run dev                  # http://localhost:3001
+```
+
+Kontrak endpoint ada di `docs/api.md`. Test backend memakai database terpisah dan menolak berjalan jika namanya tidak berakhiran `_test`:
+
+```bash
+cd backend
+npm test                     # butuh TEST_DATABASE_URL di .env
+```
+
 ## Test
 
 ```bash
@@ -71,10 +91,11 @@ npm run e2e      # Playwright: desktop 1280 px dan mobile 390 px
 
 ```
 CLAUDE.md                 aturan proyek untuk pengembangan
-docs/                     dokumen acuan, pemahaman, dan selisih
+backend/                  API Express, Prisma, dan PostgreSQL (lihat docs/api.md)
+docs/                     dokumen acuan, kontrak API (api.md), pemahaman, dan selisih
 docs/design/html/        mockup HTML (14 layar)
 frontend/
-  src/api/                data mock (akan diganti API backend)
+  src/api/                data mock. Akan diganti pemanggilan ke backend
   src/domain/             aturan bisnis murni dan unit test
   src/features/           satu folder per halaman
   src/components/         komponen bersama (layout, markdown, ui)
