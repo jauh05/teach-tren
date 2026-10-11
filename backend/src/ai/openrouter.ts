@@ -100,7 +100,8 @@ export async function completeText(settings: ProviderSettings, call: ProviderCal
   })
   const content = contentOf(payload)
   if (content === null) {
-    throw new ProviderError('respons tidak berisi teks', response.status)
+    // The HTTP status is 200 here, so only the message is useful for the log.
+    throw new ProviderError('respons tidak berisi teks', null)
   }
   return content
 }

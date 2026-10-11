@@ -57,7 +57,19 @@ Pemeriksaan kunci manual pada 10 soal sampel: 8 benar, 1 salah, dan 1 ambigu.
 
 **Keputusan:** 90 detik dipertahankan untuk kuis, karena keandalannya naik dari 30% ke 65% dan waktu median turun. Namun model ini belum memenuhi ambang, baik untuk keandalan maupun untuk kunci.
 
-**Usulan berikutnya (belum dikerjakan):** satu percobaan ulang untuk batch yang gagal. Jika peluang satu batch berhasil 65%, dua percobaan memberi peluang sekitar 88% per batch. Biayanya hanya muncul saat gagal. Ini perubahan perilaku dan perlu persetujuan.
+### Putaran 3: percobaan ulang dan perbaikan prompt verifikasi (aplikasi, bukan uji 7.4)
+
+Uji langsung di aplikasi, dengan enam kuis 10 soal berurutan dan bank dikosongkan setiap kali. Ini mengukur kuis utuh, bukan batch.
+
+- **Percobaan ulang batch:** batch yang gagal dicoba sekali lagi, selama masih ada cukup waktu untuk satu percobaan penuh (sebelum 150 detik).
+- **Verifikasi kunci:** 2 dari 8 keluaran sebelumnya berisi satu objek tanpa kunci `hasil`. Prompt sekarang mewajibkan `hasil` dengan satu entri per soal, dan `jawabanBenar` selalu diisi. Setelah perbaikan, 8 dari 8 keluaran berbentuk benar.
+- **Pesan alasan:** respons kosong sekarang tercatat sebagai "respons tidak berisi teks", bukan "HTTP 200". Kegagalan validasi juga mencatat error skema.
+
+**Hasil:** 5 dari 6 kuis 10 soal berhasil. Sebelum percobaan ulang dan perbaikan prompt, pengujian serupa berhasil 0 dari 5. Sampelnya kecil, jadi ini indikasi, bukan kepastian.
+
+Kegagalan yang tersisa tercatat sebagai: bukan JSON (2), tidak lolos validasi (2), timeout (1), dan respons kosong (1).
+
+**Risiko yang belum ditangani:** circuit breaker menghitung tiga kegagalan berturut-turut sebagai alasan mendinginkan model selama 10 menit. Karena rantai saat ini hanya punya satu model, selama pendinginan chat dan kuis sama-sama gagal. Pengujian ini tidak memicu pendinginan, tetapi risikonya nyata. Keputusan ambang atau perilaku pendinginan perlu persetujuan.
 
 ### Putaran 1: batas waktu 45 detik
 

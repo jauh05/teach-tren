@@ -210,6 +210,62 @@ describe('pembuatan soal dengan AI (jalur live, dengan respons tiruan)', () => {
       generateQuiz(service, { sourceKey: 'baru', topicName: 'Baru', subject: 'Matematika', level: 'Mudah', style: 'Campuran', count: 5, userId: null, mock: false }),
     ).rejects.toThrow('Layanan belajar sedang sibuk')
   })
+
+  it('batch yang gagal sekali dicoba lagi, dan kuis tetap jadi', async () => {
+    const calls: string[] = []
+    let quizCalls = 0
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as { messages: { content: string }[] }
+      if (body.messages[0].content.includes('Kamu membuat kumpulan soal')) {
+        quizCalls += 1
+        calls.push('KUIS')
+        if (quizCalls === 1) {
+          return new Response('{}', { status: 503 })
+        }
+        return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(batch()) } }] }), { status: 200 })
+      }
+      calls.push('VERIFIKASI')
+      const hasil = [1, 2, 3, 4].map((nomor) => ({ nomor, benar: true, jawabanBenar: 'B' }))
+      return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ hasil }) } }] }), { status: 200 })
+    }) as unknown as typeof fetch
+    const service = new AiService({
+      mode: 'live',
+      apiKey: 'kunci-uji',
+      baseUrl: 'https://model.uji',
+      chains: { chat: ['m'], kuis: ['m'], ringan: ['m'] },
+      timeoutMs: { chat: 5000, kuis: 5000, ringan: 5000 },
+      maxTokens: { chat: 1200, kuis: 3000 },
+      reasoningEffort: { chat: 'low', kuis: 'medium', ringan: 'low' },
+      fetchImpl,
+      mockDelayMs: 0,
+    })
+    const quiz = await generateQuiz(service, { sourceKey: 'uji-ulang', topicName: 'Uji ulang', subject: 'Matematika', level: 'Sedang', style: 'Campuran', count: 5, userId: null, mock: false })
+    expect(quiz.questions).toHaveLength(5)
+    expect(calls).toEqual(['KUIS', 'KUIS', 'VERIFIKASI'])
+  })
+
+  it('batch yang gagal dua kali berhenti setelah dua kali mencoba', async () => {
+    let quizCalls = 0
+    const fetchImpl = (async () => {
+      quizCalls += 1
+      return new Response('{}', { status: 503 })
+    }) as unknown as typeof fetch
+    const service = new AiService({
+      mode: 'live',
+      apiKey: 'kunci-uji',
+      baseUrl: 'https://model.uji',
+      chains: { chat: ['m'], kuis: ['m'], ringan: ['m'] },
+      timeoutMs: { chat: 5000, kuis: 5000, ringan: 5000 },
+      maxTokens: { chat: 1200, kuis: 3000 },
+      reasoningEffort: { chat: 'low', kuis: 'medium', ringan: 'low' },
+      fetchImpl,
+      mockDelayMs: 0,
+    })
+    await expect(
+      generateQuiz(service, { sourceKey: 'uji-gagal-dua', topicName: 'Uji', subject: 'Matematika', level: 'Sedang', style: 'Campuran', count: 5, userId: null, mock: false }),
+    ).rejects.toThrow('Layanan belajar sedang sibuk')
+    expect(quizCalls).toBe(2)
+  })
 })
 
 void z

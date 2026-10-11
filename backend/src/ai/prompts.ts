@@ -145,6 +145,8 @@ export function verifyKeyPrompt(): string {
     '1. Untuk setiap soal, selesaikan sendiri dari teks soal dan stimulus jika ada. Jangan melihat kunci dari pembuat soal lebih dulu.',
     '2. Periksa apakah angka di stimulus konsisten dengan pertanyaan. Jika tidak konsisten, tandai benar false.',
     '3. Jika kunci dari pembuat sama dengan hasilmu, tandai benar true. Jika tidak, tandai benar false dan isi jawabanBenar.',
+    '4. Selalu bungkus semua hasil dalam kunci "hasil", dengan satu entri untuk setiap soal, meskipun hanya ada satu soal. Jangan keluarkan satu objek tanpa "hasil".',
+    '5. jawabanBenar selalu diisi. Jika benar, isi dengan kunci dari pembuat.',
     'SKEMA JSON',
     '{ "hasil": [ { "nomor": 1, "benar": true, "jawabanBenar": "huruf atau teks jawaban" } ] }',
     'Keluarkan HANYA JSON valid.',

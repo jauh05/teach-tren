@@ -202,6 +202,11 @@ export class AiService {
     if (second.ok) {
       return second.value
     }
+    // Only the schema messages are logged (which field failed and why), never the model's text or the user's content.
+    logger.warn(
+      { task: request.task, model, firstError: parsed.error.slice(0, 300), repairError: second.error.slice(0, 300) },
+      'Keluaran AI tidak lolos validasi setelah perbaikan',
+    )
     throw new ProviderError('keluaran tidak lolos validasi', null)
   }
 

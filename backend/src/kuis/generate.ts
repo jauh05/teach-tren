@@ -16,6 +16,9 @@ const MAX_ROUNDS = 4
 const ORDER: QuestionKind[] = ['PG', 'CERITA', 'ISIAN', 'ESAI']
 // Only math and science keys are checked a second time (docs/role.md CC-07, rule 7).
 const CHECKED_SUBJECTS = ['Matematika', 'IPA']
+// A failed batch is tried once more, but only if one more full attempt still fits in the quiz request.
+// The request allows five minutes (kuis/routes.ts) and one attempt can take up to 90 seconds.
+const RETRY_BEFORE_MS = 150_000
 
 export interface GenerateParams {
   sourceKey: string
@@ -57,9 +60,10 @@ export async function generateQuiz(ai: AiService, params: GenerateParams): Promi
     needed[kind] -= rows.length
   }
 
+  const startedAt = Date.now()
   for (let round = 0; round < MAX_ROUNDS && total(needed) > 0; round++) {
     const batchKinds = takeBatch(needed)
-    const saved = await generateBatch(ai, params, batchKinds)
+    const saved = await generateBatchWithRetry(ai, params, batchKinds, startedAt)
     for (const item of saved) {
       picked.push(item.question)
       if (item.stimulus) {
@@ -77,6 +81,18 @@ export async function generateQuiz(ai: AiService, params: GenerateParams): Promi
 
 function total(counts: Record<QuestionKind, number>): number {
   return ORDER.reduce((sum, kind) => sum + counts[kind], 0)
+}
+
+// Runs one batch. If the AI fails and there is still time, the same batch is asked once more.
+async function generateBatchWithRetry(ai: AiService, params: GenerateParams, kinds: Record<QuestionKind, number>, startedAt: number) {
+  try {
+    return await generateBatch(ai, params, kinds)
+  } catch (error) {
+    if (!(error instanceof AiUnavailableError) || Date.now() - startedAt >= RETRY_BEFORE_MS) {
+      throw error
+    }
+    return generateBatch(ai, params, kinds)
+  }
 }
 
 // Up to five questions from the remaining counts, in form order.
