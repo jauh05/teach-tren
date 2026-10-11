@@ -123,9 +123,14 @@ async function keyUsage(): Promise<number | null> {
   if (dryRun) {
     return null
   }
-  const response = await fetch(`${baseUrl}/auth/key`, { headers: { Authorization: `Bearer ${apiKey}` } })
-  const body = (await response.json()) as { data?: { usage?: number } }
-  return body.data?.usage ?? null
+  // A failed check must not stop the test. The spending figure is left empty for that model instead.
+  try {
+    const response = await fetch(`${baseUrl}/auth/key`, { headers: { Authorization: `Bearer ${apiKey}` } })
+    const body = (await response.json()) as { data?: { usage?: number } }
+    return body.data?.usage ?? null
+  } catch {
+    return null
+  }
 }
 
 async function runModel(model: string): Promise<CallResult[]> {
@@ -208,8 +213,9 @@ function sampleFor(questions: Question[]): Question[] {
   const random = seededRandom(SAMPLE_SEED)
   const picked: Question[] = []
   for (const [subject, quota] of Object.entries(SAMPLE_QUOTA)) {
-    // Only questions with a key can be checked (essays are graded by rubric).
-    const pool = questions.filter((question) => question.subject === subject && question.kunci !== null)
+    // Only choice and fill-in questions with a key can be checked. Essays are graded by rubric, and the model may
+    // send an empty string as their key, so the type is checked as well.
+    const pool = questions.filter((question) => question.subject === subject && question.tipe !== 'ESAI' && question.kunci !== null && question.kunci !== '')
     const copy = [...pool]
     for (let index = 0; index < quota && copy.length > 0; index++) {
       const at = Math.floor(random() * copy.length)
@@ -229,6 +235,16 @@ function percentile(values: number[], p: number): number {
 
 const report: Record<string, unknown> = { dryRun, startedAt: new Date().toISOString(), models: {} }
 const samples: Record<string, Question[]> = {}
+
+// Written after every model, so a failure later does not lose the answers already received.
+function save(): void {
+  if (!outDir) {
+    return
+  }
+  mkdirSync(outDir, { recursive: true })
+  writeFileSync(join(outDir, 'model-eval-raw.json'), JSON.stringify(report, null, 2))
+  writeFileSync(join(outDir, 'model-eval-sampel.json'), JSON.stringify(samples, null, 2))
+}
 
 for (const model of MODELS) {
   const before = await keyUsage()
@@ -253,12 +269,7 @@ for (const model of MODELS) {
       results,
     },
   }
-}
-
-if (outDir) {
-  mkdirSync(outDir, { recursive: true })
-  writeFileSync(join(outDir, 'model-eval-raw.json'), JSON.stringify(report, null, 2))
-  writeFileSync(join(outDir, 'model-eval-sampel.json'), JSON.stringify(samples, null, 2))
+  save()
 }
 
 // Summary without the raw answers, so it stays readable in the terminal.

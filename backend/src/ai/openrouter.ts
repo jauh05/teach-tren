@@ -88,7 +88,17 @@ export function contentOf(payload: unknown): string | null {
 
 export async function completeText(settings: ProviderSettings, call: ProviderCall): Promise<string> {
   const response = await post(settings, call, false)
-  const content = contentOf(await response.json().catch(() => null))
+  const payload = await response.json().catch((error: unknown) => {
+    // Reading the body can hit the same timeout as the request. That is a timeout, not an empty answer.
+    if (call.signal?.aborted) {
+      throw error
+    }
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new ProviderError('timeout', null)
+    }
+    return null
+  })
+  const content = contentOf(payload)
   if (content === null) {
     throw new ProviderError('respons tidak berisi teks', response.status)
   }
