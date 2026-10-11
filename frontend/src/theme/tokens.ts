@@ -36,4 +36,5 @@ export const layout = {
   detailPanelWidth: '320px',
   legendWidth: '156px',
   memoryPanelWidth: '200px',
+  chatPanelWidth: '360px',
 } as const

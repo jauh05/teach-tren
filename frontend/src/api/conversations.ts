@@ -70,35 +70,92 @@ const MESSAGE_SEED: Record<string, SeedMessage[]> = {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
+const TITLE_MAX_LENGTH = 60
 
-// Set by clearConversations. Stays for the rest of the page session.
-let historyCleared = false
+// Seed conversations stay listed until the user clears the history.
+let seedVisible = true
+
+// Conversations created during this page session, for example a chat opened from a topic on Learning.
+let created: Conversation[] = []
+
+// Messages of every known conversation, keyed by conversation id.
+const messageStore = new Map<string, ChatMessage[]>(
+  Object.entries(MESSAGE_SEED).map(([conversationId, messages]) => [
+    conversationId,
+    messages.map((message, index) => ({
+      id: `${conversationId}-${index}`,
+      role: message.role,
+      content: message.content,
+      status: 'done' as const,
+    })),
+  ]),
+)
 
 export async function clearConversations(): Promise<void> {
-  historyCleared = true
+  seedVisible = false
+  created = []
+  messageStore.clear()
 }
 
 export async function fetchConversations(now: Date = new Date()): Promise<Conversation[]> {
-  if (historyCleared) {
-    return []
-  }
-  return SEED.map((item, index) => ({
-    id: item.id,
-    title: item.title,
-    // Small offsets keep the order stable between items on the same day.
-    updatedAt: new Date(now.getTime() - item.daysAgo * DAY_MS - index * MINUTE_MS).toISOString(),
-  }))
+  const seeded: Conversation[] = seedVisible
+    ? SEED.map((item, index) => ({
+        id: item.id,
+        title: item.title,
+        // Small offsets keep the order stable between items on the same day.
+        updatedAt: new Date(now.getTime() - item.daysAgo * DAY_MS - index * MINUTE_MS).toISOString(),
+      }))
+    : []
+  return [...seeded, ...created.map((item) => ({ ...item }))]
 }
 
-// Returns null when the conversation does not exist, so the page can show "not found".
+// Returns null when the conversation has no messages stored, so the page can show "not found".
+// A streaming message left over from an earlier visit is shown as stopped.
 export async function fetchConversationMessages(conversationId: string): Promise<ChatMessage[] | null> {
-  if (!Object.hasOwn(MESSAGE_SEED, conversationId)) {
+  const stored = messageStore.get(conversationId)
+  if (!stored) {
     return null
   }
-  return MESSAGE_SEED[conversationId].map((message, index) => ({
-    id: `${conversationId}-${index}`,
-    role: message.role,
-    content: message.content,
-    status: 'done',
-  }))
+  return structuredClone(stored).map((message) =>
+    message.status === 'streaming' ? { ...message, status: 'stopped' } : message,
+  )
+}
+
+// Saves the messages of a conversation. The first save creates it in the history list.
+// Empty threads are not saved, so an unused topic does not appear in the history.
+export async function saveConversationMessages(
+  conversationId: string,
+  messages: ChatMessage[],
+  title?: string,
+): Promise<void> {
+  if (messages.length === 0) {
+    return
+  }
+  messageStore.set(conversationId, structuredClone(messages))
+
+  const isSeeded = seedVisible && SEED.some((item) => item.id === conversationId)
+  if (isSeeded) {
+    return
+  }
+
+  const updatedAt = new Date().toISOString()
+  const existing = created.find((item) => item.id === conversationId)
+  if (existing) {
+    existing.updatedAt = updatedAt
+    return
+  }
+
+  const firstQuestion = messages.find((message) => message.role === 'user')?.content ?? 'Percakapan baru'
+  created = [
+    ...created,
+    {
+      id: conversationId,
+      title: title ?? truncateTitle(firstQuestion),
+      updatedAt,
+    },
+  ]
+}
+
+function truncateTitle(text: string): string {
+  return text.length > TITLE_MAX_LENGTH ? `${text.slice(0, TITLE_MAX_LENGTH - 1)}…` : text
 }

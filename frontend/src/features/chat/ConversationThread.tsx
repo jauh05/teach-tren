@@ -1,5 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query'
+import clsx from 'clsx'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { saveConversationMessages } from '../../api/conversations'
 import { createMockAnswer } from '../../api/mockAnswer'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { ChatMessage } from '../../domain/types'
@@ -9,11 +12,20 @@ import { MessageBubble } from './MessageBubble'
 import { NextStepsCard } from './NextStepsCard'
 import { splitIntoChunks, streamChunks } from './streaming'
 
+// The home page sends new chats to this id. Those chats are not saved under it.
+const UNSAVED_CONVERSATION_ID = 'baru'
+
 interface ConversationThreadProps {
   conversationId: string
   initialMessages: ChatMessage[]
-  // Set when the page opens with a first question (from the home page or a learning node).
+  // Set when the page opens with a first question (from the home page).
   initialQuestion?: string
+  // Title used when the conversation is first saved. Defaults to the first question.
+  title?: string
+  // Shown while the conversation has no messages.
+  emptyText?: string
+  // Narrow layout for the side panel on Learning.
+  compact?: boolean
 }
 
 interface InitialState {
@@ -38,11 +50,19 @@ function buildInitialState(initialMessages: ChatMessage[], initialQuestion?: str
 }
 
 // One conversation: messages, streaming answers, and the composer.
-export function ConversationThread({ conversationId, initialMessages, initialQuestion }: ConversationThreadProps) {
+export function ConversationThread({
+  conversationId,
+  initialMessages,
+  initialQuestion,
+  title,
+  emptyText,
+  compact = false,
+}: ConversationThreadProps) {
   const [initial] = useState(() => buildInitialState(initialMessages, initialQuestion))
   const [messages, setMessages] = useState<ChatMessage[]>(initial.messages)
   const [streaming, setStreaming] = useState(initial.streamingId !== null)
   const [draft, setDraft] = useState('')
+  const queryClient = useQueryClient()
   const isGuest = useSessionStore((state) => state.mode === 'guest')
   const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
   // Guests who used both free actions cannot send. Their composer stays locked.
@@ -68,6 +88,22 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
       node.scrollTop = node.scrollHeight
     }
   }, [messages])
+
+  // Keep the conversation in the history store, so it survives navigation and shows in the chat list.
+  useEffect(() => {
+    if (conversationId === UNSAVED_CONVERSATION_ID) {
+      return
+    }
+    void saveConversationMessages(conversationId, messages, title)
+  }, [conversationId, messages, title])
+
+  // Refresh the chat list once an answer has finished, not on every streamed chunk.
+  useEffect(() => {
+    if (streaming || conversationId === UNSAVED_CONVERSATION_ID) {
+      return
+    }
+    void queryClient.invalidateQueries({ queryKey: ['conversations'] })
+  }, [streaming, conversationId, queryClient])
 
   function runStream(assistantId: string, question: string) {
     runRef.current?.abort()
@@ -148,7 +184,8 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-[820px] flex-col gap-3.5 px-4 py-6 md:px-7">
+        <div className={clsx('mx-auto flex flex-col gap-3.5', compact ? 'px-3 py-4' : 'max-w-[820px] px-4 py-6 md:px-7')}>
+          {messages.length === 0 && emptyText && <p className="text-sm text-muted">{emptyText}</p>}
           {messages.map((message) => (
             <MessageBubble
               key={message.id}
@@ -162,7 +199,7 @@ export function ConversationThread({ conversationId, initialMessages, initialQue
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[820px] px-4 pb-4 md:px-7">
+      <div className={clsx('mx-auto w-full', compact ? 'px-3 pb-3' : 'max-w-[820px] px-4 pb-4 md:px-7')}>
         <Composer
           locked={limitReached}
           value={draft}

@@ -1,8 +1,15 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { expectNoHorizontalScroll, visibleOnly } from './helpers'
 
+const DESKTOP_NAV = 'Navigasi utama'
+const MOBILE_NAV = 'Navigasi bawah'
+
 function topic(page: Page, id: string) {
   return page.locator(`[data-topic-id="${id}"][role="button"]`)
+}
+
+function topicChat(page: Page) {
+  return page.getByRole('complementary', { name: 'Chat topik' })
 }
 
 // Topics breathe (idle drift), so Playwright's click() would wait for a stable box. Click the center instead.
@@ -89,34 +96,94 @@ test.describe('Learning', () => {
     expect(Math.abs((reloaded?.y ?? 0) - (initial?.y ?? 0))).toBeLessThan(2)
   })
 
-  test('ketuk bulat membuka panel detail dan mulai chat dari panel', async ({ page }) => {
+  test('nama bulat tidak saling menabrak', async ({ page }) => {
+    await page.goto('/learning')
+    await page.waitForTimeout(800)
+
+    const overlaps = await page.evaluate(() => {
+      const groups = Array.from(document.querySelectorAll<SVGGElement>('[data-topic-id][role="button"]'))
+      const boxes = groups.map((group) => {
+        const rects = Array.from(group.querySelectorAll('text')).map((text) => text.getBoundingClientRect())
+        const left = Math.min(...rects.map((rect) => rect.left))
+        const right = Math.max(...rects.map((rect) => rect.right))
+        const top = Math.min(...rects.map((rect) => rect.top))
+        const bottom = Math.max(...rects.map((rect) => rect.bottom))
+        return { id: group.dataset.topicId ?? '', left, right, top, bottom }
+      })
+      const pairs: string[] = []
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i]
+          const b = boxes[j]
+          const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left)
+          const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
+          if (overlapX > 1 && overlapY > 1) {
+            pairs.push(`${a.id}/${b.id}`)
+          }
+        }
+      }
+      return pairs
+    })
+
+    expect(overlaps).toEqual([])
+  })
+
+  test('ketuk bulat membuka chat topik', async ({ page }) => {
     await page.goto('/learning')
     await clickCenter(page, topic(page, 'persamaan-linear'))
 
-    const panel = page.getByRole('complementary', { name: 'Detail bulat' })
+    const panel = topicChat(page)
     await expect(panel.getByRole('heading', { name: 'Persamaan linear' })).toBeVisible()
-    await expect(panel.getByText('72')).toBeVisible()
-
-    await panel.getByRole('button', { name: 'Mulai chat' }).click()
-    await expect(page).toHaveURL(/\/c\/baru$/)
+    await expect(panel.getByText('Bagaimana cara menyelesaikan persamaan 2x + 3000 = 11000?')).toBeVisible()
+    await expectNoHorizontalScroll(page)
   })
 
-  test('tombol plus membuka chat dengan konteks topik', async ({ page }) => {
+  test('chat topik yang dikirim muncul di riwayat chat umum', async ({ page }, testInfo) => {
+    await page.goto('/learning')
+    await clickCenter(page, topic(page, 'fungsi-kuadrat'))
+
+    const panel = topicChat(page)
+    await panel.getByRole('textbox', { name: 'Tulis pertanyaan' }).fill('Apa itu fungsi kuadrat?')
+    await panel.getByRole('textbox', { name: 'Tulis pertanyaan' }).press('Enter')
+    await expect(panel.getByRole('button', { name: 'Kirim pesan' })).toBeVisible({ timeout: 15_000 })
+
+    // On phones the chat sheet covers the bottom navigation, so close it first.
+    if (testInfo.project.name === 'mobile') {
+      await panel.getByRole('button', { name: 'Tutup chat topik' }).click()
+    }
+
+    // Client-side navigation keeps the in-memory conversation store.
+    const nav = page.getByRole('navigation', { name: testInfo.project.name === 'desktop' ? DESKTOP_NAV : MOBILE_NAV })
+    await nav.getByRole('link', { name: 'Chat' }).click()
+    if (testInfo.project.name === 'mobile') {
+      await visibleOnly(page.getByRole('button', { name: 'Buka riwayat' })).click()
+      await expect(page.getByRole('dialog', { name: 'Riwayat percakapan' }).getByRole('link', { name: 'Fungsi kuadrat' })).toBeVisible()
+      return
+    }
+    await expect(page.getByRole('navigation', { name: 'Riwayat percakapan' }).getByRole('link', { name: 'Fungsi kuadrat' })).toBeVisible()
+  })
+
+  test('tombol plus membuka chat topik', async ({ page }) => {
     await page.goto('/learning')
     await clickCenter(page, page.locator('[data-topic-action="chat"][data-topic-id="bilangan"]'))
 
-    await expect(page).toHaveURL(/\/c\/baru$/)
-    await expect(page.getByText('Jelaskan Bilangan')).toBeVisible()
+    await expect(topicChat(page).getByRole('heading', { name: 'Bilangan' })).toBeVisible()
   })
 
-  test('panah berpindah antar bulat dan Enter membuka detail', async ({ page }) => {
+  test('panah berpindah antar bulat dan Enter membuka chat topik', async ({ page }) => {
     await page.goto('/learning')
     await topic(page, 'persamaan-linear').focus()
     await page.keyboard.press('ArrowLeft')
     await expect(topic(page, 'bilangan')).toBeFocused()
 
     await page.keyboard.press('Enter')
-    await expect(page.getByRole('heading', { name: 'Bilangan' })).toBeVisible()
+    await expect(topicChat(page).getByRole('heading', { name: 'Bilangan' })).toBeVisible()
+  })
+
+  test('desktop menampilkan panel kosong sebelum bulat dipilih', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'panel kanan hanya di layar 768px ke atas')
+    await page.goto('/learning')
+    await expect(page.getByText('Pilih bulat di kanvas untuk membuka percakapan tentang topik itu.')).toBeVisible()
   })
 
   test('legenda tampil di desktop dan dibuka dari tombol di mobile', async ({ page }, testInfo) => {

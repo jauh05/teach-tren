@@ -45,7 +45,7 @@ const ARROW_DIRECTIONS: Record<string, Direction> = {
 type Gesture =
   | { kind: 'none' }
   | { kind: 'pan'; start: Point; view: View; moved: boolean }
-  | { kind: 'node'; id: string; start: Point; moved: boolean; chat: boolean }
+  | { kind: 'node'; id: string; start: Point; moved: boolean }
   | { kind: 'pinch'; startDistance: number; startMid: Point; startView: View }
 
 interface TopicCanvasProps {
@@ -53,17 +53,17 @@ interface TopicCanvasProps {
   links: TopicLink[]
   selectedId: string | null
   onSelect: (id: string | null) => void
-  onStartChat: (topic: Topic) => void
 }
 
 // Pan, zoom, drag, and tap canvas for topics. Positions are not saved (docs/role.md 4.1).
-export function TopicCanvas({ topics, links, selectedId, onSelect, onStartChat }: TopicCanvasProps) {
+export function TopicCanvas({ topics, links, selectedId, onSelect }: TopicCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useElementSize(containerRef)
   // Layout starts from the topics on mount. Later data changes (renames, statuses) keep the same positions.
   const [layoutInput] = useState(() => ({
     nodes: topics.map((topic) => ({
       id: topic.id,
+      name: topic.name,
       radius: topicVisualOf(topicStatusOf(topic)).radius,
       x: topic.initialX,
       y: topic.initialY,
@@ -149,7 +149,6 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onStartChat }
           id,
           start: point,
           moved: false,
-          chat: target.closest('[data-topic-action="chat"]') !== null,
         }
         return
       }
@@ -211,14 +210,8 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onStartChat }
         endDrag(gesture.id)
         setDraggingId(null)
       } else if (!cancelled) {
-        if (gesture.chat) {
-          const topic = topics.find((item) => item.id === gesture.id)
-          if (topic) {
-            onStartChat(topic)
-          }
-        } else {
-          onSelect(gesture.id)
-        }
+        // Tapping a topic or its plus button opens that topic's chat.
+        onSelect(gesture.id)
       }
       gestureRef.current = { kind: 'none' }
       return

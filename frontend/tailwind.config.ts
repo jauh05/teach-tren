@@ -20,6 +20,7 @@ const config: Config = {
         'detail-panel': layout.detailPanelWidth,
         legend: layout.legendWidth,
         'memory-panel': layout.memoryPanelWidth,
+        'chat-panel': layout.chatPanelWidth,
       },
     },
   },

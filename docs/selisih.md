@@ -66,3 +66,7 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 58 | Riwayat chat tingkat lanjut | Tidak ada di mockup | Cari judul, ganti nama, dan hapus per percakapan (CC-05) | Belum dikerjakan. Hanya hapus semua riwayat di Pengaturan | Terbuka |
 | 59 | Backend dan docs/api.md | Tidak ada | Express, Prisma, PostgreSQL, OpenRouter, dan kontrak API (CLAUDE.md) | Belum dibuat. Semua data berasal dari mock di frontend | Terbuka |
 | 60 | Posisi scroll antar tab | Tidak ada di mockup | Posisi scroll dipertahankan saat berpindah tab (CC-02) | Belum dikerjakan. Setiap pindah tab mulai dari atas | Terbuka |
+| 61 | Chat di halaman Learning | Tidak ada di mockup 02 | Permintaan pengguna: chat topik di samping kanvas | Desktop: panel kanan 360px. Mobile: bottom sheet 70%. Bulat tanpa percakapan menampilkan teks kosong dengan kolom tulis | Diterapkan |
+| 62 | Ketuk bulat | Panel detail berisi materi dan tombol Mulai chat | Panel detail (bagian 4.1) | Panel detail diganti chat topik. Tombol Mulai chat dihapus karena chat sudah di panel | Diterapkan |
+| 63 | Riwayat chat topik | Tidak ada | Percakapan dari bulat tampil di riwayat chat umum | Percakapan tersimpan di store mock dan muncul di /chat setelah pesan pertama. Hilang saat reload | Terbuka |
+| 64 | Nama bulat tidak menabrak | Tata letak statis dari mockup | Nama bulat tidak boleh menabrak (permintaan pengguna) | Label diperiksa dan dipisahkan setelah simulasi selesai. Diuji e2e | Diterapkan |

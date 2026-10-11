@@ -2,9 +2,11 @@ import { forceCenter, forceCollide, forceLink, forceSimulation } from 'd3-force'
 import type { Simulation, SimulationLinkDatum, SimulationNodeDatum } from 'd3-force'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Point } from './canvasMath'
+import { resolveLabelOverlaps } from './labelLayout'
 
 export interface LayoutNodeInput {
   id: string
+  name: string
   radius: number
   x: number
   y: number
@@ -17,6 +19,7 @@ export interface LayoutLinkInput {
 
 interface SimNode extends SimulationNodeDatum {
   id: string
+  name: string
   radius: number
 }
 
@@ -36,7 +39,13 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
   const [positions, setPositions] = useState<Record<string, Point>>({})
 
   useEffect(() => {
-    const simNodes: SimNode[] = nodes.map((node) => ({ id: node.id, radius: node.radius, x: node.x, y: node.y }))
+    const simNodes: SimNode[] = nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      radius: node.radius,
+      x: node.x,
+      y: node.y,
+    }))
     const simLinks: SimLink[] = links.map((link) => ({ source: link.source, target: link.target }))
 
     const simulation = forceSimulation<SimNode>(simNodes)
@@ -57,6 +66,19 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
 
     // Settle the layout from the seed positions, then publish once after the first frame.
     simulation.tick(300)
+
+    // Push label areas apart once the layout has settled, so topic names do not overlap (docs/role.md CC-03).
+    const labelNodes = simNodes.map((node) => ({
+      x: node.x ?? 0,
+      y: node.y ?? 0,
+      radius: node.radius,
+      name: node.name,
+    }))
+    resolveLabelOverlaps(labelNodes)
+    simNodes.forEach((node, index) => {
+      node.x = labelNodes[index].x
+      node.y = labelNodes[index].y
+    })
 
     let frame = 0
     const publish = () => {
