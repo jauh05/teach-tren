@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures'
-import { expectNoHorizontalScroll, visibleOnly } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu } from './helpers'
 
 // Correct letters for the five mock questions (src/api/quizzes.ts).
 const CORRECT = ['B', 'A', 'B', 'A', 'C']
@@ -73,10 +73,7 @@ test.describe('Kuis', () => {
 
   test('tamu tidak melihat pembahasan', async ({ page }) => {
     await page.goto('/chat')
-    await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
-    await page.getByRole('menuitem', { name: 'Keluar' }).click()
-    // Signing out finishes before the page moves on, so wait for it.
-    await expect(page).toHaveURL(/\/chat$/)
+    await signOutFromMenu(page)
 
     await page.goto('/kuis/persamaan-linear')
     await answer(page, 'A')

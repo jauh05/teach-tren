@@ -1,12 +1,10 @@
 import { expect, test, type Page } from './fixtures'
-import { expectNoHorizontalScroll, visibleOnly } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu } from './helpers'
 
 // Switches the app to guest mode through the avatar menu, the same way a signed-in user would.
 async function signOut(page: Page) {
   await page.goto('/chat')
-  await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
-  await page.getByRole('menuitem', { name: 'Keluar' }).click()
-  await expect(page).toHaveURL(/\/chat$/)
+  await signOutFromMenu(page)
 }
 
 // Sends one message and waits until the answer has finished streaming.

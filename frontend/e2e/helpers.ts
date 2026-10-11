@@ -12,3 +12,14 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
 export function visibleOnly(locator: Locator): Locator {
   return locator.filter({ visible: true })
 }
+
+// Signs out from the avatar menu and waits until the server has ended the session and issued a new guest id.
+// On a page that stays on /chat a URL check passes at once, so it cannot tell when the sign-out is done.
+export async function signOutFromMenu(page: Page): Promise<void> {
+  const logout = page.waitForResponse((response) => response.url().endsWith('/api/auth/logout'))
+  const guestSession = page.waitForResponse((response) => response.url().endsWith('/api/guest/session'))
+  await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
+  await page.getByRole('menuitem', { name: 'Keluar' }).click()
+  await logout
+  await guestSession
+}

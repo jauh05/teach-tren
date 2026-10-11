@@ -1,5 +1,5 @@
 import { expect, test, type Page } from './fixtures'
-import { expectNoHorizontalScroll } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu } from './helpers'
 
 async function answerChoice(page: Page, letter: string, next: string) {
   await page.getByRole('button', { name: `Pilihan ${letter}` }).click()
@@ -133,8 +133,7 @@ test.describe('Kuis lanjutan', () => {
 
   test('tamu tidak bisa memilih jumlah soal selain lima', async ({ page }) => {
     await page.goto('/chat')
-    await page.getByRole('button', { name: 'Menu akun' }).locator('visible=true').click()
-    await page.getByRole('menuitem', { name: 'Keluar' }).click()
+    await signOutFromMenu(page)
 
     await page.goto('/kuis/persamaan-linear/atur')
     await expect(page.getByRole('radiogroup', { name: 'Jumlah soal' }).getByRole('radio', { name: '20' })).toBeDisabled()

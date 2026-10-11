@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { expectNoHorizontalScroll, visibleOnly } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu, visibleOnly } from './helpers'
 
 test.describe('Jadwal', () => {
   test('menampilkan jadwal minggu ini dan Ingatan AI sesuai layar', async ({ page }, testInfo) => {
@@ -63,8 +63,7 @@ test.describe('Jadwal', () => {
 
   test('tamu melihat contoh jadwal tanpa aksi', async ({ page }, testInfo) => {
     await page.goto('/chat')
-    await page.getByRole('button', { name: 'Menu akun' }).locator('visible=true').click()
-    await page.getByRole('menuitem', { name: 'Keluar' }).click()
+    await signOutFromMenu(page)
 
     await page.goto('/jadwal')
     await expect(page.getByText('Ini contoh jadwal.')).toBeVisible()

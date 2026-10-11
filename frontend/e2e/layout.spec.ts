@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures'
-import { expectNoHorizontalScroll, visibleOnly } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu, visibleOnly } from './helpers'
 
 const DESKTOP_NAV = 'Navigasi utama'
 const MOBILE_NAV = 'Navigasi bawah'
@@ -51,10 +51,8 @@ test.describe('app shell', () => {
 
   test('keluar mengubah status menjadi tamu', async ({ page }) => {
     await page.goto('/chat')
-    await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
-    await page.getByRole('menuitem', { name: 'Keluar' }).click()
+    await signOutFromMenu(page)
 
-    await expect(page).toHaveURL(/\/chat$/)
     await expect(page.locator('header:visible').getByText('Tamu')).toBeVisible()
 
     await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()

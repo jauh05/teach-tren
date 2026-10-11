@@ -1,11 +1,9 @@
 import { expect, test, type Page } from './fixtures'
-import { expectNoHorizontalScroll, visibleOnly } from './helpers'
+import { expectNoHorizontalScroll, signOutFromMenu, visibleOnly } from './helpers'
 
 async function signOut(page: Page) {
   await page.goto('/chat')
-  await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
-  await page.getByRole('menuitem', { name: 'Keluar' }).click()
-  await expect(page).toHaveURL(/\/chat$/)
+  await signOutFromMenu(page)
 }
 
 test.describe('Pengaturan', () => {
@@ -35,7 +33,10 @@ test.describe('Pengaturan', () => {
 
   test('pilihan belajar tetap tersimpan setelah muat ulang', async ({ page }) => {
     await page.goto('/pengaturan')
+    // A reload would cancel the save, so wait until the server has stored the choice.
+    const saved = page.waitForResponse((response) => response.url().endsWith('/api/pengaturan/preferensi') && response.request().method() === 'PUT')
     await page.getByRole('radio', { name: '20', exact: true }).click()
+    await saved
     await expect(page.getByRole('radio', { name: '20', exact: true })).toHaveAttribute('aria-checked', 'true')
 
     await page.reload()
