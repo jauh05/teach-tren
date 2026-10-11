@@ -140,3 +140,46 @@ export async function renameTopic(topicId: string, name: string): Promise<void> 
   }
   topic.name = trimmed
 }
+
+// Creates a topic from a material suggestion. Returns the new topic id.
+export async function createTopic(name: string): Promise<string> {
+  const trimmed = name.trim()
+  if (isTopicNameTaken(graph.topics, trimmed, '')) {
+    throw new Error('Nama sudah dipakai bulat lain.')
+  }
+  const slug = trimmed
+    .toLocaleLowerCase('id-ID')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  let id = slug || 'topik-baru'
+  let suffix = 2
+  while (graph.topics.some((topic) => topic.id === id)) {
+    id = `${slug}-${suffix}`
+    suffix += 1
+  }
+  // New topics appear in a free area around the center of the seed layout.
+  const index = graph.topics.length
+  graph.topics.push({
+    id,
+    name: trimmed,
+    lastScore: null,
+    unlocked: true,
+    pendingSuggestion: false,
+    conversationCount: 0,
+    materials: [],
+    initialX: 150 + ((index * 73) % 260),
+    initialY: 60 + ((index * 97) % 240),
+  })
+  return id
+}
+
+// Links a material title to a topic, so the topic lists it under "Materi terkait".
+export async function addTopicMaterial(topicId: string, materialTitle: string): Promise<void> {
+  const topic = graph.topics.find((item) => item.id === topicId)
+  if (!topic) {
+    throw new Error('Bulat tidak ditemukan.')
+  }
+  if (!topic.materials.includes(materialTitle)) {
+    topic.materials.push(materialTitle)
+  }
+}

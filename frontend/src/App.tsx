@@ -14,6 +14,7 @@ import { PengaturanPage } from './features/pengaturan/PengaturanPage'
 import { AuthPage } from './features/auth/AuthPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { TentangPage } from './features/tentang/TentangPage'
+import { MateriPage } from './features/materi/MateriPage'
 
 export default function App() {
   return (
@@ -43,7 +44,7 @@ export default function App() {
               path="materi"
               element={
                 <RequireSignedIn>
-                  <PlaceholderPage title="Materi" />
+                  <MateriPage />
                 </RequireSignedIn>
               }
             />
