@@ -41,7 +41,7 @@ Setiap item di `links`: `source`, `target`, `suggested`.
 | --- | --- | --- | --- |
 | GET | `/api/conversations` | - | 200 `{ conversations: [{ id, title, updatedAt }] }`, terbaru di atas |
 | GET | `/api/conversations/:id` | - | 200 `{ conversation: { id, title, updatedAt, messages } }` |
-| PUT | `/api/conversations/:id` | `title` (1 sampai 120 karakter), `messages` (maksimal 500 pesan) | 200 `{ conversation }`. Membuat atau memperbarui, dan mengganti seluruh pesan |
+| PUT | `/api/conversations/:id` | `messages` (maksimal 500 pesan), `title` (opsional, 1 sampai 120 karakter) | 200 `{ conversation }`. Membuat atau memperbarui, dan mengganti seluruh pesan. Tanpa `title`, percakapan baru memakai pertanyaan pertama dan percakapan lama mempertahankan judulnya |
 | PATCH | `/api/conversations/:id` | `title` (1 sampai 120 karakter) | 200 `{ conversation }`. Mengganti judul saja |
 | DELETE | `/api/conversations/:id` | - | 204 |
 | DELETE | `/api/conversations` | - | 204. Menghapus semua percakapan milik pengguna (Hapus semua riwayat) |

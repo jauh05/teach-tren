@@ -27,6 +27,19 @@ describe('percakapan', () => {
     expect(response.body.conversation.messages).toHaveLength(1)
   })
 
+  it('tanpa judul, percakapan baru memakai pertanyaan pertama dan judul yang sudah diganti tetap dipertahankan', async () => {
+    const agent = await registerAgent(app)
+    await agent.put('/api/conversations/baru').send({ messages: [pertanyaan] }).expect(200)
+    const created = await agent.get('/api/conversations/baru')
+    expect(created.body.conversation.title).toBe('Apa itu sel?')
+
+    await agent.patch('/api/conversations/baru').send({ title: 'Sel untuk ujian' }).expect(200)
+    await agent.put('/api/conversations/baru').send({ messages: [pertanyaan, jawaban] }).expect(200)
+    const after = await agent.get('/api/conversations/baru')
+    expect(after.body.conversation.title).toBe('Sel untuk ujian')
+    expect(after.body.conversation.messages).toHaveLength(2)
+  })
+
   it('jawaban yang masih mengalir boleh disimpan', async () => {
     const agent = await registerAgent(app)
     const streaming = { id: 'pesan-3', role: 'assistant', content: 'Sel', status: 'streaming' }

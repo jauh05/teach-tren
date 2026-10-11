@@ -19,9 +19,16 @@ const renameSchema = z.object({
 })
 
 const saveSchema = z.object({
-  title: z.string().trim().min(1, 'Judul tidak boleh kosong.').max(120, 'Judul maksimal 120 karakter.'),
+  // Optional: without a title, a new conversation takes its first question, and an existing one keeps its title.
+  title: z.string().trim().min(1, 'Judul tidak boleh kosong.').max(120, 'Judul maksimal 120 karakter.').optional(),
   messages: z.array(messageSchema).max(500, 'Percakapan maksimal 500 pesan.'),
 })
+
+const TITLE_MAX_LENGTH = 60
+
+function truncateTitle(text: string): string {
+  return text.length > TITLE_MAX_LENGTH ? `${text.slice(0, TITLE_MAX_LENGTH - 1)}…` : text
+}
 
 function toSummary(conversation: { id: string; title: string; updatedAt: Date }) {
   return { id: conversation.id, title: conversation.title, updatedAt: conversation.updatedAt.toISOString() }
@@ -63,10 +70,11 @@ conversationsRouter.put('/:id', async (req, res) => {
   const userId = userIdOf(req)
   const id = String(req.params.id)
   const conversation = await prisma.$transaction(async (tx) => {
+    const firstQuestion = input.messages.find((message) => message.role === 'user')?.content
     const saved = await tx.conversation.upsert({
       where: { userId_id: { userId, id } },
-      create: { userId, id, title: input.title },
-      update: { title: input.title },
+      create: { userId, id, title: input.title ?? truncateTitle(firstQuestion ?? 'Percakapan baru') },
+      update: input.title === undefined ? {} : { title: input.title },
     })
     await tx.message.deleteMany({ where: { userId, conversationId: id } })
     if (input.messages.length > 0) {
