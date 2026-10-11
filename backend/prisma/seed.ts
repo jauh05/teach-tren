@@ -1,6 +1,7 @@
 import { prisma } from '../src/db.js'
 import { hashPassword } from '../src/auth/password.js'
 import { seedDefaultTopics } from '../src/topics/defaultGraph.js'
+import { DEMO_CONVERSATIONS } from './demo-data.js'
 
 // Creates one demo account when DEMO_EMAIL and DEMO_PASSWORD are set. No credentials are stored in the repo.
 const email = process.env.DEMO_EMAIL?.trim().toLowerCase()
@@ -17,6 +18,25 @@ if (!email || !password) {
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ data: { name: 'Akun Demo', email, passwordHash } })
       await seedDefaultTopics(tx, user.id)
+      for (const conversation of DEMO_CONVERSATIONS) {
+        await tx.conversation.create({
+          data: {
+            userId: user.id,
+            id: conversation.id,
+            title: conversation.title,
+            messages: {
+              create: conversation.messages.map((message, position) => ({
+                id: message.id,
+                userId: user.id,
+                role: message.role,
+                content: message.content,
+                status: 'done',
+                position,
+              })),
+            },
+          },
+        })
+      }
     })
     console.log(`Akun demo dibuat: ${email}`)
   }

@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { prisma } from '../db.js'
-import { requireUser } from '../auth/requireUser.js'
+import { requireUser, userIdOf } from '../auth/requireUser.js'
 import { AppError } from '../http/errors.js'
 import { normalizeTopicName, topicNameSchema } from './names.js'
 
@@ -19,8 +19,8 @@ async function isNameTaken(userId: string, name: string, exceptId: string | null
 
 topicsRouter.get('/', async (req, res) => {
   const [topics, links] = await Promise.all([
-    prisma.topic.findMany({ where: { userId: req.userId }, orderBy: { createdAt: 'asc' } }),
-    prisma.topicLink.findMany({ where: { userId: req.userId } }),
+    prisma.topic.findMany({ where: { userId: userIdOf(req) }, orderBy: { createdAt: 'asc' } }),
+    prisma.topicLink.findMany({ where: { userId: userIdOf(req) } }),
   ])
   res.json({
     topics: topics.map((topic) => ({
@@ -38,11 +38,11 @@ topicsRouter.get('/', async (req, res) => {
 
 topicsRouter.post('/', async (req, res) => {
   const name = topicNameSchema.parse(req.body?.name)
-  if (await isNameTaken(req.userId ?? '', name, null)) {
+  if (await isNameTaken(userIdOf(req), name, null)) {
     throw new AppError(409, 'Nama bulat sudah dipakai.')
   }
   const topic = await prisma.topic.create({
-    data: { userId: req.userId ?? '', id: crypto.randomUUID(), name },
+    data: { userId: userIdOf(req), id: crypto.randomUUID(), name },
   })
   res.status(201).json({ topic: { id: topic.id, name: topic.name } })
 })
@@ -50,15 +50,15 @@ topicsRouter.post('/', async (req, res) => {
 topicsRouter.patch('/:id', async (req, res) => {
   const name = topicNameSchema.parse(req.body?.name)
   const id = String(req.params.id)
-  const topic = await prisma.topic.findUnique({ where: { userId_id: { userId: req.userId ?? '', id } } })
+  const topic = await prisma.topic.findUnique({ where: { userId_id: { userId: userIdOf(req), id } } })
   if (!topic) {
     throw new AppError(404, 'Bulat tidak ditemukan.')
   }
-  if (await isNameTaken(req.userId ?? '', name, id)) {
+  if (await isNameTaken(userIdOf(req), name, id)) {
     throw new AppError(409, 'Nama bulat sudah dipakai.')
   }
   const updated = await prisma.topic.update({
-    where: { userId_id: { userId: req.userId ?? '', id } },
+    where: { userId_id: { userId: userIdOf(req), id } },
     data: { name },
   })
   res.json({ topic: { id: updated.id, name: updated.name } })
@@ -67,7 +67,7 @@ topicsRouter.patch('/:id', async (req, res) => {
 // Records one finished quiz run and makes it the topic's latest score.
 topicsRouter.post('/:id/scores', async (req, res) => {
   const percent = percentSchema.parse(req.body?.percent)
-  const userId = req.userId ?? ''
+  const userId = userIdOf(req)
   const id = String(req.params.id)
   const topic = await prisma.topic.findUnique({ where: { userId_id: { userId, id } } })
   if (!topic) {

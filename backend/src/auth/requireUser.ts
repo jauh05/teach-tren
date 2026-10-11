@@ -11,6 +11,14 @@ declare global {
   }
 }
 
+// Returns the signed-in user's id. Only call it in routes behind requireUser.
+export function userIdOf(req: Request): string {
+  if (!req.userId) {
+    throw new AppError(401, 'Silakan masuk dulu.')
+  }
+  return req.userId
+}
+
 // Guards routes that need a signed-in user. The check happens here, on the server.
 export function requireUser(req: Request, _res: Response, next: NextFunction): void {
   const token = req.cookies?.[SESSION_COOKIE]

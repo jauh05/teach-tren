@@ -68,3 +68,32 @@ describe('percakapan', () => {
     expect(panjang.status).toBe(400)
   })
 })
+
+describe('ganti nama dan hapus riwayat', () => {
+  beforeEach(resetDatabase)
+
+  it('ganti nama mengubah judul dan membiarkan pesan', async () => {
+    const agent = await registerAgent(app)
+    await agent.put('/api/conversations/sel').send({ title: 'Sel', messages: [pertanyaan, jawaban] })
+    const response = await agent.patch('/api/conversations/sel').send({ title: 'Sel tumbuhan' })
+    expect(response.status).toBe(200)
+    expect(response.body.conversation.title).toBe('Sel tumbuhan')
+
+    const detail = await agent.get('/api/conversations/sel')
+    expect(detail.body.conversation.messages).toHaveLength(2)
+  })
+
+  it('hapus semua riwayat menghapus semua percakapan milik pengguna itu saja', async () => {
+    const owner = await registerAgent(app, 'pemilik@contoh.id')
+    await owner.put('/api/conversations/a').send({ title: 'A', messages: [pertanyaan] })
+    await owner.put('/api/conversations/b').send({ title: 'B', messages: [pertanyaan] })
+    const other = await registerAgent(app, 'lain@contoh.id')
+    await other.put('/api/conversations/c').send({ title: 'C', messages: [pertanyaan] })
+
+    await owner.delete('/api/conversations').expect(204)
+    const remaining = await owner.get('/api/conversations')
+    expect(remaining.body.conversations).toHaveLength(0)
+    const otherList = await other.get('/api/conversations')
+    expect(otherList.body.conversations).toHaveLength(1)
+  })
+})

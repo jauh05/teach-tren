@@ -17,6 +17,9 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 | POST | `/api/auth/login` | `email`, `password` | 200 `{ user }`. Salah email atau kata sandi: 401 dengan pesan yang sama |
 | POST | `/api/auth/logout` | - | 204 |
 | GET | `/api/auth/me` | - | 200 `{ user }`, atau 401 |
+| PATCH | `/api/auth/me` | `name` (1 sampai 60 karakter) | 200 `{ user }`. Email tidak bisa diubah |
+| POST | `/api/auth/password` | `currentPassword`, `newPassword` (8 sampai 72 karakter) | 204. Kata sandi lama salah: 400 |
+| DELETE | `/api/auth/me` | `password` | 204. Akun dijadwalkan dihapus dan sesi berakhir. Salah kata sandi: 400. Masuk lagi dalam 30 hari memulihkan akun |
 
 `user` berisi `id`, `name`, dan `email`. Kata sandi tidak pernah dikembalikan.
 
@@ -39,9 +42,11 @@ Setiap item di `links`: `source`, `target`, `suggested`.
 | GET | `/api/conversations` | - | 200 `{ conversations: [{ id, title, updatedAt }] }`, terbaru di atas |
 | GET | `/api/conversations/:id` | - | 200 `{ conversation: { id, title, updatedAt, messages } }` |
 | PUT | `/api/conversations/:id` | `title` (1 sampai 120 karakter), `messages` (maksimal 500 pesan) | 200 `{ conversation }`. Membuat atau memperbarui, dan mengganti seluruh pesan |
+| PATCH | `/api/conversations/:id` | `title` (1 sampai 120 karakter) | 200 `{ conversation }`. Mengganti judul saja |
 | DELETE | `/api/conversations/:id` | - | 204 |
+| DELETE | `/api/conversations` | - | 204. Menghapus semua percakapan milik pengguna (Hapus semua riwayat) |
 
-Setiap pesan: `id` (maksimal 64 karakter), `role` (`user` atau `assistant`), `content` (maksimal 20.000 karakter), `status` (`streaming`, `done`, atau `stopped`). Urutan pesan mengikuti urutan di array.
+Setiap pesan: `id` (maksimal 64 karakter, unik di dalam percakapan), `role` (`user` atau `assistant`), `content` (maksimal 20.000 karakter), `status` (`streaming`, `done`, atau `stopped`). Urutan pesan mengikuti urutan di array.
 
 ## Kesehatan server
 
@@ -49,4 +54,4 @@ Setiap pesan: `id` (maksimal 64 karakter), `role` (`user` atau `assistant`), `co
 
 ## Yang belum ada
 
-Materi, jadwal, ingatan AI, pembuatan soal oleh AI, dan batas tamu di sisi server. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
+Materi, jadwal, ingatan AI, pembuatan soal oleh AI, dan batas tamu di sisi server. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.

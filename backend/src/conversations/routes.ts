@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { prisma } from '../db.js'
-import { requireUser } from '../auth/requireUser.js'
+import { requireUser, userIdOf } from '../auth/requireUser.js'
 import { AppError } from '../http/errors.js'
 
 export const conversationsRouter = Router()
@@ -12,6 +12,10 @@ const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string().max(20000, 'Pesan maksimal 20.000 karakter.'),
   status: z.enum(['streaming', 'done', 'stopped']),
+})
+
+const renameSchema = z.object({
+  title: z.string().trim().min(1, 'Judul tidak boleh kosong.').max(120, 'Judul maksimal 120 karakter.'),
 })
 
 const saveSchema = z.object({
@@ -25,7 +29,7 @@ function toSummary(conversation: { id: string; title: string; updatedAt: Date })
 
 conversationsRouter.get('/', async (req, res) => {
   const conversations = await prisma.conversation.findMany({
-    where: { userId: req.userId },
+    where: { userId: userIdOf(req) },
     orderBy: { updatedAt: 'desc' },
   })
   res.json({ conversations: conversations.map(toSummary) })
@@ -34,7 +38,7 @@ conversationsRouter.get('/', async (req, res) => {
 conversationsRouter.get('/:id', async (req, res) => {
   const id = String(req.params.id)
   const conversation = await prisma.conversation.findUnique({
-    where: { userId_id: { userId: req.userId ?? '', id } },
+    where: { userId_id: { userId: userIdOf(req), id } },
     include: { messages: { orderBy: { position: 'asc' } } },
   })
   if (!conversation) {
@@ -56,7 +60,7 @@ conversationsRouter.get('/:id', async (req, res) => {
 // Saves the whole conversation. The messages list replaces what was stored before.
 conversationsRouter.put('/:id', async (req, res) => {
   const input = saveSchema.parse(req.body)
-  const userId = req.userId ?? ''
+  const userId = userIdOf(req)
   const id = String(req.params.id)
   const conversation = await prisma.$transaction(async (tx) => {
     const saved = await tx.conversation.upsert({
@@ -83,9 +87,28 @@ conversationsRouter.put('/:id', async (req, res) => {
   res.json({ conversation: toSummary(conversation) })
 })
 
+// Renames a conversation without touching its messages.
+conversationsRouter.patch('/:id', async (req, res) => {
+  const { title } = renameSchema.parse(req.body)
+  const userId = userIdOf(req)
+  const id = String(req.params.id)
+  const result = await prisma.conversation.updateMany({ where: { userId, id }, data: { title } })
+  if (result.count === 0) {
+    throw new AppError(404, 'Percakapan tidak ditemukan.')
+  }
+  const conversation = await prisma.conversation.findUniqueOrThrow({ where: { userId_id: { userId, id } } })
+  res.json({ conversation: toSummary(conversation) })
+})
+
+// Removes every conversation of the signed-in user (Pengaturan > Hapus semua riwayat).
+conversationsRouter.delete('/', async (req, res) => {
+  await prisma.conversation.deleteMany({ where: { userId: userIdOf(req) } })
+  res.status(204).end()
+})
+
 conversationsRouter.delete('/:id', async (req, res) => {
   const result = await prisma.conversation.deleteMany({
-    where: { userId: req.userId, id: String(req.params.id) },
+    where: { userId: userIdOf(req), id: String(req.params.id) },
   })
   if (result.count === 0) {
     throw new AppError(404, 'Percakapan tidak ditemukan.')
