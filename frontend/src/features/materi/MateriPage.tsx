@@ -34,7 +34,7 @@ export function MateriPage() {
     queryKey: ['materi'],
     queryFn: fetchMaterials,
     // Poll only while a file is still being processed.
-    refetchInterval: (query) => (query.state.data?.some((item) => item.status === 'MEMPROSES') ? 300 : false),
+    refetchInterval: (query) => (query.state.data?.some((item) => item.status === 'MEMPROSES') ? 2000 : false),
   })
   const topics = useQuery({ queryKey: ['topics'], queryFn: fetchTopicGraph })
 

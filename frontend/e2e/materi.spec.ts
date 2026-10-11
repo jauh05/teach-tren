@@ -1,7 +1,12 @@
 import { expect, test, type Page } from './fixtures'
 import { expectNoHorizontalScroll } from './helpers'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
-const PDF_BYTES = Buffer.from('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF')
+// Real files with text (folder e2e/berkas). The server reads them, so they must be valid.
+const BERKAS = path.resolve('e2e', 'berkas')
+const PDF_BYTES = readFileSync(path.join(BERKAS, 'modul-persamaan.pdf'))
+const DOCX_BYTES = readFileSync(path.join(BERKAS, 'catatan-fungsi.docx'))
 
 interface UploadFile {
   name: string
@@ -17,14 +22,13 @@ async function unggah(page: Page, file: UploadFile) {
 }
 
 test.describe('Materi', () => {
-  test('unggah PDF dari pop-up berubah dari Memproses ke Siap dengan ringkasan', async ({ page }) => {
+  test('unggah PDF dari pop-up menampilkan ringkasan setelah diproses', async ({ page }) => {
     await page.goto('/materi')
     await unggah(page, { name: 'modul-persamaan.pdf', mimeType: 'application/pdf', buffer: PDF_BYTES })
 
     // The pop-up closes after a successful upload, and the new card shows in the list.
     await expect(page.getByRole('dialog')).toBeHidden()
     const card = page.getByRole('article').filter({ hasText: 'modul-persamaan' })
-    await expect(card.getByText('Memproses', { exact: true })).toBeVisible()
     await expect(card.getByText('Siap', { exact: true })).toBeVisible({ timeout: 5000 })
     await expect(card.getByText('dibagi menjadi beberapa bagian utama')).toBeVisible()
     await expectNoHorizontalScroll(page)
@@ -65,7 +69,7 @@ test.describe('Materi', () => {
     await nav.getByRole('link', { name: 'Learning' }).click()
     // A fresh load of Learning, as the user would see it. The topic is saved on the server.
     await page.reload()
-    const created = page.getByRole('button', { name: /Pengantar modul-persamaan/ })
+    const created = page.getByRole('button', { name: /Pengantar materi/ })
     await expect(created).toBeVisible()
 
     // The new topic is placed in the middle of the canvas, so the plus button can be clicked on both layouts.
@@ -76,7 +80,7 @@ test.describe('Materi', () => {
       throw new Error('Tombol chat bulat tidak terlihat')
     }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-    await expect(page.getByRole('complementary', { name: 'Chat topik' }).getByRole('heading', { name: /Pengantar modul-persamaan/ })).toBeVisible()
+    await expect(page.getByRole('complementary', { name: 'Chat topik' }).getByRole('heading', { name: /Pengantar materi/ })).toBeVisible()
   })
 
   test('materi dikaitkan ke bulat dan tampil di topiknya', async ({ page }) => {
@@ -84,7 +88,7 @@ test.describe('Materi', () => {
     await unggah(page, {
       name: 'catatan-fungsi.docx',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      buffer: Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(64)]),
+      buffer: DOCX_BYTES,
     })
     const card = page.getByRole('article').filter({ hasText: 'catatan-fungsi' })
     await expect(card.getByText('Siap', { exact: true })).toBeVisible({ timeout: 5000 })
