@@ -216,27 +216,25 @@ test.describe('Learning tamu', () => {
     await expectNoHorizontalScroll(page)
   })
 
-  test('tamu menambah dua pola di perangkat, lalu diminta masuk', async ({ page }) => {
+  test('tamu generate sekali di perangkat, lalu diminta masuk', async ({ page }) => {
     await page.goto('/learning')
     await page.getByRole('button', { name: 'Tambah belajar pertama' }).click()
     const dialog = page.getByRole('dialog', { name: 'Tambah belajar' })
-    await dialog.getByLabel('Nama pola belajar').fill('Pecahan')
-    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
+    await dialog.getByLabel('Mau belajar apa?').fill('Aljabar linier SMA')
+    await dialog.getByRole('button', { name: 'Generate', exact: true }).click()
+    await dialog.getByRole('button', { name: 'Tambah', exact: true }).first().click()
 
-    // The next step: the AI option is open once for a guest, the finished-pattern option needs an account.
+    // The next step: the guest's AI bulat is on the device, so the options ask for an account.
     await expect(page.getByRole('dialog', { name: 'Pola berikutnya' })).toBeVisible()
     await expect(page.getByText('Masuk untuk memakai pilihan ini.').first()).toBeVisible()
-    await page.getByRole('button', { name: 'Generate pola berikutnya dengan AI' }).click()
-    await page.getByRole('button', { name: 'Tambah', exact: true }).first().click()
-    await expect(page.getByRole('dialog', { name: 'Pola berikutnya' })).toBeVisible()
     await page.getByRole('button', { name: 'Selesai', exact: true }).click()
     await expect(page.getByRole('dialog')).toBeHidden()
-    await expect(page.locator('[data-topic-id][role="button"]').filter({ hasText: 'Pecahan' }).first()).toBeVisible()
+    await expect(page.locator('[data-topic-id][role="button"][aria-label^="Penerapan Aljabar linier SMA"]')).toBeVisible()
 
-    // Two patterns are on the device. A third one needs an account.
+    // A second bulat needs an account.
     await page.getByRole('button', { name: 'Tambah belajar', exact: true }).click()
-    await expect(page.getByRole('dialog').getByText('Pola di perangkat ini sudah penuh untuk tamu.')).toBeVisible()
-    await expect(page.getByRole('dialog').getByLabel('Nama pola belajar')).toHaveCount(0)
+    await expect(page.getByRole('dialog').getByText('Masuk untuk membuat bulat lagi.')).toBeVisible()
+    await expect(page.getByRole('dialog').getByLabel('Mau belajar apa?')).toHaveCount(0)
   })
 })
 
@@ -259,7 +257,7 @@ test.describe('Materi dan ganti nama', () => {
 })
 
 test.describe('Tambah belajar', () => {
-  test('kanvas kosong menampilkan lingkaran tambah, dan pola pertama lanjut ke langkah berikutnya', async ({ page }) => {
+  test('kanvas kosong menampilkan lingkaran tambah, dan bulat dari tujuan lanjut ke langkah berikutnya', async ({ page }) => {
     // The example topics of the account are hidden for the first list answer, so the canvas is empty.
     let answered = false
     await page.route('**/api/topics', async (route) => {
@@ -273,29 +271,25 @@ test.describe('Tambah belajar', () => {
     await page.goto('/learning')
     await page.getByRole('button', { name: 'Tambah belajar pertama' }).click()
     const dialog = page.getByRole('dialog', { name: 'Tambah belajar' })
-    await dialog.getByLabel('Nama pola belajar').fill('Pecahan')
-    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
+    await dialog.getByLabel('Mau belajar apa?').fill('Pecahan')
+    await dialog.getByRole('button', { name: 'Generate', exact: true }).click()
+    await dialog.getByRole('button', { name: 'Tambah', exact: true }).first().click()
 
     // The new pattern is on the canvas, and the next step offers AI or a finished pattern.
     await expect(page.getByRole('dialog', { name: 'Pola berikutnya' })).toBeVisible()
     await page.getByRole('button', { name: 'Selesai', exact: true }).click()
     await expect(page.getByRole('dialog')).toBeHidden()
-    await expect(page.locator('[data-topic-id][role="button"]').filter({ hasText: 'Pecahan' })).toBeVisible()
+    await expect(page.locator('[data-topic-id][role="button"][aria-label^="Penerapan Pecahan"]')).toBeVisible()
   })
-
-  test('nama kosong dan nama yang sudah dipakai ditolak dengan pesan', async ({ page }) => {
+  test('tujuan kosong tidak bisa dikirim', async ({ page }) => {
     await page.goto('/learning')
     await page.getByRole('button', { name: 'Tambah belajar', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Tambah belajar' })
+    await expect(dialog.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled()
 
-    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
-    await expect(dialog.getByRole('alert')).toHaveText('Nama bulat tidak boleh kosong.')
-
-    await dialog.getByLabel('Nama pola belajar').fill('bilangan')
-    await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
-    await expect(dialog.getByRole('alert')).toHaveText('Nama bulat sudah dipakai.')
+    await dialog.getByLabel('Mau belajar apa?').fill('   ')
+    await expect(dialog.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled()
   })
-
   test('tamu melihat tombol tambah bulat yang sama dengan akun', async ({ page }) => {
     await page.goto('/chat')
     await signOutFromMenu(page)

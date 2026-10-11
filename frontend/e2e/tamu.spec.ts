@@ -40,7 +40,8 @@ test.describe('Tamu', () => {
 
     await expect(page.getByText('Untuk lanjut, daftar atau masuk dulu.')).toBeVisible()
     await expect(page.getByRole('textbox', { name: 'Tulis pertanyaan' })).toBeHidden()
-    await expect(page.getByRole('region', { name: 'Lanjutkan belajar dengan akun' })).toBeVisible()
+    // The card appears after the streamed answer is saved. Under a full parallel run that can take a few seconds.
+    await expect(page.getByRole('region', { name: 'Lanjutkan belajar dengan akun' })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByRole('button', { name: 'Daftar dulu' }).first()).toBeVisible()
     await expectNoHorizontalScroll(page)
   })
