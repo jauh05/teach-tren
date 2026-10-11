@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { ArrowRight, CircleAlert, ClipboardCheck, Eye, EyeOff, LoaderCircle, Lock, Mail, MessageSquare, Network, User, type LucideIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { ArrowRight, CircleAlert, ClipboardCheck, Eye, EyeOff, LogIn, LoaderCircle, Lock, Mail, MessageSquare, Network, User, UserPlus, type LucideIcon } from 'lucide-react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { loginAccount, registerAccount, type AuthUser } from '../../api/auth'
@@ -43,55 +43,79 @@ export function AuthPage({ kind }: AuthPageProps) {
           <BrandLink />
         </div>
 
-        <div className="w-full max-w-[400px] rounded-[18px] border border-line bg-white p-5 shadow-sm md:p-7">
-          <ModeSwitch kind={kind} />
-          <h1 className="mt-5 font-heading text-xl font-semibold text-ink">{isSignUp ? 'Daftar akun' : 'Masuk'}</h1>
-          <p className="mt-1 text-sm text-muted">
-            {isSignUp ? 'Simpan chat, kuis, dan bulat belajar kamu di satu akun.' : 'Lanjutkan belajar dari tempat terakhir kamu berhenti.'}
-          </p>
+        <div className="relative w-full max-w-[400px] overflow-hidden rounded-[22px] border border-white/80 bg-white/90 p-6 shadow-[0_30px_70px_-30px_rgba(30,64,175,0.35)] backdrop-blur-md md:p-7">
+          <div aria-hidden="true" className="absolute inset-x-8 top-0 h-1 rounded-b-full bg-brand" />
+          <div className="flex items-start gap-3.5">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
+              {isSignUp ? <UserPlus size={20} aria-hidden="true" /> : <LogIn size={20} aria-hidden="true" />}
+            </span>
+            <div className="min-w-0">
+              <h1 className="font-heading text-xl font-semibold text-ink">{isSignUp ? 'Daftar akun' : 'Masuk'}</h1>
+              <p className="mt-0.5 text-sm text-muted">
+                {isSignUp ? 'Simpan chat, kuis, dan bulat belajar kamu di satu akun.' : 'Lanjutkan belajar dari tempat terakhir kamu berhenti.'}
+              </p>
+            </div>
+          </div>
 
+          <div className="mt-6">
+            <ModeSwitch kind={kind} />
+          </div>
           <div className="mt-5">{isSignUp ? <SignUpForm onDone={finish} /> : <SignInForm onDone={finish} />}</div>
         </div>
 
-        <div className="w-full max-w-[400px] text-center">
-          <p className="text-sm text-muted">Ingin melihat-lihat dulu?</p>
-          <Button variant="secondary" className="mt-2 w-full min-h-[44px] md:min-h-[40px]" onClick={() => navigate('/chat')}>
+        <div className="w-full max-w-[400px]">
+          <div className="flex items-center gap-3 text-xs text-muted">
+            <span className="h-px flex-1 bg-line" />
+            atau
+            <span className="h-px flex-1 bg-line" />
+          </div>
+          <Button variant="secondary" className="mt-4 w-full min-h-[44px] md:min-h-[40px]" onClick={() => navigate('/chat')}>
             Lanjut sebagai tamu
             <ArrowRight size={16} aria-hidden="true" />
           </Button>
+          <p className="mt-2 text-center text-xs text-muted">Tamu bisa mencoba chat dan satu bulat dari AI tanpa masuk.</p>
         </div>
       </section>
     </main>
   )
 }
 
-// Shaded spheres that float in 3D behind the forms. Pure CSS (perspective, shading, and a slow float), so no library is
-// added. They are decoration only, and they stop moving when the user prefers reduced motion (see index.css).
-const ORBS: { size: number; left: string; top: string; depth: number; duration: number; delay: number }[] = [
-  { size: 220, left: '-6%', top: '6%', depth: -80, duration: 17, delay: 0 },
-  { size: 130, left: '58%', top: '2%', depth: 60, duration: 13, delay: 2 },
-  { size: 96, left: '40%', top: '70%', depth: -30, duration: 11, delay: 1 },
-  { size: 190, left: '82%', top: '58%', depth: 90, duration: 19, delay: 3 },
-  { size: 64, left: '10%', top: '80%', depth: 0, duration: 9, delay: 4 },
+// Line-only 3D background behind the sign-in and sign-up pages: wireframe globes that turn slowly, and a grid floor in
+// perspective. Pure CSS and decoration only. They stop moving when the user prefers reduced motion (see index.css).
+const GLOBES: { size: number; left: string; top: string; tilt: number; duration: number; delay: number }[] = [
+  { size: 260, left: '-7%', top: '2%', tilt: 16, duration: 34, delay: 0 },
+  { size: 170, left: '64%', top: '-6%', tilt: -14, duration: 26, delay: 4 },
+  { size: 120, left: '44%', top: '60%', tilt: 22, duration: 22, delay: 8 },
+  { size: 220, left: '78%', top: '54%', tilt: 6, duration: 38, delay: 2 },
 ]
+
+// Each ring is one great circle of a globe, turned around a different axis.
+const RING_TRANSFORMS = ['rotateY(0deg)', 'rotateY(45deg)', 'rotateY(90deg)', 'rotateY(135deg)', 'rotateX(90deg)', 'rotateX(60deg)']
 
 function AuthBackdrop() {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [perspective:900px]">
-      {ORBS.map((orb, index) => (
-        <span
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [perspective:1100px]">
+      <div className="auth-floor absolute inset-x-0 bottom-0 h-[52%]" />
+      {GLOBES.map((globe, index) => (
+        <div
           key={index}
-          className="auth-orb absolute rounded-full"
-          style={{
-            width: orb.size,
-            height: orb.size,
-            left: orb.left,
-            top: orb.top,
-            '--z': `${orb.depth}px`,
-            animationDuration: `${orb.duration}s`,
-            animationDelay: `-${orb.delay}s`,
-          } as React.CSSProperties}
-        />
+          className="auth-globe absolute"
+          style={
+            {
+              width: globe.size,
+              height: globe.size,
+              left: globe.left,
+              top: globe.top,
+              '--tilt': `${globe.tilt}deg`,
+              animationDuration: `${globe.duration}s`,
+              animationDelay: `-${globe.delay}s`,
+            } as CSSProperties
+          }
+        >
+          {RING_TRANSFORMS.map((transform) => (
+            <span key={transform} className="auth-ring" style={{ transform }} />
+          ))}
+        </div>
       ))}
     </div>
   )
@@ -106,7 +130,7 @@ const POINTS: { icon: LucideIcon; title: string; text: string }[] = [
 // Left side on desktop. It explains what the account is for. Hidden on mobile to keep the form first.
 function IntroPanel() {
   return (
-    <aside className="hidden flex-col justify-between bg-soft/70 px-12 py-12 md:flex">
+    <aside className="hidden flex-col justify-between bg-brand-soft/70 px-12 py-12 md:flex">
       <BrandLink />
       <div className="max-w-[420px]">
         <h2 className="font-heading text-3xl font-semibold leading-tight text-ink">Belajar lewat chat, lalu lihat kemajuanmu di bulat topik.</h2>

@@ -48,7 +48,7 @@ export function QuizSetupCards({ draft }: QuizSetupCardsProps) {
                 onClick={() => setCount(option)}
                 className={clsx(
                   'relative flex flex-col items-start gap-1 rounded-[14px] border p-4 text-left transition-colors disabled:cursor-not-allowed',
-                  selected ? 'border-brand bg-soft ring-2 ring-brand/20' : 'border-line bg-white hover:bg-slate-50',
+                  selected ? 'border-brand bg-brand-soft ring-2 ring-brand/20' : 'border-line bg-white hover:bg-slate-50',
                   isGuest && !selected && 'opacity-50',
                 )}
               >
@@ -156,13 +156,13 @@ function OptionCard({ label, hint, icon: Icon, selected, onSelect }: OptionCardP
       onClick={onSelect}
       className={clsx(
         'flex min-h-[72px] items-start gap-3 rounded-[14px] border p-3.5 text-left transition-colors',
-        selected ? 'border-brand bg-soft ring-2 ring-brand/20' : 'border-line bg-white hover:bg-slate-50',
+        selected ? 'border-brand bg-brand-soft ring-2 ring-brand/20' : 'border-line bg-white hover:bg-slate-50',
       )}
     >
       <span
         className={clsx(
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-          selected ? 'bg-brand text-white' : 'bg-soft text-brand-dark',
+          selected ? 'bg-brand text-white' : 'bg-brand-soft text-brand-dark',
         )}
       >
         <Icon size={18} aria-hidden="true" />

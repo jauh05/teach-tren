@@ -97,7 +97,7 @@ function ResultRow({ item, stimulusText }: ResultRowProps) {
           )}
           <ResultDetail item={item} />
           {item.pembahasan && (
-            <div className="rounded-lg bg-soft p-3">
+            <div className="rounded-lg bg-brand-soft p-3">
               <p className="text-xs font-semibold text-brand-dark">Pembahasan</p>
               <div className="mt-1">
                 <RichText content={item.pembahasan} />

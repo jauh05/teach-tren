@@ -117,7 +117,7 @@ export function JadwalPage() {
                   onClick={() => setView(option.value)}
                   className={clsx(
                     'px-3 py-1.5 text-xs font-semibold',
-                    view === option.value ? 'bg-soft text-brand-dark' : 'bg-white text-ink hover:bg-slate-50',
+                    view === option.value ? 'bg-brand-soft text-brand-dark' : 'bg-white text-ink hover:bg-slate-50',
                   )}
                 >
                   {option.label}

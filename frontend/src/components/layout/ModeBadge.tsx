@@ -35,6 +35,6 @@ export function ModeBadge({ compact = false }: ModeBadgeProps) {
 
   // Signed in: the first name, on mobile too. "Masuk" is the label for guests only.
   return (
-    <span className="whitespace-nowrap rounded-full bg-soft px-2.5 py-0.5 text-xs font-semibold text-brand-dark">{name.split(' ')[0]}</span>
+    <span className="whitespace-nowrap rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand-dark">{name.split(' ')[0]}</span>
   )
 }

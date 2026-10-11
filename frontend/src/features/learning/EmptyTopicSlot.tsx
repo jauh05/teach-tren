@@ -14,7 +14,7 @@ export function EmptyTopicSlot({ onAdd }: EmptyTopicSlotProps) {
       aria-label="Tambah belajar pertama"
       className="pointer-events-auto group flex flex-col items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
     >
-      <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[#94A3B8] bg-white text-brand transition-colors group-hover:border-brand group-hover:bg-soft">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[#94A3B8] bg-white text-brand transition-colors group-hover:border-brand group-hover:bg-brand-soft">
         <Plus size={26} aria-hidden="true" />
       </span>
       <span className="text-sm text-muted">Klik untuk menambahkan pola belajar</span>

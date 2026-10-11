@@ -178,7 +178,7 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
                         aria-current={active ? 'page' : undefined}
                         className={clsx(
                           'block min-w-0 flex-1 truncate rounded-lg px-2.5 py-[7px] text-[13px]',
-                          active ? 'bg-soft font-semibold text-brand-dark' : 'text-ink hover:bg-white',
+                          active ? 'bg-brand-soft font-semibold text-brand-dark' : 'text-ink hover:bg-white',
                         )}
                       >
                         {item.title}

@@ -49,7 +49,7 @@ export function TentangPage() {
         <header className="rounded-[20px] border border-line bg-white p-6 md:p-8">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start gap-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-soft">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-soft">
                 <Logo size={32} />
               </span>
               <div className="min-w-0">
@@ -168,7 +168,7 @@ function GuideCard({ id, title, icon, children }: GuideCardProps) {
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-[16px] border border-line bg-white p-5 md:p-6">
       <div className="mb-3 flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-soft text-brand-dark">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand-dark">
           <Icon size={18} aria-hidden="true" />
         </span>
         <h2 id={`${id}-title`} className="font-heading text-lg font-semibold text-ink">

@@ -54,7 +54,7 @@ export function MonthGrid({ days, monthStart, items, today, canEdit, onPlace }: 
               className={clsx(
                 'flex min-h-[64px] min-w-0 flex-col gap-1 border-b border-r border-line p-1 md:min-h-[112px] md:p-1.5',
                 index % 7 === 6 && 'border-r-0',
-                key === todayKey ? 'bg-soft/50' : inMonth ? 'bg-white' : 'bg-slate-50',
+                key === todayKey ? 'bg-brand-soft/50' : inMonth ? 'bg-white' : 'bg-slate-50',
               )}
             >
               <span

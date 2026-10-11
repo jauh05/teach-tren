@@ -58,10 +58,10 @@ export function MaterialUploadDialog({ open, onClose }: MaterialUploadDialogProp
         onDrop={handleDrop}
         className={clsx(
           'flex flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed bg-white p-6 text-center',
-          dragging ? 'border-brand bg-soft' : 'border-[#CBD5E1]',
+          dragging ? 'border-brand bg-brand-soft' : 'border-[#CBD5E1]',
         )}
       >
-        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-brand-dark">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-dark">
           <FileUp size={20} aria-hidden="true" />
         </span>
         <p className="text-sm text-ink">Seret berkas ke sini, atau pilih dari perangkatmu.</p>

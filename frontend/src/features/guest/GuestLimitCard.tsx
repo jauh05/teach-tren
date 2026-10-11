@@ -6,7 +6,7 @@ export function GuestLimitCard() {
   const navigate = useNavigate()
 
   return (
-    <section aria-label="Lanjutkan belajar dengan akun" className="self-start rounded-[14px] bg-soft p-4 md:max-w-[560px]">
+    <section aria-label="Lanjutkan belajar dengan akun" className="self-start rounded-[14px] bg-brand-soft p-4 md:max-w-[560px]">
       <h2 className="font-heading text-base font-semibold text-ink">Lanjutkan belajar dengan akun</h2>
       <p className="mt-1.5 text-[13px] leading-relaxed text-[#334155]">
         Kamu sudah memakai 2 aksi gratis di perangkat ini. Chat dan hasil kuis kamu akan dipindahkan ke akun. Tidak ada

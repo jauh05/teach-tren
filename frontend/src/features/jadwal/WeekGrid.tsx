@@ -60,7 +60,7 @@ export function WeekGrid({ days, items, today, canEdit, onAccept, onPlace }: Wee
               className={clsx(
                 'flex min-h-[460px] min-w-0 flex-col gap-1.5 border-r border-line p-2',
                 index === 6 && 'border-r-0',
-                key === todayKey ? 'bg-soft/50' : 'bg-white',
+                key === todayKey ? 'bg-brand-soft/50' : 'bg-white',
               )}
             >
               {dayItems.length > 0 ? (

@@ -19,7 +19,7 @@ export function KuisAturPage() {
       <div className="mx-auto flex w-full max-w-[760px] flex-1 flex-col gap-5 px-4 pb-4 pt-6 md:px-6">
         <header className="flex flex-col gap-3 rounded-[18px] border border-line bg-white p-5 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 rounded-full bg-soft px-2.5 py-1 text-xs font-semibold text-brand-dark">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-dark">
               <Target size={13} aria-hidden="true" />
               {sourceName}
             </p>

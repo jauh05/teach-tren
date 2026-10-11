@@ -27,7 +27,7 @@ export function TopNav() {
               aria-current={active ? 'page' : undefined}
               className={clsx(
                 'whitespace-nowrap rounded-lg px-3 py-[7px] text-[13px]',
-                active ? 'bg-soft font-semibold text-brand-dark' : 'text-muted hover:text-ink',
+                active ? 'bg-brand-soft font-semibold text-brand-dark' : 'text-muted hover:text-ink',
               )}
             >
               {tab.label}

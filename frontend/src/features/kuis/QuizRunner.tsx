@@ -299,7 +299,7 @@ export function QuizRunner({ quiz, onExit, onNewRun, onRepeat }: QuizRunnerProps
         )}
 
         {check && (check.pembahasan ? (
-          <section aria-label="Pembahasan" className="rounded-[14px] bg-soft p-3.5">
+          <section aria-label="Pembahasan" className="rounded-[14px] bg-brand-soft p-3.5">
             <h2 className="text-[13px] font-semibold text-brand-dark">Pembahasan</h2>
             <div className="mt-1 text-sm text-ink">
               <RichText content={check.pembahasan} />
