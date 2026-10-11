@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
+    "eval:model": "tsx --env-file=.env scripts/model-eval.ts",
     "postinstall": "prisma generate",
     "e2e:server": "prisma migrate deploy && tsx src/server.ts"
   },
