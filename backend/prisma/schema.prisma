@@ -93,6 +93,7 @@ model User {
   scheduleItems ScheduleItem[]
   scheduleRuns ScheduleRun[]
   bankSeen     BankSeen[]
+  preferences  UserPreference?
 }
 
 // A topic (bulat). The id is unique per user, so the same slug can exist for two accounts.
@@ -162,6 +163,19 @@ model Message {
 
   @@id([userId, conversationId, id])
   @@index([userId, conversationId, position])
+}
+
+// Study preferences of a signed-in user (docs/role.md 4.7). Defaults match the browser's first version.
+model UserPreference {
+  userId                   String  @id
+  questionCount            Int     @default(10)
+  level                    String  @default("Sedang")
+  quizStyle                String  @default("Campuran")
+  quickChoiceAfterMaterial Boolean @default(true)
+  theme                    String  @default("light")
+  reminderEnabled          Boolean @default(true)
+  reminderTime             String  @default("16:00")
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // AI actions used on this device by a guest. Guests get two actions in total (docs/role.md 2.3).
