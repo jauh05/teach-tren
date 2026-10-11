@@ -22,7 +22,7 @@ export default defineConfig({
       AUTH_ATTEMPTS_PER_15_MIN: '100000',
       AUTH_IP_PER_15_MIN: '100000',
       REGISTER_PER_HOUR: '100000',
-      SEED_EXAMPLE_TOPICS: 'true',
+      POLA_SARAN_PER_HOUR: '100000',
     },
   },
 })

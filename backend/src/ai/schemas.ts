@@ -17,3 +17,17 @@ export const scheduleSuggestionsSchema = z.object({
 })
 
 export type ScheduleSuggestions = z.infer<typeof scheduleSuggestionsSchema>
+
+export const polaSuggestionsSchema = z.object({
+  saran: z
+    .array(
+      z.object({
+        nama: z.string().min(1).max(60),
+        alasan: z.string().min(1).max(160),
+      }),
+    )
+    .min(1)
+    .max(5),
+})
+
+export type PolaSuggestions = z.infer<typeof polaSuggestionsSchema>

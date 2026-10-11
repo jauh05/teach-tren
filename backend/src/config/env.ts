@@ -34,17 +34,14 @@ const envSchema = z.object({
   QUIZ_RATE_PER_HOUR: z.coerce.number().int().positive().default(3),
   // Guest sessions one IP address may start per hour.
   GUEST_SESSION_RATE_PER_HOUR: z.coerce.number().int().positive().default(30),
+  // Pattern suggestions (AI) per account per hour.
+  POLA_SARAN_PER_HOUR: z.coerce.number().int().positive().default(20),
   // Sign-in attempts per 15 minutes for one email from one IP address, and for one IP address in total.
   // The per-email limit stops password guessing. The per-IP limit is higher, so a school network is not blocked.
   AUTH_ATTEMPTS_PER_15_MIN: z.coerce.number().int().positive().default(10),
   AUTH_IP_PER_15_MIN: z.coerce.number().int().positive().default(100),
   // Accounts one IP address may register per hour.
   REGISTER_PER_HOUR: z.coerce.number().int().positive().default(30),
-  // New accounts start with an empty canvas. Set to true to give them the nine example topics (tests and demos).
-  SEED_EXAMPLE_TOPICS: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((value) => value === 'true'),
   // Number of proxies in front of the server. Set it behind a reverse proxy, so the real client IP address is used.
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
   // Seconds an answer may take before the server gives up (docs/role.md CC-10).

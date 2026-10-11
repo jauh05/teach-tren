@@ -1,11 +1,20 @@
 import request from 'supertest'
 import { createApp } from '../src/app.js'
 import { prisma } from '../src/db.js'
+import { seedExampleGraph } from './exampleGraph.js'
 
 export const TEST_PASSWORD = 'kata-sandi-uji-123'
 
 export function createTestApp() {
   return createApp({ corsOrigin: 'http://localhost:5173' })
+}
+
+// Like registerAgent, but the account gets the example graph instead of the starter topic.
+export async function registerWithExampleGraph(app: ReturnType<typeof createTestApp>, email = 'siswa@contoh.id') {
+  const agent = await registerAgent(app, email)
+  const user = await prisma.user.findUniqueOrThrow({ where: { email } })
+  await seedExampleGraph(prisma, user.id)
+  return agent
 }
 
 // Removes all rows. Refuses to run unless the database name ends with _test, so development data is safe.

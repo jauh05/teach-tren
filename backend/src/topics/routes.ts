@@ -3,13 +3,24 @@ import { z } from 'zod'
 import { prisma } from '../db.js'
 import { requireUser, userIdOf } from '../auth/requireUser.js'
 import { AppError } from '../http/errors.js'
+import { SlidingWindowLimiter } from '../chat/rateLimit.js'
+import { config } from '../config/index.js'
 import { normalizeTopicName, topicNameSchema } from './names.js'
 import { freePosition } from './placement.js'
+import { suggestPatterns } from './saran.js'
 
 export const topicsRouter = Router()
 topicsRouter.use(requireUser)
 
 const percentSchema = z.number().int().min(0, 'Skor minimal 0.').max(100, 'Skor maksimal 100.')
+const idSchema = z.string().min(1).max(64)
+const createSchema = z.object({ name: topicNameSchema, dariId: idSchema.nullish() })
+const linkSchema = z.object({ dariId: idSchema, keId: idSchema })
+const suggestSchema = z.object({ polaId: idSchema })
+// Passing this score or more means the pattern is finished (docs/role.md 4.1).
+const FINISHED_MIN_SCORE = 80
+const SUGGEST_WINDOW_MS = 60 * 60 * 1000
+const suggestLimiter = new SlidingWindowLimiter(config.POLA_SARAN_PER_HOUR, SUGGEST_WINDOW_MS)
 
 // Returns true when another topic of the same user already has this name (case and spaces ignored).
 async function isNameTaken(userId: string, name: string, exceptId: string | null): Promise<boolean> {
@@ -41,19 +52,71 @@ topicsRouter.get('/', async (req, res) => {
   })
 })
 
+// Creates a pattern. With dariId, the new pattern follows that one (a link from it to the new pattern).
 topicsRouter.post('/', async (req, res) => {
-  const name = topicNameSchema.parse(req.body?.name)
-  if (await isNameTaken(userIdOf(req), name, null)) {
+  const input = createSchema.parse(req.body ?? {})
+  const userId = userIdOf(req)
+  if (input.dariId && !(await findOwnTopic(userId, input.dariId))) {
+    throw new AppError(404, 'Bulat asal tidak ditemukan.')
+  }
+  if (await isNameTaken(userId, input.name, null)) {
     throw new AppError(409, 'Nama bulat sudah dipakai.')
   }
-  const userId = userIdOf(req)
   const placed = await prisma.topic.findMany({ where: { userId }, select: { x: true, y: true } })
   const spot = freePosition(placed)
-  const topic = await prisma.topic.create({
-    data: { userId, id: crypto.randomUUID(), name, x: spot.x, y: spot.y },
+  const id = crypto.randomUUID()
+  await prisma.$transaction(async (tx) => {
+    await tx.topic.create({ data: { userId, id, name: input.name, x: spot.x, y: spot.y } })
+    if (input.dariId) {
+      await tx.topicLink.create({ data: { userId, sourceId: input.dariId, targetId: id, suggested: false } })
+    }
   })
-  res.status(201).json({ topic: { id: topic.id, name: topic.name } })
+  res.status(201).json({ topic: { id, name: input.name } })
 })
+
+// Links two patterns of the account: the source comes before the target.
+topicsRouter.post('/tautan', async (req, res) => {
+  const input = linkSchema.parse(req.body ?? {})
+  const userId = userIdOf(req)
+  if (input.dariId === input.keId) {
+    throw new AppError(400, 'Bulat tidak bisa dihubungkan ke dirinya sendiri.')
+  }
+  if (!(await findOwnTopic(userId, input.dariId)) || !(await findOwnTopic(userId, input.keId))) {
+    throw new AppError(404, 'Bulat tidak ditemukan.')
+  }
+  const existing = await prisma.topicLink.findUnique({
+    where: { userId_sourceId_targetId: { userId, sourceId: input.dariId, targetId: input.keId } },
+  })
+  if (existing) {
+    throw new AppError(409, 'Kedua bulat sudah terhubung.')
+  }
+  await prisma.topicLink.create({ data: { userId, sourceId: input.dariId, targetId: input.keId, suggested: false } })
+  res.status(201).json({ link: { source: input.dariId, target: input.keId, suggested: false } })
+})
+
+// Three patterns that could follow this one. Nothing is created until the user accepts one.
+topicsRouter.post('/saran', async (req, res) => {
+  const input = suggestSchema.parse(req.body ?? {})
+  const userId = userIdOf(req)
+  if (!suggestLimiter.take(userId)) {
+    throw new AppError(429, 'Saran pola sudah sering diminta. Coba lagi nanti.', 'TERLALU_CEPAT')
+  }
+  const topic = await findOwnTopic(userId, input.polaId)
+  if (!topic) {
+    throw new AppError(404, 'Bulat tidak ditemukan.')
+  }
+  const topics = await prisma.topic.findMany({ where: { userId }, select: { name: true, lastScore: true } })
+  const saran = await suggestPatterns({
+    name: topic.name,
+    existingNames: topics.map((item) => item.name),
+    completedNames: topics.filter((item) => item.lastScore !== null && item.lastScore >= FINISHED_MIN_SCORE).map((item) => item.name),
+  })
+  res.json({ saran })
+})
+
+async function findOwnTopic(userId: string, id: string) {
+  return prisma.topic.findUnique({ where: { userId_id: { userId, id } } })
+}
 
 topicsRouter.patch('/:id', async (req, res) => {
   const name = topicNameSchema.parse(req.body?.name)

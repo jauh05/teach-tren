@@ -79,29 +79,29 @@ describe('ganti kata sandi dan pembersihan token', () => {
 
 describe('akun baru', () => {
   beforeEach(resetDatabase)
-  afterEach(() => vi.unstubAllEnvs())
 
-  it('mulai dengan kanvas kosong, tanpa saran jadwal, dan bulat pertama bisa ditambah', async () => {
-    const app = await appWith({ SEED_EXAMPLE_TOPICS: 'false' })
+  it('belum punya bulat, tanpa contoh jadwal, memori, atau percakapan', async () => {
+    const app = createTestApp()
     const agent = request.agent(app)
     await agent.post('/api/auth/register').send({ name: 'Siswa Baru', email: 'baru@contoh.id', password: TEST_PASSWORD }).expect(201)
 
-    const empty = await agent.get('/api/topics').expect(200)
-    expect(empty.body.topics).toEqual([])
-    expect(empty.body.links).toEqual([])
+    const topics = await agent.get('/api/topics').expect(200)
+    expect(topics.body.topics).toEqual([])
+    expect(topics.body.links).toEqual([])
     expect((await agent.get('/api/jadwal').expect(200)).body.items).toEqual([])
     expect((await agent.get('/api/memori').expect(200)).body.entries).toEqual([])
-
-    await agent.post('/api/topics').send({ name: 'Pecahan' }).expect(201)
-    const after = await agent.get('/api/topics').expect(200)
-    expect(after.body.topics).toHaveLength(1)
-    expect(after.body.topics[0]).toMatchObject({ name: 'Pecahan', lastScore: null })
+    expect((await agent.get('/api/conversations').expect(200)).body.conversations).toEqual([])
+    expect((await agent.get('/api/materi').expect(200)).body.materials).toEqual([])
   })
 
-  it('dengan SEED_EXAMPLE_TOPICS true, akun baru mendapat sembilan bulat contoh', async () => {
-    const app = await appWith({ SEED_EXAMPLE_TOPICS: 'true' })
-    const agent = request.agent(app)
-    await agent.post('/api/auth/register').send({ name: 'Siswa Contoh', email: 'contoh@contoh.id', password: TEST_PASSWORD }).expect(201)
-    expect((await agent.get('/api/topics').expect(200)).body.topics).toHaveLength(9)
+  it('bulat pertama dibuat dengan tambah bulat, lalu bisa diganti namanya', async () => {
+    const agent = request.agent(createTestApp())
+    await agent.post('/api/auth/register').send({ name: 'Siswa Baru', email: 'ganti@contoh.id', password: TEST_PASSWORD }).expect(201)
+    const created = await agent.post('/api/topics').send({ name: 'Pecahan' }).expect(201)
+
+    await agent.patch(`/api/topics/${created.body.topic.id}`).send({ name: 'Bangun datar' }).expect(200)
+
+    const names = (await agent.get('/api/topics').expect(200)).body.topics.map((topic: { name: string }) => topic.name)
+    expect(names).toEqual(['Bangun datar'])
   })
 })

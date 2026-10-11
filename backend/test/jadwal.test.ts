@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { prisma } from '../src/db.js'
 import { refreshSuggestions } from '../src/jadwal/suggestions.js'
-import { createTestApp, registerAgent, resetDatabase } from './helpers.js'
+import { createTestApp, registerWithExampleGraph, resetDatabase } from './helpers.js'
 
 const app = createTestApp()
 
@@ -10,7 +10,7 @@ describe('jadwal', () => {
   beforeEach(resetDatabase)
 
   it('saran dari skor dan tautan bulat muncul di minggu ini', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const response = await agent.get('/api/jadwal')
     expect(response.status).toBe(200)
     const suggestions = response.body.items.filter((item: { kind: string }) => item.kind === 'SARAN')
@@ -21,7 +21,7 @@ describe('jadwal', () => {
   })
 
   it('saran diterima menjadi item latihan biasa', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const list = await agent.get('/api/jadwal')
     const suggestion = list.body.items.find((item: { title: string }) => item.title === 'Pertidaksamaan')
 
@@ -31,7 +31,7 @@ describe('jadwal', () => {
   })
 
   it('saran yang dipindah ke hari lain juga diterima', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const list = await agent.get('/api/jadwal')
     const suggestion = list.body.items.find((item: { title: string }) => item.title === 'Grafik fungsi')
     const moved = await agent.patch(`/api/jadwal/item/${suggestion.id}`).send({ date: '2026-10-31' })
@@ -40,7 +40,7 @@ describe('jadwal', () => {
   })
 
   it('saran dibuat sekali sehari', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     await agent.get('/api/jadwal')
     await agent.get('/api/jadwal')
     const user = await agent.get('/api/auth/me')
@@ -48,7 +48,7 @@ describe('jadwal', () => {
   })
 
   it('AI tidak dipanggil lagi kalau ingatan tidak berubah, dan dipanggil saat skor berubah', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const user = await agent.get('/api/auth/me')
     const userId = user.body.user.id
     await agent.get('/api/jadwal')
@@ -73,7 +73,7 @@ describe('jadwal', () => {
   })
 
   it('item baru dan tanggal yang salah ditangani', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const created = await agent.post('/api/jadwal/item').send({ date: '2026-10-12', title: 'Latihan bebas' })
     expect(created.status).toBe(201)
     expect(created.body.item.kind).toBe('LATIHAN')
@@ -84,7 +84,7 @@ describe('jadwal', () => {
   })
 
   it('memori hanya berisi topik yang punya skor, dengan status sesuai ambang', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const response = await agent.get('/api/memori')
     const byName = Object.fromEntries(response.body.entries.map((entry: { topicName: string; status: string }) => [entry.topicName, entry.status]))
     expect(byName['Bilangan']).toBe('DIKUASAI')

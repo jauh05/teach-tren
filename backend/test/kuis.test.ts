@@ -7,7 +7,7 @@ import { prisma } from '../src/db.js'
 import { generateQuiz } from '../src/kuis/generate.js'
 import { compositionFor } from '../src/kuis/composition.js'
 import { gradeEssayByKeywords, gradeFill, normalizeAnswer } from '../src/kuis/grading.js'
-import { createTestApp, registerAgent, resetDatabase } from './helpers.js'
+import { createTestApp, registerAgent, registerWithExampleGraph, resetDatabase } from './helpers.js'
 
 const app = createTestApp()
 const GUEST = '11111111-2222-4333-8444-555555555555'
@@ -107,7 +107,7 @@ describe('alur kuis', () => {
   })
 
   it('pengguna masuk: nilai disimpan ke bulat, pembahasan tampil, dan ulangi soal salah tidak mengubah skor', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const created = await agent.post('/api/kuis/generate').send({ sumberId: 'persamaan-linear', count: 5, level: 'Sedang', style: 'Campuran' })
     const quiz = created.body.quiz
     for (const item of quiz.questions) {

@@ -7,12 +7,12 @@ const app = createTestApp()
 describe('akun', () => {
   beforeEach(resetDatabase)
 
-  it('daftar membuat sesi dan memberi bulat awal', async () => {
+  it('daftar membuat sesi tanpa bulat', async () => {
     const agent = await registerAgent(app)
     const topics = await agent.get('/api/topics')
     expect(topics.status).toBe(200)
-    expect(topics.body.topics).toHaveLength(9)
-    expect(topics.body.links).toHaveLength(7)
+    expect(topics.body.topics).toHaveLength(0)
+    expect(topics.body.links).toHaveLength(0)
     const me = await agent.get('/api/auth/me')
     expect(me.body.user.email).toBe('siswa@contoh.id')
   })

@@ -57,6 +57,25 @@ export function scheduleSystemPrompt(memoryJson: string): string {
   ].join('\n')
 }
 
+// Task POLA_SARAN: suggests the patterns that follow one the user has just added.
+export function polaSuggestionSystemPrompt(contextJson: string): string {
+  return [
+    RULES,
+    '',
+    'PERAN',
+    'Kamu mengusulkan pola belajar berikutnya untuk pelajar Indonesia, dalam Bahasa Indonesia.',
+    'KONTEKS (alias, ringkas)',
+    contextJson,
+    'ATURAN',
+    '1. Usulkan 3 pola belajar yang masuk akal sesudah pola utama. Setiap pola bisa dipelajari sendiri.',
+    '2. Jangan mengulang nama yang sudah ada di daftar pola pengguna.',
+    '3. Nama pola singkat, maksimal 60 karakter. Alasan maksimal 160 karakter dan menyebut hubungannya dengan pola utama.',
+    'SKEMA JSON',
+    '{ "saran": [ { "nama": "string", "alasan": "string" } ] }',
+    'Keluarkan HANYA JSON valid.',
+  ].join('\n')
+}
+
 // P-AI-06: one repair attempt for output that failed validation (task REPAIR_JSON).
 export function repairSystemPrompt(validationError: string, previousOutput: string): string {
   return [

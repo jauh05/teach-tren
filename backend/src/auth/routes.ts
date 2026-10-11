@@ -4,7 +4,6 @@ import { SlidingWindowLimiter } from '../chat/rateLimit.js'
 import { config } from '../config/index.js'
 import { prisma } from '../db.js'
 import { AppError } from '../http/errors.js'
-import { seedDefaultTopics } from '../topics/defaultGraph.js'
 import { requireUser, userIdOf } from './requireUser.js'
 import { hashPassword, verifyPassword } from './password.js'
 import { clearSession, createRefreshToken, hashRefreshToken, issueSession, REFRESH_COOKIE, setSessionCookies } from './session.js'
@@ -67,9 +66,6 @@ authRouter.post('/register', async (req, res) => {
     const created = await tx.user.create({
       data: { name: input.name, email: input.email, passwordHash },
     })
-    if (config.SEED_EXAMPLE_TOPICS) {
-      await seedDefaultTopics(tx, created.id)
-    }
     return created
   })
   await issueSession(res, user.id)

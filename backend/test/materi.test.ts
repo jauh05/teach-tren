@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from '../src/db.js'
-import { createTestApp, registerAgent, resetDatabase } from './helpers.js'
+import { createTestApp, registerAgent, registerWithExampleGraph, resetDatabase } from './helpers.js'
 import { makeDocx, makePdf } from './materiFiles.js'
 
 const app = createTestApp()
@@ -78,7 +78,7 @@ describe('materi', () => {
   })
 
   it('materi dikaitkan ke bulat dan tampil di daftar bulat', async () => {
-    const agent = await registerAgent(app)
+    const agent = await registerWithExampleGraph(app)
     const uploaded = await agent.post('/api/materi').attach('berkas', await makeDocx(['Fungsi kuadrat adalah fungsi berderajat dua.']), 'catatan-fungsi.docx')
     const id = uploaded.body.material.id
     await waitUntilReady(agent, id)

@@ -12,6 +12,7 @@ export type AiTask =
   | 'KUIS_GENERATE'
   | 'PEMBAHASAN'
   | 'JADWAL_SARAN'
+  | 'POLA_SARAN'
   | 'KLASIFIKASI'
   | 'NILAI_ESAI'
   | 'VERIFIKASI_KUNCI'
@@ -32,6 +33,7 @@ const CHAIN_OF: Record<AiTask, ChainName> = {
   MATERI_RINGKAS: 'kuis',
   VERIFIKASI_KUNCI: 'ringan',
   JADWAL_SARAN: 'ringan',
+  POLA_SARAN: 'ringan',
   KLASIFIKASI: 'ringan',
   REPAIR_JSON: 'ringan',
   MODERASI: 'ringan',
