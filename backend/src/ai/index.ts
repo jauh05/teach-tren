@@ -12,7 +12,7 @@ export const ai = new AiService({
     kuis: parseChain(config.AI_CHAIN_KUIS),
     ringan: parseChain(config.AI_CHAIN_RINGAN),
   },
-  timeoutMs: config.AI_TIMEOUT_MS,
+  timeoutMs: { chat: config.AI_TIMEOUT_MS, kuis: config.AI_TIMEOUT_KUIS_MS, ringan: config.AI_TIMEOUT_MS },
   maxTokens: { chat: config.AI_MAX_TOKENS_CHAT, kuis: config.AI_MAX_TOKENS_KUIS },
   reasoningEffort: { chat: config.AI_EFFORT_CHAT, kuis: config.AI_EFFORT_KUIS, ringan: config.AI_EFFORT_RINGAN },
   fetchImpl: fetch,

@@ -6,8 +6,9 @@ import { requestTimeout } from '../http/timeout.js'
 import { SlidingWindowLimiter } from '../chat/rateLimit.js'
 import { answerQuestion, createQuiz, retryWrong, submitQuiz } from './service.js'
 
-// Generating a quiz can take several AI calls, so it gets more time than other requests.
-const GENERATE_TIMEOUT_MS = 180_000
+// Generating a quiz can take several AI calls one after another (two batches for ten questions, plus key checks).
+// Each quiz batch may take up to 90 seconds (AI_TIMEOUT_KUIS_MS), so the route allows five minutes.
+const GENERATE_TIMEOUT_MS = 300_000
 const quizLimiter = new SlidingWindowLimiter(config.QUIZ_RATE_PER_HOUR, 60 * 60 * 1000)
 
 // Quiz routes (docs/api.md). Both guests and signed-in users can take quizzes. The guest limits are checked on the server.

@@ -12,10 +12,11 @@ import { kuisBatchSchema } from '../src/ai/quizSchemas.js'
 import { compositionFor } from '../src/kuis/composition.js'
 
 // Same settings the app uses for quiz generation (backend/.env: AI_EFFORT_KUIS, AI_MAX_TOKENS_KUIS, AI_TIMEOUT_MS).
-const MODELS = ['openai/gpt-oss-20b', 'nvidia/nemotron-3-ultra-550b-a55b:free']
+const ALL_MODELS = ['openai/gpt-oss-20b', 'nvidia/nemotron-3-ultra-550b-a55b:free']
 const EFFORT = 'medium'
 const MAX_TOKENS = 3000
-const TIMEOUT_MS = 45000
+// Default: the app's setting for quiz calls, 90 seconds. Earlier runs used 45 seconds (see docs/model-eval.md).
+const DEFAULT_TIMEOUT_MS = 90000
 const JSON_TEMPERATURE = 0.2
 const BATCH_SIZE = 5
 const LEVEL = 'Sedang'
@@ -74,6 +75,13 @@ interface CallResult {
 const dryRun = process.argv.includes('--dry-run')
 const outFlag = process.argv.indexOf('--out')
 const outDir = outFlag > 0 ? process.argv[outFlag + 1] : null
+const timeoutFlag = process.argv.indexOf('--timeout-ms')
+const TIMEOUT_MS = timeoutFlag > 0 ? Number(process.argv[timeoutFlag + 1]) : DEFAULT_TIMEOUT_MS
+const onlyFlag = process.argv.indexOf('--only')
+const MODELS = onlyFlag > 0 ? ALL_MODELS.filter((model) => model === process.argv[onlyFlag + 1]) : ALL_MODELS
+if (MODELS.length === 0) {
+  throw new Error('--only harus berisi salah satu model uji.')
+}
 const apiKey = process.env.OPENROUTER_API_KEY ?? ''
 const baseUrl = process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1'
 

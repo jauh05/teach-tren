@@ -36,7 +36,7 @@ function serviceWith(overrides: Partial<AiOptions>): AiService {
     apiKey: 'kunci-uji',
     baseUrl: 'https://model.uji',
     chains: { chat: ['m1', 'm2'], kuis: ['k1', 'k2'], ringan: ['r1'] },
-    timeoutMs: 5000,
+    timeoutMs: { chat: 5000, kuis: 5000, ringan: 5000 },
     maxTokens: { chat: 1200, kuis: 3000 },
     reasoningEffort: { chat: 'low', kuis: 'medium', ringan: 'low' },
     fetchImpl: fetch,

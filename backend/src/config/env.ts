@@ -20,6 +20,8 @@ const envSchema = z.object({
   AI_CHAIN_KUIS: z.string().default(''),
   AI_CHAIN_RINGAN: z.string().default(''),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(45000),
+  // Quiz batches get more time. Reasoning models often need more than 45 seconds for five questions.
+  AI_TIMEOUT_KUIS_MS: z.coerce.number().int().positive().default(90000),
   AI_MAX_TOKENS_CHAT: z.coerce.number().int().positive().default(1200),
   AI_MAX_TOKENS_KUIS: z.coerce.number().int().positive().default(3000),
   // Reasoning effort per kind of task. Low saves tokens for chat. Quizzes need medium: low gave identical quiz options.

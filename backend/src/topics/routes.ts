@@ -4,6 +4,7 @@ import { prisma } from '../db.js'
 import { requireUser, userIdOf } from '../auth/requireUser.js'
 import { AppError } from '../http/errors.js'
 import { normalizeTopicName, topicNameSchema } from './names.js'
+import { freePosition } from './placement.js'
 
 export const topicsRouter = Router()
 topicsRouter.use(requireUser)
@@ -45,8 +46,11 @@ topicsRouter.post('/', async (req, res) => {
   if (await isNameTaken(userIdOf(req), name, null)) {
     throw new AppError(409, 'Nama bulat sudah dipakai.')
   }
+  const userId = userIdOf(req)
+  const placed = await prisma.topic.findMany({ where: { userId }, select: { x: true, y: true } })
+  const spot = freePosition(placed)
   const topic = await prisma.topic.create({
-    data: { userId: userIdOf(req), id: crypto.randomUUID(), name },
+    data: { userId, id: crypto.randomUUID(), name, x: spot.x, y: spot.y },
   })
   res.status(201).json({ topic: { id: topic.id, name: topic.name } })
 })

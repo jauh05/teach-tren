@@ -43,7 +43,8 @@ export interface AiOptions {
   apiKey: string
   baseUrl: string
   chains: Record<ChainName, string[]>
-  timeoutMs: number
+  // Time limit of one call, per chain. Quiz batches have their own, longer limit.
+  timeoutMs: Record<ChainName, number>
   maxTokens: { chat: number; kuis: number }
   reasoningEffort: Record<ChainName, Effort>
   fetchImpl: typeof fetch
@@ -135,7 +136,7 @@ export class AiService {
             messages: request.messages,
             maxTokens: this.options.maxTokens.chat,
             temperature: CHAT_TEMPERATURE,
-            timeoutMs: this.options.timeoutMs,
+            timeoutMs: this.options.timeoutMs.chat,
             reasoningEffort: this.options.reasoningEffort.chat,
             signal: request.signal,
           },
@@ -171,7 +172,7 @@ export class AiService {
       model,
       maxTokens: request.task === 'CHAT' ? this.options.maxTokens.chat : this.options.maxTokens.kuis,
       temperature: JSON_TEMPERATURE,
-      timeoutMs: this.options.timeoutMs,
+      timeoutMs: this.options.timeoutMs[CHAIN_OF[request.task]],
       reasoningEffort: this.options.reasoningEffort[CHAIN_OF[request.task]],
     }
     const first = await completeText(this.settings(), {

@@ -34,7 +34,34 @@ Hasil mentah (`model-eval-raw.json`) dan sampel untuk pemeriksaan kunci (`model-
 
 ## Hasil
 
-Uji terakhir dijalankan dengan `caffeinate -i` agar Mac tidak tidur. Percobaan sebelumnya terganggu oleh mode tidur (lihat catatan di bawah). Hanya hasil uji terakhir yang dipakai.
+### Putaran 2: batas waktu kuis 90 detik (gpt-oss-20b saja)
+
+Setelah putaran pertama, batas waktu panggilan kuis dinaikkan dari 45 ke 90 detik (`AI_TIMEOUT_KUIS_MS=90000`). Ini disetujui untuk mengurangi batch yang habis waktu. Uji diulang untuk gpt-oss-20b, dengan `--timeout-ms 90000`.
+
+| Ukuran | 45 detik (putaran 1) | 90 detik (putaran 2) | Ambang |
+| --- | --- | --- | --- |
+| Batch valid | 6 dari 20 (30%) | 13 dari 20 (65%) | minimal 95% |
+| Soal valid | 30 dari 100 | 65 dari 100 | |
+| Batch habis waktu | 9 | 3 | |
+| Waktu respons median | 40,6 detik | 24,0 detik | wajar |
+| Waktu respons p90 | 45 detik | 90 detik | |
+| Biaya | $0,0043 | $0,0048 | |
+
+Batas 90 detik membantu, tetapi belum cukup. Kegagalan yang tersisa: 3 batch habis waktu, 1 respons kosong, 2 bukan JSON, dan 1 batch dengan stimulus yang tidak ditemukan.
+
+Pemeriksaan kunci manual pada 10 soal sampel: 8 benar, 1 salah, dan 1 ambigu.
+- **Salah:** soal Rina membeli 5 pensil dan 3 pulpen. Hasil yang benar Rp6,10 (5×0,50 + 3×1,20), dan jawaban itu tidak ada di pilihan. Kunci model C (5,10). Bacaannya juga tidak konsisten, karena menyebut total Rp4,10 untuk pembelian lain.
+- **Ambigu:** "Kalimat mana yang paling tepat menggantikan kalimat lama". Pilihan A dan C sama-sama tepat.
+- Sisanya benar: persamaan linear (x=7 dan y=2), detritus, gaya gesek 0,3 × 49 = 14,7 N, foton 200 × 0,5 = 100, majas perbandingan, tarian Saman, dan festival.
+- Catatan kualitas: satu bacaan IPS ditulis dalam bahasa Inggris untuk mapel Bahasa Indonesia.
+
+**Keputusan:** 90 detik dipertahankan untuk kuis, karena keandalannya naik dari 30% ke 65% dan waktu median turun. Namun model ini belum memenuhi ambang, baik untuk keandalan maupun untuk kunci.
+
+**Usulan berikutnya (belum dikerjakan):** satu percobaan ulang untuk batch yang gagal. Jika peluang satu batch berhasil 65%, dua percobaan memberi peluang sekitar 88% per batch. Biayanya hanya muncul saat gagal. Ini perubahan perilaku dan perlu persetujuan.
+
+### Putaran 1: batas waktu 45 detik
+
+Uji dijalankan dengan `caffeinate -i` agar Mac tidak tidur. Percobaan sebelumnya terganggu oleh mode tidur (lihat catatan di bawah). Hanya hasil uji terakhir yang dipakai.
 
 | Ukuran | `openai/gpt-oss-20b` (berbayar) | `nvidia/nemotron-3-ultra-550b-a55b:free` (gratis) | Ambang |
 | --- | --- | --- | --- |
