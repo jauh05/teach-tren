@@ -43,6 +43,40 @@ model Material {
   @@index([userId, topicId])
 }
 
+enum ScheduleKind {
+  LATIHAN
+  ULANG
+  BARU
+  SARAN
+  ISTIRAHAT
+}
+
+// One item of the study calendar. A suggestion (SARAN) becomes a normal item once it is accepted or moved.
+model ScheduleItem {
+  id        String       @id @default(uuid())
+  userId    String
+  // Calendar date, YYYY-MM-DD.
+  date      String
+  title     String
+  kind      ScheduleKind
+  reason    String       @default("")
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+// Marks that the daily suggestion job ran for a user on a day. The memory hash lets the job skip the AI
+// when nothing changed since the last run.
+model ScheduleRun {
+  userId     String
+  runDate    String
+  memoryHash String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, runDate])
+}
+
 model User {
   id           String         @id @default(uuid())
   name         String
@@ -56,6 +90,8 @@ model User {
   conversations Conversation[]
   attempts     QuizAttempt[]
   materials    Material[]
+  scheduleItems ScheduleItem[]
+  scheduleRuns ScheduleRun[]
 }
 
 // A topic (bulat). The id is unique per user, so the same slug can exist for two accounts.

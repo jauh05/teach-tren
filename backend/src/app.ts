@@ -4,6 +4,7 @@ import express from 'express'
 import { pinoHttp } from 'pino-http'
 import { authRouter } from './auth/routes.js'
 import { chatRouter } from './chat/routes.js'
+import { jadwalRouter, memoriRouter } from './jadwal/routes.js'
 import { conversationsRouter } from './conversations/routes.js'
 import { errorHandler } from './http/errors.js'
 import { logger } from './logger.js'
@@ -31,6 +32,8 @@ export function createApp(options: AppOptions) {
   app.use('/api/conversations', conversationsRouter)
   app.use('/api/topics', topicsRouter)
   app.use('/api/materi', materiRouter)
+  app.use('/api/jadwal', jadwalRouter)
+  app.use('/api/memori', memoriRouter)
 
   app.use((_req, res) => {
     res.status(404).json({ pesan: 'Alamat tidak ditemukan.' })

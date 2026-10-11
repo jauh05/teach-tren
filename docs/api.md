@@ -91,10 +91,32 @@ Aturan:
 - Id percakapan dibuat per akun. Id yang sama dari akun lain menjadi percakapan baru milik pengguna yang sedang masuk, dan tidak membocorkan keberadaan percakapan orang lain. Ini menyimpang dari tabel CC-05 yang meminta 404.
 - Log tidak memuat isi pesan.
 
+## Jadwal dan ingatan
+
+Hanya pengguna masuk. Tamu mendapat 401 (spesifikasi CC-10 menyebut 403 HANYA_MASUK).
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| GET | `/api/jadwal` | - | 200 `{ items }`, diurutkan dari tanggal terdekat. Menjalankan job saran harian lebih dulu |
+| POST | `/api/jadwal/item` | `date` (YYYY-MM-DD), `title` (1 sampai 80 karakter), `kind` (opsional), `reason` (opsional) | 201 `{ item }` |
+| PATCH | `/api/jadwal/item/:id` | `date` atau `accept` | 200 `{ item }`. Memindah item atau menerima saran. Memindah saran juga menerimanya |
+| DELETE | `/api/jadwal/item/:id` | - | 204 |
+| GET | `/api/memori` | - | 200 `{ entries }`: topik yang punya skor, dengan status `DIKUASAI` (80 ke atas), `SEDANG` (50 sampai 79), atau `PERLU_DIULANG` (di bawah 50) |
+
+Item: `id`, `date`, `title`, `kind` (`LATIHAN`, `ULANG`, `BARU`, `SARAN`, atau `ISTIRAHAT`), `reason`.
+
+Job saran harian:
+- Dijalankan saat jadwal dibuka, paling banyak sekali per pengguna per hari.
+- Input ke AI hanya nama topik, status, dan skor. Tidak ada data pribadi.
+- Jika skor dan nama topik tidak berubah sejak job terakhir, AI tidak dipanggil.
+- Saran dibuat untuk minggu ini (Senin sampai Minggu). Maksimal lima saran.
+- Jika AI gagal, tidak ada yang disimpan dan percobaan berikutnya dilakukan saat jadwal dibuka lagi.
+- Respons GET menunggu job paling lama empat detik. Jika lebih lama, job tetap berjalan di latar belakang.
+
 ## Kesehatan server
 
 `GET /api/health` mengembalikan `{ "status": "ok" }`. Tidak butuh sesi.
 
 ## Yang belum ada
 
-Jadwal, ingatan AI, pembuatan soal oleh AI, dan penilaian kuis di server. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
+Pembuatan soal oleh AI dan penilaian kuis di server. Penghapusan akun setelah 30 hari belum berjalan otomatis. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
