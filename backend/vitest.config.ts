@@ -16,6 +16,8 @@ export default defineConfig({
       CORS_ORIGIN: 'http://localhost:5173',
       MATERI_PROCESSING_MS: '50',
       AI_MODE: 'mock',
+      AI_MOCK_DELAY_MS: '0',
+      CHAT_RATE_PER_MINUTE: '1000',
     },
   },
 })
