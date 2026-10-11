@@ -79,3 +79,4 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 71 | Chat dari beranda | Chat baru tidak tersimpan | Riwayat berisi semua chat belajar (permintaan pengguna) | Chat baru disimpan dengan id sendiri setelah jawaban pertama dan muncul di riwayat | Diterapkan |
 | 72 | Halaman Materi | Tidak ada mockup | Unggah materi dan ringkasan (bagian 4.5) | Dibuat dengan data mock. Ringkasan dan usulan topik adalah contoh. Batas 50 materi berlaku di sisi klien | Diterapkan |
 | 73 | Isian dan esai di kuis | Tidak ada | Isian dan esai dengan penilaian (CC-07) | Tampil dan dinilai di frontend. Ulangi soal salah tidak mengubah skor tersimpan | Diterapkan |
+| 74 | Tampilan Atur kuis | Tidak ada mockup | Pilihan jumlah soal, tingkat, dan gaya (bagian 4.4) | Halaman kartu dengan ikon, deskripsi, dan ringkasan kuis di bar bawah. Tidak berbentuk modal | Diterapkan |
