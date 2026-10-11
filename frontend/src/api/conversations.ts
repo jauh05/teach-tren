@@ -78,6 +78,10 @@ let seedVisible = true
 // Conversations created during this page session, for example a chat opened from a topic on Learning.
 let created: Conversation[] = []
 
+// Conversations the user removed, and titles the user changed. Seed items are kept but hidden or renamed here.
+const deletedIds = new Set<string>()
+const renamedTitles = new Map<string, string>()
+
 // Messages of every known conversation, keyed by conversation id.
 const messageStore = new Map<string, ChatMessage[]>(
   Object.entries(MESSAGE_SEED).map(([conversationId, messages]) => [
@@ -95,6 +99,22 @@ export async function clearConversations(): Promise<void> {
   seedVisible = false
   created = []
   messageStore.clear()
+  deletedIds.clear()
+  renamedTitles.clear()
+}
+
+export async function renameConversation(conversationId: string, title: string): Promise<void> {
+  const trimmed = title.trim()
+  if (trimmed === '') {
+    throw new Error('Judul percakapan tidak boleh kosong.')
+  }
+  renamedTitles.set(conversationId, trimmed)
+}
+
+export async function deleteConversation(conversationId: string): Promise<void> {
+  deletedIds.add(conversationId)
+  messageStore.delete(conversationId)
+  created = created.filter((item) => item.id !== conversationId)
 }
 
 export async function fetchConversations(now: Date = new Date()): Promise<Conversation[]> {
@@ -107,6 +127,8 @@ export async function fetchConversations(now: Date = new Date()): Promise<Conver
       }))
     : []
   return [...seeded, ...created.map((item) => ({ ...item }))]
+    .filter((item) => !deletedIds.has(item.id))
+    .map((item) => ({ ...item, title: renamedTitles.get(item.id) ?? item.title }))
 }
 
 // Returns null when the conversation has no messages stored, so the page can show "not found".
@@ -128,7 +150,7 @@ export async function saveConversationMessages(
   messages: ChatMessage[],
   title?: string,
 ): Promise<void> {
-  if (messages.length === 0) {
+  if (messages.length === 0 || deletedIds.has(conversationId)) {
     return
   }
   messageStore.set(conversationId, structuredClone(messages))

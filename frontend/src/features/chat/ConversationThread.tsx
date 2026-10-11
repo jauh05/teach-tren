@@ -71,6 +71,9 @@ export function ConversationThread({
   const runRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  // A new chat is saved under its own id, so it shows in the history as soon as the first answer exists.
+  const [draftId] = useState(() => crypto.randomUUID())
+  const storageId = conversationId === UNSAVED_CONVERSATION_ID ? draftId : conversationId
 
   useEffect(() => {
     if (initial.streamingId !== null && initialQuestion) {
@@ -91,19 +94,23 @@ export function ConversationThread({
 
   // Keep the conversation in the history store, so it survives navigation and shows in the chat list.
   useEffect(() => {
-    if (conversationId === UNSAVED_CONVERSATION_ID) {
-      return
-    }
-    void saveConversationMessages(conversationId, messages, title)
-  }, [conversationId, messages, title])
+    void saveConversationMessages(storageId, messages, title)
+  }, [storageId, messages, title])
 
   // Refresh the chat list once an answer has finished, not on every streamed chunk.
   useEffect(() => {
-    if (streaming || conversationId === UNSAVED_CONVERSATION_ID) {
+    if (streaming) {
       return
     }
     void queryClient.invalidateQueries({ queryKey: ['conversations'] })
-  }, [streaming, conversationId, queryClient])
+  }, [streaming, queryClient])
+
+  // Declared after the save effect, so the first answer is stored before the address changes.
+  useEffect(() => {
+    if (!streaming && conversationId === UNSAVED_CONVERSATION_ID && messages.length > 0) {
+      navigate(`/c/${draftId}`, { replace: true })
+    }
+  }, [streaming, conversationId, messages.length, draftId, navigate])
 
   function runStream(assistantId: string, question: string) {
     runRef.current?.abort()
@@ -192,10 +199,10 @@ export function ConversationThread({
               message={message}
               onCopy={() => void copy(message.content)}
               onRegenerate={() => regenerate(message.id)}
-              onCreateQuiz={() => navigate(`/kuis/${conversationId}`)}
+              onCreateQuiz={() => navigate(`/kuis/${storageId}`)}
             />
           ))}
-          {showNextSteps && <NextStepsCard conversationId={conversationId} />}
+          {showNextSteps && <NextStepsCard conversationId={storageId} />}
         </div>
       </div>
 

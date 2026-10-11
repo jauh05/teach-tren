@@ -63,7 +63,7 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 55 | Halaman Pengaturan untuk tamu | Tamu melihat tombol Masuk dan Daftar (bagian 4.7) | Tamu diarahkan ke Masuk dengan parameter redirect (CC-01) | Diterapkan. Setelah masuk, kembali ke Pengaturan | Diterapkan |
 | 56 | Mode gelap | Ditandai segera hadir | Segera hadir (bagian 4.7) | Pilihan nonaktif dengan label Segera hadir | Diterapkan |
 | 57 | Halaman Tentang dan Materi | Tidak ada mockup | Halaman Tentang dari docs/tentang.md, Materi dengan unggah berkas (bagian 4.5, 4.6, CC-09) | Hanya placeholder. Tidak termasuk sembilan langkah frontend | Terbuka |
-| 58 | Riwayat chat tingkat lanjut | Tidak ada di mockup | Cari judul, ganti nama, dan hapus per percakapan (CC-05) | Belum dikerjakan. Hanya hapus semua riwayat di Pengaturan | Terbuka |
+| 58 | Riwayat chat tingkat lanjut | Tidak ada di mockup | Cari judul, ganti nama, dan hapus per percakapan (CC-05) | Cari judul, ganti nama, dan hapus per percakapan dengan konfirmasi. Diuji e2e | Diterapkan |
 | 59 | Backend dan docs/api.md | Tidak ada | Express, Prisma, PostgreSQL, OpenRouter, dan kontrak API (CLAUDE.md) | Belum dibuat. Semua data berasal dari mock di frontend | Terbuka |
 | 60 | Posisi scroll antar tab | Tidak ada di mockup | Posisi scroll dipertahankan saat berpindah tab (CC-02) | Belum dikerjakan. Setiap pindah tab mulai dari atas | Terbuka |
 | 61 | Chat di halaman Learning | Tidak ada di mockup 02 | Permintaan pengguna: chat topik di samping kanvas | Desktop: panel kanan 360px. Mobile: bottom sheet 70%. Bulat tanpa percakapan menampilkan teks kosong dengan kolom tulis | Diterapkan |
@@ -76,3 +76,4 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 68 | Tampilan bulan di mobile | Hanya agenda harian | Permintaan pengguna: tampilan bulan dan tombol Minggu/Bulan di mobile | Grid bulan di mobile dengan titik warna per item. Tombol Minggu/Bulan sama dengan desktop | Diterapkan |
 | 69 | Halaman Tentang | Tidak ada mockup | Panduan dari docs/tentang.md, bisa diubah tanpa kode (bagian 4.6) | Panduan dari src/content/tentang.md (ditampilkan lewat Markdown). Dapat dibuka tamu | Diterapkan |
 | 70 | Tampilan awal kalender | Minggu | Minggu | Selalu Minggu saat halaman dibuka. Dikunci dengan tes e2e | Diterapkan |
+| 71 | Chat dari beranda | Chat baru tidak tersimpan | Riwayat berisi semua chat belajar (permintaan pengguna) | Chat baru disimpan dengan id sendiri setelah jawaban pertama dan muncul di riwayat | Diterapkan |
