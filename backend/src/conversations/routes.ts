@@ -95,6 +95,65 @@ conversationsRouter.put('/:id', async (req, res) => {
   res.json({ conversation: toSummary(conversation) })
 })
 
+// Guest history carried over after signing in (docs/role.md CC-05). At most two conversations, each only once.
+const importSchema = z.object({
+  percakapan: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(64),
+        title: z.string().trim().min(1).max(120),
+        messages: z
+          .array(
+            z.object({
+              id: z.string().min(1).max(64),
+              role: z.enum(['user', 'assistant']),
+              content: z.string().max(20000),
+              status: z.enum(['done', 'stopped', 'streaming']),
+            }),
+          )
+          .max(500),
+      }),
+    )
+    .max(2, 'Impor riwayat tamu paling banyak dua percakapan.'),
+})
+
+// Importing twice does not duplicate anything: a conversation that already exists is skipped.
+conversationsRouter.post('/import', async (req, res) => {
+  const input = importSchema.parse(req.body)
+  const userId = userIdOf(req)
+  const result = await prisma.$transaction(async (tx) => {
+    let imported = 0
+    let skipped = 0
+    for (const conversation of input.percakapan) {
+      const existing = await tx.conversation.findUnique({ where: { userId_id: { userId, id: conversation.id } } })
+      if (existing) {
+        skipped += 1
+        continue
+      }
+      await tx.conversation.create({
+        data: {
+          userId,
+          id: conversation.id,
+          title: conversation.title,
+          messages: {
+            create: conversation.messages.map((message, position) => ({
+              id: message.id,
+              role: message.role,
+              content: message.content,
+              // A stream that was still running when the guest left cannot continue, so it is stopped.
+              status: message.status === 'done' ? 'done' : 'stopped',
+              position,
+            })),
+          },
+        },
+      })
+      imported += 1
+    }
+    return { diimpor: imported, dilewati: skipped }
+  })
+  res.status(201).json(result)
+})
+
 // Renames a conversation without touching its messages.
 conversationsRouter.patch('/:id', async (req, res) => {
   const { title } = renameSchema.parse(req.body)
