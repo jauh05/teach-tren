@@ -81,11 +81,20 @@ test.describe('Jadwal', () => {
 })
 
 test.describe('Kalender bulan', () => {
-  test('tampilan bulan menampilkan kotak kalender enam minggu', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'tampilan bulan hanya di layar 768px ke atas')
+  test('tampilan bulan menampilkan kotak kalender enam minggu di semua layar', async ({ page }) => {
     await page.goto('/jadwal')
     await page.getByRole('radio', { name: 'Bulan' }).click()
-    await expect(page.locator('[data-date]')).toHaveCount(42)
+    await expect(page.locator('[data-date]:visible')).toHaveCount(42)
     await expect(page.getByRole('heading', { level: 1 })).toContainText('2026')
+    await expectNoHorizontalScroll(page)
+  })
+
+  test('kembali ke minggu menampilkan agenda di mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'agenda harian hanya di layar kecil')
+    await page.goto('/jadwal')
+    await page.getByRole('radio', { name: 'Bulan' }).click()
+    await expect(page.locator('[data-date]:visible')).toHaveCount(42)
+    await page.getByRole('radio', { name: 'Minggu' }).click()
+    await expect(page.locator('[data-day-index]:visible')).toHaveCount(7)
   })
 })

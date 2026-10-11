@@ -98,16 +98,14 @@ export function JadwalPage() {
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="font-heading text-base font-semibold text-ink">
-              <span className="md:hidden">{formatWeekRange(weekStart)}</span>
-              <span className="hidden md:inline">
-                {view === 'bulan' ? formatMonthLabel(monthStart) : formatWeekRange(weekStart)}
-              </span>
+              {view === 'bulan' ? formatMonthLabel(monthStart) : formatWeekRange(weekStart)}
             </h1>
             <p className="text-xs text-muted">Hari ini {formatTodayLabel(today)}</p>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-            <div role="radiogroup" aria-label="Tampilan kalender" className="hidden overflow-hidden rounded-[10px] border border-[#CBD5E1] md:flex">
+          <div className="flex w-full flex-wrap items-center gap-1.5 md:w-auto md:shrink-0">
+            <div className="flex items-center gap-1.5">
+            <div role="radiogroup" aria-label="Tampilan kalender" className="flex overflow-hidden rounded-[10px] border border-[#CBD5E1]">
               {VIEW_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -138,6 +136,8 @@ export function JadwalPage() {
             >
               Ingatan AI
             </Link>
+            </div>
+            <div className="flex items-center gap-1.5">
             <button
               type="button"
               aria-label={view === 'bulan' ? 'Bulan sebelumnya' : 'Minggu sebelumnya'}
@@ -157,6 +157,7 @@ export function JadwalPage() {
             >
               <ChevronRight size={16} aria-hidden="true" />
             </button>
+            </div>
           </div>
         </header>
 
@@ -180,16 +181,18 @@ export function JadwalPage() {
             onPlace={placeItem}
           />
         ) : (
-          <WeekGrid
-            days={days}
-            items={items}
-            today={today}
-            canEdit={canEdit}
-            onAccept={acceptItem}
-            onPlace={placeItem}
-          />
+          <>
+            <WeekGrid
+              days={days}
+              items={items}
+              today={today}
+              canEdit={canEdit}
+              onAccept={acceptItem}
+              onPlace={placeItem}
+            />
+            <DayAgenda days={days} items={items} today={today} canEdit={canEdit} onAccept={acceptItem} />
+          </>
         )}
-        <DayAgenda days={days} items={items} today={today} canEdit={canEdit} onAccept={acceptItem} />
       </div>
 
       {memoryOpen && <MemoryPanel entries={memory.data ?? []} locked={isGuest} />}

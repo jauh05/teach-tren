@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { isSuggestion, type ScheduleItem } from '../../domain/schedule'
 import { dateKey } from '../../domain/week'
-import { TONE_CLASS } from './toneStyles'
+import { DOT_CLASS, TONE_CLASS } from './toneStyles'
 
 const WEEKDAY_HEADERS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
 
@@ -20,7 +20,7 @@ export function MonthGrid({ days, monthStart, items, today, canEdit, onPlace }: 
   const todayKey = dateKey(today)
 
   return (
-    <div className="hidden overflow-hidden rounded-[12px] border border-line md:block">
+    <div className="overflow-hidden rounded-[12px] border border-line">
       <div className="grid grid-cols-7 bg-slate-50 text-center text-xs font-semibold text-muted">
         {WEEKDAY_HEADERS.map((name, index) => (
           <div key={name} className={clsx('border-b border-r border-line py-2', index === 6 && 'border-r-0')}>
@@ -52,7 +52,7 @@ export function MonthGrid({ days, monthStart, items, today, canEdit, onPlace }: 
                 }
               }}
               className={clsx(
-                'flex min-h-[112px] min-w-0 flex-col gap-1 border-b border-r border-line p-1.5',
+                'flex min-h-[64px] min-w-0 flex-col gap-1 border-b border-r border-line p-1 md:min-h-[112px] md:p-1.5',
                 index % 7 === 6 && 'border-r-0',
                 key === todayKey ? 'bg-soft/50' : inMonth ? 'bg-white' : 'bg-slate-50',
               )}
@@ -66,9 +66,17 @@ export function MonthGrid({ days, monthStart, items, today, canEdit, onPlace }: 
               >
                 {day.getDate()}
               </span>
-              {dayItems.map((item) => (
-                <MonthChip key={item.id} item={item} canEdit={canEdit} />
-              ))}
+              {/* Desktop: titles in the box. Mobile: one dot per item, the week view has the details. */}
+              <div className="hidden flex-col gap-1 md:flex">
+                {dayItems.map((item) => (
+                  <MonthChip key={item.id} item={item} canEdit={canEdit} />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-0.5 md:hidden">
+                {dayItems.map((item) => (
+                  <span key={item.id} className={clsx('h-1.5 w-1.5 rounded-full', DOT_CLASS[item.tone])} />
+                ))}
+              </div>
             </section>
           )
         })}
