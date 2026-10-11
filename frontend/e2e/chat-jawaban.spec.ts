@@ -16,7 +16,7 @@ test.describe('Chat jawaban', () => {
     await page.goto('/c/persamaan-linear')
     const card = page.getByRole('region', { name: 'Langkah berikutnya' })
     await card.getByRole('listitem').filter({ hasText: 'Kerjakan kuis' }).getByRole('button', { name: 'Mulai' }).click()
-    await expect(page).toHaveURL(/\/kuis\/persamaan-linear$/)
+    await expect(page).toHaveURL(/\/kuis\/persamaan-linear\/atur$/)
   })
 
   test('pertanyaan baru tampil bertahap sampai selesai', async ({ page }) => {

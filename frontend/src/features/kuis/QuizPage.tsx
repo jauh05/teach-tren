@@ -1,19 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { fetchQuiz } from '../../api/quizzes'
 import { isGuestLimitReached } from '../../domain/guestQuota'
+import { parseQuizSettings } from '../../domain/quiz'
 import { useSessionStore } from '../../stores/sessionStore'
 import { GuestLimitCard } from '../guest/GuestLimitCard'
 import { QuizRunner } from './QuizRunner'
 
-// Quiz (/kuis/:quizId). The id is a topic id or a conversation id.
+// Quiz (/kuis/:quizId). Settings come from the Atur page as query parameters.
+// The id is a topic id or a conversation id.
 export function QuizPage() {
   const { quizId = '' } = useParams()
+  const [params] = useSearchParams()
   const isGuest = useSessionStore((state) => state.mode === 'guest')
   const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
+  const settings = parseQuizSettings(params, isGuest)
   const { data, isPending, isError } = useQuery({
-    queryKey: ['quiz', quizId],
-    queryFn: () => fetchQuiz(quizId),
+    queryKey: ['quiz', quizId, settings.count, settings.level, settings.style],
+    queryFn: () => fetchQuiz(quizId, settings),
   })
 
   // Guests who used their free actions cannot start another quiz.
@@ -37,5 +41,5 @@ export function QuizPage() {
     )
   }
 
-  return <QuizRunner key={quizId} quiz={data} />
+  return <QuizRunner key={`${quizId}-${settings.count}-${settings.level}-${settings.style}`} quiz={data} />
 }

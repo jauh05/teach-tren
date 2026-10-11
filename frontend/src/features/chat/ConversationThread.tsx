@@ -199,7 +199,7 @@ export function ConversationThread({
               message={message}
               onCopy={() => void copy(message.content)}
               onRegenerate={() => regenerate(message.id)}
-              onCreateQuiz={() => navigate(`/kuis/${storageId}`)}
+              onCreateQuiz={() => navigate(`/kuis/${storageId}/atur`)}
             />
           ))}
           {showNextSteps && <NextStepsCard conversationId={storageId} />}

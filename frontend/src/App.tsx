@@ -15,6 +15,7 @@ import { AuthPage } from './features/auth/AuthPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { TentangPage } from './features/tentang/TentangPage'
 import { MateriPage } from './features/materi/MateriPage'
+import { KuisAturPage } from './features/kuis/KuisAturPage'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="c/:conversationId" element={<ChatConversationPage />} />
             </Route>
             <Route path="kuis/:quizId" element={<QuizPage />} />
+            <Route path="kuis/:quizId/atur" element={<KuisAturPage />} />
             <Route
               path="pengaturan"
               element={

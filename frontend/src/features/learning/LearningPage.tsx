@@ -55,7 +55,7 @@ export function LearningPage() {
           onClose={() => setSelectedId(null)}
           onGenerateQuiz={() => {
             if (selected) {
-              navigate(`/kuis/${selected.id}`)
+              navigate(`/kuis/${selected.id}/atur`)
             }
           }}
         />

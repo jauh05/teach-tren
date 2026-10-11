@@ -33,9 +33,9 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 25 | Ganti nama bulat | Tidak ada di mockup 02 | Ganti nama dari panel detail, nama unik tanpa huruf besar kecil (bagian 6.2, CC-04) | Diterapkan dengan validasi Zod dan pesan nama sudah dipakai | Diterapkan |
 | 26 | Sidebar Chat di halaman kuis | Tidak ada sidebar | Kuis berada di layar penuh (bagian 4.4) | Halaman kuis tanpa sidebar | Diterapkan |
 | 27 | Teks bacaan (stimulus) | Teks soal cerita langsung di kartu soal | Teks panjang di atas soal dan bisa dilipat (bagian 4.4) | Tampil di atas soal dalam elemen details yang bisa dilipat | Diterapkan |
-| 28 | Hasil akhir kuis | Tidak ada mockup 07-kuis-hasil di zip | Skor, daftar benar salah, dan pembahasan (bagian 4.4) | Layar hasil minimal: skor, daftar soal, dan dua tombol | Terbuka |
-| 29 | Bentuk soal isian dan esai | Hanya pilihan ganda di mockup | Isian singkat dan esai dengan penilaian AI (bagian 4.4, CC-07) | Belum dikerjakan. Konten mock hanya pilihan ganda | Terbuka |
-| 30 | Atur kuis | Tidak ada di mockup | Pilih sumber, jumlah soal, tingkat, dan gaya (bagian 4.4) | Belum dikerjakan. Kuis mock 5 soal | Terbuka |
+| 28 | Hasil akhir kuis | Tidak ada mockup 07-kuis-hasil di zip | Skor, daftar benar salah, dan pembahasan (bagian 4.4) | Skor, rincian per soal dengan jawaban dan pembahasan, serta Ulangi soal salah | Diterapkan |
+| 29 | Bentuk soal isian dan esai | Hanya pilihan ganda di mockup | Isian singkat dan esai dengan penilaian AI (bagian 4.4, CC-07) | Isian dinilai dengan jawaban yang diterima. Esai dinilai dengan rubrik kata kunci sebagai contoh. Penilaian AI menunggu backend | Diterapkan |
+| 30 | Atur kuis | Tidak ada di mockup | Pilih sumber, jumlah soal, tingkat, dan gaya (bagian 4.4) | Halaman Atur kuis. Tamu tetap lima soal. Default dari Pengaturan | Diterapkan |
 | 31 | Skor kuis memperbarui bulat | Tidak ada di mockup | Skor memperbarui status bulat (bagian 4.4) | Diterapkan. Skor persen menggantikan skor terakhir dan status dihitung ulang | Diterapkan |
 | 32 | Pembahasan untuk tamu | Tidak ada di mockup 04 | Tamu tidak melihat pembahasan, kartu ajakan masuk (bagian 2.2) | Diterapkan dengan kartu terkunci | Diterapkan |
 | 33 | Minggu yang tampil | Saat hari ini Minggu 11 Oktober, mockup menampilkan 12 sampai 18 Oktober | Minggu ini dan minggu berikutnya (bagian 4.2) | Senin sampai Minggu yang memuat hari ini (5 sampai 11 Oktober). Minggu berikutnya lewat tombol panah | Diterapkan |
@@ -78,3 +78,4 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 70 | Tampilan awal kalender | Minggu | Minggu | Selalu Minggu saat halaman dibuka. Dikunci dengan tes e2e | Diterapkan |
 | 71 | Chat dari beranda | Chat baru tidak tersimpan | Riwayat berisi semua chat belajar (permintaan pengguna) | Chat baru disimpan dengan id sendiri setelah jawaban pertama dan muncul di riwayat | Diterapkan |
 | 72 | Halaman Materi | Tidak ada mockup | Unggah materi dan ringkasan (bagian 4.5) | Dibuat dengan data mock. Ringkasan dan usulan topik adalah contoh. Batas 50 materi berlaku di sisi klien | Diterapkan |
+| 73 | Isian dan esai di kuis | Tidak ada | Isian dan esai dengan penilaian (CC-07) | Tampil dan dinilai di frontend. Ulangi soal salah tidak mengubah skor tersimpan | Diterapkan |

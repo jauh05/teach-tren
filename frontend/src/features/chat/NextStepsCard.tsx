@@ -17,7 +17,7 @@ export function NextStepsCard({ conversationId }: NextStepsCardProps) {
   const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
 
   const steps = [
-    { label: 'Kerjakan kuis', action: 'Mulai', path: `/kuis/${conversationId}` },
+    { label: 'Kerjakan kuis', action: 'Mulai', path: `/kuis/${conversationId}/atur` },
     { label: 'Jadwalkan belajar', action: 'Atur', path: '/jadwal' },
     { label: 'Buat materi lanjutan (tambah bulat)', action: 'Buat', path: '/learning' },
   ]
