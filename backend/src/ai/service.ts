@@ -96,8 +96,9 @@ export class AiService {
       return parsed.value
     }
 
-    for (const model of this.options.chains[CHAIN_OF[request.task]]) {
-      if (this.breaker.isCooling(model)) {
+    const chain = this.options.chains[CHAIN_OF[request.task]]
+    for (const model of chain) {
+      if (this.isSkipped(model, chain.length)) {
         continue
       }
       const started = Date.now()
@@ -126,7 +127,7 @@ export class AiService {
     }
 
     for (const model of this.options.chains.chat) {
-      if (this.breaker.isCooling(model)) {
+      if (this.isSkipped(model, this.options.chains.chat.length)) {
         continue
       }
       const started = Date.now()
@@ -167,6 +168,12 @@ export class AiService {
 
   private settings(): ProviderSettings {
     return { baseUrl: this.options.baseUrl, apiKey: this.options.apiKey, fetchImpl: this.options.fetchImpl }
+  }
+
+  // A cooling model is skipped only when another model can answer instead. With one model in the chain, skipping it
+  // would turn a short run of failures into a full outage for ten minutes, so the model is tried again.
+  private isSkipped(model: string, chainLength: number): boolean {
+    return chainLength > 1 && this.breaker.isCooling(model)
   }
 
   private async completeWithModel<T>(model: string, request: CompleteRequest<T>): Promise<T> {

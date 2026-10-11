@@ -34,6 +34,44 @@ Hasil mentah (`model-eval-raw.json`) dan sampel untuk pemeriksaan kunci (`model-
 
 ## Hasil
 
+### Putaran 4: penyebab gagal generate kuis dan perbaikannya (aplikasi)
+
+Uji langsung dengan kuis 10 soal, bank dikosongkan setiap kali. Semua hasil di bawah memakai kode yang sama dengan commit ini, kecuali angka batas yang tertulis.
+
+**Penyebab yang ditemukan dari rekaman panggilan (`finish_reason`, token, dan isi keluaran):**
+1. **Keluaran terpotong di batas token.** Penalaran gpt-oss memakan sebagian besar token. Dari 21 panggilan kuis dengan batas 3000, lima terpotong (`finish_reason: length`). Ini penyebab terbesar.
+2. **Batch dijalankan berurutan.** Satu batch bisa 50 sampai 90 detik. Dua batch berurutan melewati jendela waktu, sehingga percobaan ulang tidak sempat dimulai.
+3. **Breaker mematikan rantai satu model.** Tiga kegagalan berturut-turut mendinginkan satu-satunya model selama 10 menit, dan chat juga ikut mati. Sempat terjadi: lima kuis gagal dalam 0 detik.
+4. **Perbaikan dipanggil untuk keluaran yang sudah terpotong.** Panggilan perbaikan memakan sekitar 90 detik sampai timeout dan tidak mungkin berhasil.
+5. **Jenis soal tidak sesuai permintaan.** Batch yang diminta pilihan ganda bisa kembali berisi soal cerita, sehingga gaya kuis yang dipilih pengguna tidak terjaga.
+6. **Satu soal yang cacat membuang seluruh batch.** Model sering hanya mengembalikan 1 sampai 4 soal dari 5.
+7. **Bentuk JSON verifikasi kunci salah.** Dua dari delapan keluaran berupa satu objek tanpa kunci `hasil`.
+8. **JSON rusak kecil** (kurung atau tanda kutip). Sekitar lima kasus dari 21 panggilan.
+
+**Yang sudah diperbaiki (tanpa mengubah spesifikasi):**
+- Keluaran terpotong langsung gagal tanpa perbaikan (`openrouter.ts`).
+- Batch berjalan paralel dalam satu putaran (`generate.ts`).
+- Breaker tidak mendinginkan model jika rantai hanya punya satu model (`service.ts`).
+- Setiap soal diperiksa satu per satu. Soal yang benar disimpan, yang cacat dibuang, dan jenis soal dibatasi sesuai permintaan (`quizSchemas.ts`).
+- Prompt verifikasi kunci mewajibkan `hasil` dan `jawabanBenar`.
+- JSON yang rusak kecil diperbaiki dengan `jsonrepair`, lalu tetap divalidasi skema (`normalize.ts`).
+- Effort `low` ditolak. Ia menghasilkan 44 dari 98 kunci yang ditandai salah oleh verifikasi, dibanding 3 dari 67 dengan `medium`.
+
+**Hasil terukur (8 kuis berurutan, sama dengan aplikasi):**
+
+| Pengaturan | Berhasil |
+| --- | --- |
+| Batas token 3000, batch 5, timeout 90 detik | 4 dari 8 |
+| Batas token 3000, batch 3, tiga percobaan | 4 dari 8 |
+| Batas token 6000, batch 5, timeout 90 detik | 7 dari 8 |
+| **Batas token 6000, batch 5, timeout 120 detik, mulai percobaan baru sebelum 120 detik** | **15 dari 16** (dua putaran) |
+
+**Keputusan dan selisih:**
+- Batas token kuis **6000**, bukan 3000 seperti di `docs/role.md`. Ini dicatat di `docs/selisih.md` (baris 96) dan memerlukan persetujuan. Dengan 3000, sekitar separuh kuis gagal.
+- Timeout panggilan kuis naik ke 120 detik, dan percobaan baru hanya dimulai sebelum 120 detik. Dengan begitu satu percobaan selesai di bawah batas 300 detik route.
+- Keberhasilan terukur sekitar 94 persen. Sisanya: keluaran yang masih terpotong pada 6000 token, dan kadang jendela waktu habis sebelum putaran kedua. Mencapai angka yang lebih tinggi perlu batas token lebih besar atau waktu total lebih panjang, dan keduanya perlu keputusan Anda.
+
+
 ### Putaran 2: batas waktu kuis 90 detik (gpt-oss-20b saja)
 
 Setelah putaran pertama, batas waktu panggilan kuis dinaikkan dari 45 ke 90 detik (`AI_TIMEOUT_KUIS_MS=90000`). Ini disetujui untuk mengurangi batch yang habis waktu. Uji diulang untuk gpt-oss-20b, dengan `--timeout-ms 90000`.

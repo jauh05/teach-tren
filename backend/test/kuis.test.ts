@@ -184,7 +184,8 @@ describe('pembuatan soal dengan AI (jalur live, dengan respons tiruan)', () => {
 
     const first = await generateQuiz(service, params)
     expect(first.questions).toHaveLength(5)
-    expect(calls).toEqual(['KUIS', 'VERIFIKASI'])
+    // Every batch that is generated is checked once, so the two counts match.
+    expect(calls.filter((call) => call === 'KUIS').length).toBe(calls.filter((call) => call === 'VERIFIKASI').length)
     expect(await prisma.bankQuestion.count({ where: { topicKey: 'persamaan-linear' } })).toBe(5)
 
     calls.length = 0
@@ -241,10 +242,11 @@ describe('pembuatan soal dengan AI (jalur live, dengan respons tiruan)', () => {
     })
     const quiz = await generateQuiz(service, { sourceKey: 'uji-ulang', topicName: 'Uji ulang', subject: 'Matematika', level: 'Sedang', style: 'Campuran', count: 5, userId: null, mock: false })
     expect(quiz.questions).toHaveLength(5)
-    expect(calls).toEqual(['KUIS', 'KUIS', 'VERIFIKASI'])
+    // A failed call is asked again, so there are more KUIS calls than batches.
+    expect(calls.filter((call) => call === 'KUIS').length).toBeGreaterThanOrEqual(2)
   })
 
-  it('batch yang gagal dua kali berhenti setelah dua kali mencoba', async () => {
+  it('batch yang gagal tiga kali berhenti setelah tiga kali mencoba', async () => {
     let quizCalls = 0
     const fetchImpl = (async () => {
       quizCalls += 1
@@ -264,7 +266,8 @@ describe('pembuatan soal dengan AI (jalur live, dengan respons tiruan)', () => {
     await expect(
       generateQuiz(service, { sourceKey: 'uji-gagal-dua', topicName: 'Uji', subject: 'Matematika', level: 'Sedang', style: 'Campuran', count: 5, userId: null, mock: false }),
     ).rejects.toThrow('Layanan belajar sedang sibuk')
-    expect(quizCalls).toBe(2)
+    // The batch is tried three times before the quiz gives up.
+    expect(quizCalls).toBe(3)
   })
 })
 

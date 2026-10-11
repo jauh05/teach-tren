@@ -86,6 +86,15 @@ export function contentOf(payload: unknown): string | null {
   return isRecord(message) && typeof message.content === 'string' ? message.content : null
 }
 
+// Why the model stopped: "stop" when it finished, "length" when it ran out of tokens.
+export function finishReasonOf(payload: unknown): string | null {
+  if (!isRecord(payload) || !Array.isArray(payload.choices) || !isRecord(payload.choices[0])) {
+    return null
+  }
+  const reason = payload.choices[0].finish_reason
+  return typeof reason === 'string' ? reason : null
+}
+
 export async function completeText(settings: ProviderSettings, call: ProviderCall): Promise<string> {
   const response = await post(settings, call, false)
   const payload = await response.json().catch((error: unknown) => {
@@ -98,6 +107,10 @@ export async function completeText(settings: ProviderSettings, call: ProviderCal
     }
     return null
   })
+  // A cut answer is never valid JSON. Asking for a repair would only wait for another full call, so it fails here.
+  if (finishReasonOf(payload) === 'length') {
+    throw new ProviderError('keluaran terpotong', null)
+  }
   const content = contentOf(payload)
   if (content === null) {
     // The HTTP status is 200 here, so only the message is useful for the log.

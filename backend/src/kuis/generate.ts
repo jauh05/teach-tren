@@ -1,24 +1,28 @@
 import { randomUUID } from 'node:crypto'
+import { z } from 'zod'
 import { AiUnavailableError } from '../ai/errors.js'
 import type { AiService } from '../ai/service.js'
 import { quizBatchPrompt, verifyKeyPrompt } from '../ai/prompts.js'
-import { kuisBatchSchema, verificationSchema, type KuisBatch, type Verification } from '../ai/quizSchemas.js'
+import { salvageBatch, verificationSchema, type KuisBatch, type Verification } from '../ai/quizSchemas.js'
 import { prisma } from '../db.js'
 import type { Prisma } from '../generated/prisma/client.js'
+import { logger } from '../logger.js'
 import { compositionFor } from './composition.js'
 import { keywordsOf } from './grading.js'
 import { MOCK_STIMULUS, mockQuestions } from './mockBank.js'
 import type { Level, QuestionData, QuestionKind, RubricData, StimulusData, Style } from './types.js'
 
-// Generation (docs/role.md section 9): bank first, then AI in batches of at most five questions.
+// Generation (docs/role.md section 9): bank first, then AI in batches of at most BATCH_SIZE questions.
 const BATCH_SIZE = 5
 const MAX_ROUNDS = 4
 const ORDER: QuestionKind[] = ['PG', 'CERITA', 'ISIAN', 'ESAI']
 // Only math and science keys are checked a second time (docs/role.md CC-07, rule 7).
 const CHECKED_SUBJECTS = ['Matematika', 'IPA']
-// A failed batch is tried once more, but only if one more full attempt still fits in the quiz request.
-// The request allows five minutes (kuis/routes.ts) and one attempt can take up to 90 seconds.
-const RETRY_BEFORE_MS = 150_000
+// A new attempt or round starts only before this time. The quiz request allows five minutes (kuis/routes.ts),
+// and one attempt can take up to 90 seconds, so a late start could not finish in time.
+const START_BEFORE_MS = 120_000
+// A batch is asked again up to this many times in all (the first try included), as long as there is time.
+const MAX_ATTEMPTS = 3
 
 export interface GenerateParams {
   sourceKey: string
@@ -62,14 +66,21 @@ export async function generateQuiz(ai: AiService, params: GenerateParams): Promi
 
   const startedAt = Date.now()
   for (let round = 0; round < MAX_ROUNDS && total(needed) > 0; round++) {
-    const batchKinds = takeBatch(needed)
-    const saved = await generateBatchWithRetry(ai, params, batchKinds, startedAt)
-    for (const item of saved) {
-      picked.push(item.question)
-      if (item.stimulus) {
-        stimuli.set(item.stimulus.id, item.stimulus)
+    if (Date.now() - startedAt >= START_BEFORE_MS) {
+      break
+    }
+    // The batches of a round run at the same time. One batch can take up to 90 seconds, so running them one after
+    // another would not fit in the quiz request.
+    const plan = planBatches(needed)
+    const results = await Promise.all(plan.map((kinds) => generateBatchWithRetry(ai, params, kinds, startedAt)))
+    for (const saved of results) {
+      for (const item of saved) {
+        picked.push(item.question)
+        if (item.stimulus) {
+          stimuli.set(item.stimulus.id, item.stimulus)
+        }
+        needed[item.question.type] = Math.max(0, needed[item.question.type] - 1)
       }
-      needed[item.question.type] = Math.max(0, needed[item.question.type] - 1)
     }
   }
 
@@ -85,14 +96,30 @@ function total(counts: Record<QuestionKind, number>): number {
 
 // Runs one batch. If the AI fails and there is still time, the same batch is asked once more.
 async function generateBatchWithRetry(ai: AiService, params: GenerateParams, kinds: Record<QuestionKind, number>, startedAt: number) {
-  try {
-    return await generateBatch(ai, params, kinds)
-  } catch (error) {
-    if (!(error instanceof AiUnavailableError) || Date.now() - startedAt >= RETRY_BEFORE_MS) {
-      throw error
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await generateBatch(ai, params, kinds)
+    } catch (error) {
+      const outOfTime = Date.now() - startedAt >= START_BEFORE_MS
+      if (!(error instanceof AiUnavailableError) || attempt >= MAX_ATTEMPTS || outOfTime) {
+        throw error
+      }
     }
-    return generateBatch(ai, params, kinds)
   }
+}
+
+// Splits what is still needed into batches of at most BATCH_SIZE questions, the same way takeBatch does.
+function planBatches(needed: Record<QuestionKind, number>): Record<QuestionKind, number>[] {
+  const left = { ...needed }
+  const plan: Record<QuestionKind, number>[] = []
+  while (total(left) > 0) {
+    const batch = takeBatch(left)
+    plan.push(batch)
+    for (const kind of ORDER) {
+      left[kind] -= batch[kind]
+    }
+  }
+  return plan
 }
 
 // Up to five questions from the remaining counts, in form order.
@@ -154,7 +181,7 @@ async function generateBatch(ai: AiService, params: GenerateParams, kinds: Recor
   const composition = ORDER.filter((kind) => kinds[kind] > 0)
     .map((kind) => `${kind} ${kinds[kind]}`)
     .join(', ')
-  const batch: KuisBatch = await ai.complete({
+  const raw = await ai.complete({
     task: 'KUIS_GENERATE',
     system: quizBatchPrompt({
       mapel: params.subject,
@@ -164,9 +191,17 @@ async function generateBatch(ai: AiService, params: GenerateParams, kinds: Recor
       komposisi: composition,
     }),
     user: `Buat ${size} soal sekarang.`,
-    schema: kuisBatchSchema(size),
+    // The shape is checked question by question below, so one bad question does not reject the whole batch.
+    schema: z.unknown(),
     mock: () => '',
   })
+  const { batch, dropped } = salvageBatch(raw, size, kinds)
+  if (dropped > 0) {
+    logger.info({ task: 'KUIS_GENERATE', dropped, kept: batch.soal.length }, 'Soal yang tidak lolos aturan dibuang')
+  }
+  if (batch.soal.length === 0) {
+    throw new AiUnavailableError()
+  }
 
   const keep = await keysThatHold(ai, params, batch)
   const stimulusText = new Map(batch.stimulus.map((item) => [item.id, item.teks]))

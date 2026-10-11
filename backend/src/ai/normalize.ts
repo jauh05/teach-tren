@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { jsonrepair } from 'jsonrepair'
 
 // Turns the raw text of a model into a JSON value (docs/role.md CC-06, section 4 of the normalization rules).
 // Steps: remove markdown fences, take the first balanced object, fix backslashes, remove trailing commas.
@@ -78,11 +79,24 @@ export function removeTrailingCommas(json: string): string {
 
 // Parses model text into a JSON value. Throws when no valid JSON can be read.
 export function normalizeModelJson(raw: string): unknown {
-  const object = firstJsonObject(stripFences(raw))
+  const text = stripFences(raw)
+  const object = firstJsonObject(text)
   if (object === null) {
-    throw new Error('Tidak ada objek JSON dalam keluaran.')
+    // The brackets do not balance, so the answer is cut short or broken. Repair what is there.
+    const start = text.indexOf('{')
+    if (start < 0) {
+      throw new Error('Tidak ada objek JSON dalam keluaran.')
+    }
+    return JSON.parse(jsonrepair(text.slice(start))) as unknown
   }
-  return JSON.parse(removeTrailingCommas(fixBackslashes(object))) as unknown
+  const fixed = removeTrailingCommas(fixBackslashes(object))
+  try {
+    return JSON.parse(fixed) as unknown
+  } catch {
+    // Last resort for small slips a model makes, such as a missing closing quote. A structure that is still wrong
+    // fails the schema check afterwards, so nothing invalid is accepted.
+    return JSON.parse(jsonrepair(fixed)) as unknown
+  }
 }
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string }
