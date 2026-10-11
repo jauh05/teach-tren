@@ -26,6 +26,7 @@ interface SessionState {
   signIn: (account: Account) => void
   signOut: () => Promise<void>
   recordGuestAction: () => void
+  markGuestLimitReached: () => void
   updateAccountName: (name: string) => void
 }
 
@@ -68,6 +69,7 @@ export const useSessionStore = create<SessionState>()(
       updateAccountName: (name) => set((state) => ({ account: { ...state.account, name } })),
       recordGuestAction: () =>
         set((state) => ({ guestActionsUsed: Math.min(state.guestActionsUsed + 1, GUEST_ACTION_LIMIT) })),
+      markGuestLimitReached: () => set({ guestActionsUsed: GUEST_ACTION_LIMIT }),
     }),
     {
       name: 'teach-tren-session',

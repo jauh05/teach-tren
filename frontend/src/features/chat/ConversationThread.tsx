@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { saveConversationMessages } from '../../api/conversations'
-import { createMockAnswer } from '../../api/mockAnswer'
+import { ApiError } from '../../api/http'
+import { historyOf, streamAnswer } from '../../api/chat'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { ChatMessage } from '../../domain/types'
 import { useSessionStore } from '../../stores/sessionStore'
@@ -12,7 +13,6 @@ import { ChatQuizPanel } from '../kuis/ChatQuizPanel'
 import { Composer } from './Composer'
 import { MessageBubble } from './MessageBubble'
 import { NextStepsCard } from './NextStepsCard'
-import { splitIntoChunks, streamChunks } from './streaming'
 
 // The home page sends new chats to this id. Those chats are not saved under it.
 const UNSAVED_CONVERSATION_ID = 'baru'
@@ -32,17 +32,20 @@ interface ConversationThreadProps {
 
 interface InitialState {
   messages: ChatMessage[]
+  // Messages before the first question. They are the context of the first answer.
+  history: ChatMessage[]
   streamingId: string | null
 }
 
 // Built once per mount so that the first question is sent exactly once.
 function buildInitialState(initialMessages: ChatMessage[], initialQuestion?: string): InitialState {
   if (!initialQuestion) {
-    return { messages: initialMessages, streamingId: null }
+    return { messages: initialMessages, history: initialMessages, streamingId: null }
   }
   const streamingId = crypto.randomUUID()
   return {
     streamingId,
+    history: initialMessages,
     messages: [
       ...initialMessages,
       { id: crypto.randomUUID(), role: 'user', content: initialQuestion, status: 'done' },
@@ -80,15 +83,6 @@ export function ConversationThread({
   const openQuizSetup = useUiStore((state) => state.openQuizSetup)
   const endChatQuiz = useUiStore((state) => state.endChatQuiz)
 
-  useEffect(() => {
-    if (initial.streamingId !== null && initialQuestion) {
-      runStream(initial.streamingId, initialQuestion)
-    }
-    return () => {
-      runRef.current?.abort()
-      runRef.current = null
-    }
-  }, [initial.streamingId, initialQuestion])
 
   useEffect(() => {
     const node = scrollRef.current
@@ -114,38 +108,69 @@ export function ConversationThread({
       .catch(() => undefined)
   }, [storageId, messages, title, streaming, conversationId, draftId, navigate, queryClient])
 
-  function runStream(assistantId: string, question: string) {
-    runRef.current?.abort()
-    const controller = new AbortController()
-    runRef.current = controller
-
-    let text = ''
-    void streamChunks(splitIntoChunks(createMockAnswer(question)), {
-      signal: controller.signal,
-      onChunk: (chunk) => {
-        text += chunk
-        const content = text
-        setMessages((prev) => prev.map((message) => (message.id === assistantId ? { ...message, content } : message)))
-      },
-    }).then((completed) => {
-      if (runRef.current !== controller) {
-        return
-      }
-      runRef.current = null
-      // Every finished or stopped answer uses one guest action. Replaced runs do not count.
-      // Read the store at completion time, so the stream does not depend on render-time values.
+  // Streams one answer from the server. "history" is the chat before the question, used as context.
+  const runStream = useCallback(
+    (assistantId: string, question: string, history: ChatMessage[]) => {
+      runRef.current?.abort()
+      const controller = new AbortController()
+      runRef.current = controller
       const session = useSessionStore.getState()
-      if (session.mode === 'guest') {
-        session.recordGuestAction()
+      let text = ''
+
+      // Ends a stream. A finished or stopped answer counts as one guest action, the same as on the server.
+      function finishRun(content: string, status: 'done' | 'stopped', failed = false) {
+        if (runRef.current !== controller) {
+          return
+        }
+        runRef.current = null
+        if (!failed && useSessionStore.getState().mode === 'guest') {
+          useSessionStore.getState().recordGuestAction()
+        }
+        setStreaming(false)
+        setMessages((prev) =>
+          prev.map((message) => (message.id === assistantId ? { ...message, content, status } : message)),
+        )
       }
-      setStreaming(false)
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.id === assistantId ? { ...message, status: completed ? 'done' : 'stopped' } : message,
-        ),
+
+      streamAnswer(
+        {
+          conversationId: storageId,
+          content: question,
+          history: historyOf(history),
+          topicName: title ?? null,
+          guestId: session.mode === 'guest' ? session.guestId : null,
+        },
+        {
+          onDelta: (chunk) => {
+            text += chunk
+            const content = text
+            setMessages((prev) => prev.map((message) => (message.id === assistantId ? { ...message, content } : message)))
+          },
+        },
+        controller.signal,
       )
-    })
-  }
+        .then((outcome) => finishRun(text, outcome === 'done' ? 'done' : 'stopped'))
+        .catch((error: unknown) => {
+          // A refused or failed answer is not counted as a guest action. The server does not count it either.
+          if (error instanceof ApiError && error.code === 'KUOTA_HABIS') {
+            session.markGuestLimitReached()
+          }
+          const message = error instanceof Error ? error.message : 'Jawaban belum bisa dibuat. Coba lagi.'
+          finishRun(text || message, 'stopped', true)
+        })
+    },
+    [storageId, title],
+  )
+
+  useEffect(() => {
+    if (initial.streamingId !== null && initialQuestion) {
+      runStream(initial.streamingId, initialQuestion, initial.history)
+    }
+    return () => {
+      runRef.current?.abort()
+      runRef.current = null
+    }
+  }, [initial.streamingId, initial.history, initialQuestion, runStream])
 
   function send(text: string) {
     const question = text.trim()
@@ -160,7 +185,7 @@ export function ConversationThread({
     ])
     setStreaming(true)
     setDraft('')
-    runStream(assistantId, question)
+    runStream(assistantId, question, messages)
   }
 
   function regenerate(assistantId: string) {
@@ -176,7 +201,7 @@ export function ConversationThread({
     setMessages((prev) =>
       prev.map((message) => (message.id === assistantId ? { ...message, content: '', status: 'streaming' } : message)),
     )
-    runStream(assistantId, question)
+    runStream(assistantId, question, messages.slice(0, index))
   }
 
   async function copy(content: string) {

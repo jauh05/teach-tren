@@ -53,6 +53,9 @@ export default defineConfig({
         PORT: String(API_PORT),
         CORS_ORIGIN: baseURL,
         LOG_LEVEL: 'silent',
+        // Mock answers, and a high chat limit: many tests share one IP address.
+        AI_MODE: 'mock',
+        CHAT_RATE_PER_MINUTE: '1000',
       },
     },
   ],
