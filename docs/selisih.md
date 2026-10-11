@@ -99,3 +99,5 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 91 | Riwayat tamu | Hilang saat halaman dimuat ulang | Disimpan di perangkat, dua percakapan terakhir, dan diimpor saat masuk (CC-05, CC-10) | Impor tidak menggandakan data. Jawaban yang masih berjalan disimpan sebagai dihentikan | Diterapkan |
 | 92 | Pengaturan belajar | Disimpan hanya di perangkat | Disimpan di akun dan dibaca dari perangkat lain (CC-09) | Perubahan dikirim ke server saat pengguna masuk. Tamu tetap di perangkat | Diterapkan |
 | 93 | Pengingat jadwal | Hanya tampilan | Notifikasi pada jam pilihan (CC-09) | Hanya saat aplikasi terbuka dan izin notifikasi diberikan. Tanpa server push, jadi tidak muncul saat browser tertutup | Sebagian |
+| 94 | Uji tamu (CC-11) | - | Tamu mengirim 10 pesan, pesan ke-11 ditolak | 2 aksi AI per perangkat sesuai keputusan final (docs/role.md 2.1). Tes memakai dua aksi | Diterapkan |
+| 95 | Uji kuis (CC-11) | - | Kuis 5 soal dengan skor 90 persen | Skor 90 persen mustahil dengan 5 soal (skor kelipatan 20). Tes memakai skor 100 persen | Diterapkan |

@@ -24,6 +24,11 @@ test.describe('Jadwal', () => {
 
     await expect(accept).toHaveCount(0)
     await expect(visibleOnly(page.getByText('Pertidaksamaan'))).toBeVisible()
+
+    // The accepted item is saved on the server, so it is still there after a refresh.
+    await page.reload()
+    await expect(visibleOnly(page.getByRole('button', { name: 'Terima saran Pertidaksamaan' }))).toHaveCount(0)
+    await expect(visibleOnly(page.getByText('Pertidaksamaan'))).toBeVisible()
   })
 
   test('saran diseret ke hari lain di desktop', async ({ page }, testInfo) => {

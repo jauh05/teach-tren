@@ -201,3 +201,15 @@ test.describe('Learning', () => {
     await expect(page.getByText('Skor 80 ke atas')).toBeHidden()
   })
 })
+
+test.describe('Learning tamu', () => {
+  test.use({ asGuest: true })
+
+  test('tamu melihat contoh bulat dan kontrol zoom tanpa tombol simpan', async ({ page }) => {
+    await page.goto('/learning')
+    await expect(topic(page, 'bilangan')).toBeVisible()
+    await expect(page.getByLabel('Kontrol zoom')).toBeVisible()
+    await expect(page.getByRole('button', { name: /simpan/i })).toHaveCount(0)
+    await expectNoHorizontalScroll(page)
+  })
+})
