@@ -48,6 +48,50 @@ h3 {
   color: #0f172a;
 }
 
+.tentang-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #334155;
+}
+
+.tentang-body ul {
+  margin: 0.25em 0;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.tentang-body li + li {
+  margin-top: 0.4em;
+}
+
+.tentang-body table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.tentang-body th,
+.tentang-body td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tentang-body th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tentang-body tr:last-child td {
+  border-bottom: 0;
+}
+
 .markdown-body strong {
   font-weight: 600;
 }
