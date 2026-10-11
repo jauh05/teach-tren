@@ -107,13 +107,13 @@ Hanya pengguna masuk. Tamu mendapat 401 (spesifikasi CC-10 menyebut 403 HANYA_MA
 
 | Metode | Alamat | Isi permintaan | Hasil |
 | --- | --- | --- | --- |
-| GET | `/api/jadwal` | - | 200 `{ items }`, diurutkan dari tanggal terdekat. Menjalankan job saran harian lebih dulu |
-| POST | `/api/jadwal/item` | `date` (YYYY-MM-DD), `title` (1 sampai 80 karakter), `kind` (opsional), `reason` (opsional) | 201 `{ item }` |
+| GET | `/api/jadwal?mulai=&selesai=` | `mulai` dan `selesai` (YYYY-MM-DD, opsional, kedua ujung ikut). Tanpa keduanya: semua item | 200 `{ items }`, diurutkan dari tanggal terdekat. Menjalankan job saran harian lebih dulu. `mulai` setelah `selesai`: 400 |
+| POST | `/api/jadwal/item` | `date` (YYYY-MM-DD), `title` (1 sampai 80 karakter), `kind` (opsional: `LATIHAN`, `ULANG`, `BARU`, `ISTIRAHAT`, atau `DIKUASAI`), `reason` (opsional) | 201 `{ item }`. Saran AI (`SARAN`) hanya dibuat oleh sistem |
 | PATCH | `/api/jadwal/item/:id` | `date` atau `accept` | 200 `{ item }`. Memindah item atau menerima saran. Memindah saran juga menerimanya |
 | DELETE | `/api/jadwal/item/:id` | - | 204 |
 | GET | `/api/memori` | - | 200 `{ entries }`: topik yang punya skor, dengan status `DIKUASAI` (80 ke atas), `SEDANG` (50 sampai 79), atau `PERLU_DIULANG` (di bawah 50) |
 
-Item: `id`, `date`, `title`, `kind` (`LATIHAN`, `ULANG`, `BARU`, `SARAN`, atau `ISTIRAHAT`), `reason`.
+Item: `id`, `date`, `title`, `kind` (`LATIHAN`, `ULANG`, `BARU`, `SARAN`, `ISTIRAHAT`, atau `DIKUASAI`), `reason`. `DIKUASAI` berarti topik sudah dikuasai (hijau di kalender).
 
 Job saran harian:
 - Dijalankan saat jadwal dibuka, paling banyak sekali per pengguna per hari.

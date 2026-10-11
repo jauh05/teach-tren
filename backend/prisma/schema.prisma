@@ -49,6 +49,8 @@ enum ScheduleKind {
   BARU
   SARAN
   ISTIRAHAT
+  // Topic already mastered (hijau di kalender, CC-08).
+  DIKUASAI
 }
 
 // One item of the study calendar. A suggestion (SARAN) becomes a normal item once it is accepted or moved.

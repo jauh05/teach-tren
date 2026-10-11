@@ -20,9 +20,16 @@ const dateSchema = z.string().regex(DATE_PATTERN, 'Tanggal harus berformat YYYY-
 const createSchema = z.object({
   date: dateSchema,
   title: z.string().trim().min(1, 'Judul tidak boleh kosong.').max(80, 'Judul maksimal 80 karakter.'),
-  kind: z.enum(['LATIHAN', 'ULANG', 'BARU', 'ISTIRAHAT']).default('LATIHAN'),
+  kind: z.enum(['LATIHAN', 'ULANG', 'BARU', 'ISTIRAHAT', 'DIKUASAI']).default('LATIHAN'),
   reason: z.string().trim().max(200).default(''),
 })
+
+// Optional date range (YYYY-MM-DD, both ends included). Without it, every item is returned.
+const listSchema = z
+  .object({ mulai: dateSchema.optional(), selesai: dateSchema.optional() })
+  .refine((value) => value.mulai === undefined || value.selesai === undefined || value.mulai <= value.selesai, {
+    message: 'Tanggal mulai harus sebelum atau sama dengan tanggal selesai.',
+  })
 
 // Either moves the item to another day, or accepts a suggestion. Moving a suggestion also accepts it.
 const updateSchema = z
@@ -39,6 +46,8 @@ function toItem(item: { id: string; date: string; title: string; kind: string; r
 }
 
 jadwalRouter.get('/', async (req, res) => {
+  // Checked first, so an invalid range never starts the suggestion job.
+  const range = listSchema.parse(req.query)
   const userId = userIdOf(req)
   const job = refreshSuggestions(userId).catch((error: unknown) => {
     logger.warn({ reason: error instanceof Error ? error.name : 'kesalahan' }, 'Pembaruan saran jadwal gagal')
@@ -46,7 +55,7 @@ jadwalRouter.get('/', async (req, res) => {
   await Promise.race([job, new Promise((resolve) => setTimeout(resolve, SUGGESTION_WAIT_MS))])
 
   const items = await prisma.scheduleItem.findMany({
-    where: { userId },
+    where: { userId, date: { gte: range.mulai, lte: range.selesai } },
     orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
   })
   res.json({ items: items.map(toItem) })
