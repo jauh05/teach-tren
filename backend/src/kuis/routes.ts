@@ -1,12 +1,28 @@
 import { Router } from 'express'
 import { resolveActor } from '../auth/actor.js'
+import { config } from '../config/index.js'
+import { AppError } from '../http/errors.js'
+import { requestTimeout } from '../http/timeout.js'
+import { SlidingWindowLimiter } from '../chat/rateLimit.js'
 import { answerQuestion, createQuiz, retryWrong, submitQuiz } from './service.js'
+
+// Generating a quiz can take several AI calls, so it gets more time than other requests.
+const GENERATE_TIMEOUT_MS = 180_000
+const quizLimiter = new SlidingWindowLimiter(config.QUIZ_RATE_PER_HOUR, 60 * 60 * 1000)
 
 // Quiz routes (docs/api.md). Both guests and signed-in users can take quizzes. The guest limits are checked on the server.
 export const kuisRouter = Router()
 
-kuisRouter.post('/generate', async (req, res) => {
+kuisRouter.post('/generate', requestTimeout(GENERATE_TIMEOUT_MS), async (req, res) => {
   const actor = resolveActor(req)
+  // Guests may start a few quizzes per hour, counted per guest and per IP address (docs/role.md CC-10).
+  if (actor.kind === 'guest') {
+    for (const key of [`guest:${actor.guestId}`, `ip:${req.ip ?? 'tidak-diketahui'}`]) {
+      if (!quizLimiter.take(key)) {
+        throw new AppError(429, 'Terlalu sering membuat kuis. Coba lagi nanti.', 'TERLALU_CEPAT')
+      }
+    }
+  }
   res.status(201).json(await createQuiz(actor, req.body))
 })
 

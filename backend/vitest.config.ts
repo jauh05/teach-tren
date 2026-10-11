@@ -18,6 +18,7 @@ export default defineConfig({
       AI_MODE: 'mock',
       AI_MOCK_DELAY_MS: '0',
       CHAT_RATE_PER_MINUTE: '1000',
+      QUIZ_RATE_PER_HOUR: '1000',
     },
   },
 })

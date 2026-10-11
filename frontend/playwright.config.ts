@@ -56,6 +56,7 @@ export default defineConfig({
         // Mock answers, and a high chat limit: many tests share one IP address.
         AI_MODE: 'mock',
         CHAT_RATE_PER_MINUTE: '1000',
+        QUIZ_RATE_PER_HOUR: '1000',
       },
     },
   ],

@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
+import helmet from 'helmet'
 import { pinoHttp } from 'pino-http'
 import { authRouter } from './auth/routes.js'
 import { chatRouter } from './chat/routes.js'
@@ -8,6 +9,9 @@ import { jadwalRouter, memoriRouter } from './jadwal/routes.js'
 import { kuisRouter } from './kuis/routes.js'
 import { conversationsRouter } from './conversations/routes.js'
 import { errorHandler } from './http/errors.js'
+import { requestId } from './http/requestId.js'
+import { requestTimeout } from './http/timeout.js'
+import { config } from './config/index.js'
 import { logger } from './logger.js'
 import { materiRouter } from './materi/routes.js'
 import { topicsRouter } from './topics/routes.js'
@@ -20,7 +24,10 @@ export interface AppOptions {
 export function createApp(options: AppOptions) {
   const app = express()
   app.disable('x-powered-by')
-  app.use(pinoHttp({ logger }))
+  app.use(helmet())
+  app.use(requestId)
+  app.use(pinoHttp({ logger, genReqId: (req) => String(req.headers['x-request-id']) }))
+  app.use(requestTimeout(config.REQUEST_TIMEOUT_MS))
   app.use(cors({ origin: options.corsOrigin, credentials: true }))
   app.use(express.json({ limit: '1mb' }))
   app.use(cookieParser())
