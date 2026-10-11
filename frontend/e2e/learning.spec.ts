@@ -216,6 +216,26 @@ test.describe('Learning tamu', () => {
     await expectNoHorizontalScroll(page)
   })
 
+  test('bulat contoh di kanvas kosong bisa digeser', async ({ page }) => {
+    await page.goto('/learning')
+    const sample = page.getByText('Perlu diulang', { exact: true })
+    const before = await sample.boundingBox()
+    if (!before) {
+      throw new Error('Bulat contoh tidak terlihat')
+    }
+    // Moves left, where the example has free space. Moving up would run into the label of the circle above.
+    const startX = before.x + before.width / 2
+    const startY = before.y - 10
+    await page.mouse.move(startX, startY)
+    await page.mouse.down()
+    await page.mouse.move(startX - 16, startY, { steps: 8 })
+    await page.mouse.up()
+
+    const after = await sample.boundingBox()
+    expect(after).not.toBeNull()
+    expect(before.x - (after?.x ?? 0)).toBeGreaterThan(4)
+  })
+
   test('tamu generate sekali di perangkat, lalu diminta masuk', async ({ page }) => {
     await page.goto('/learning')
     await page.getByRole('button', { name: 'Tambah belajar pertama' }).click()
