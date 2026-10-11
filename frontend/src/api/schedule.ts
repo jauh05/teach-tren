@@ -1,5 +1,29 @@
+import { z } from 'zod'
 import { placeItem, type ScheduleItem, type ScheduleKind, type ScheduleTone } from '../domain/schedule'
 import { addDays, dateKey, startOfWeek } from '../domain/week'
+import { useSessionStore } from '../stores/sessionStore'
+import { apiRequest } from './http'
+
+// Signed-in users read and change their schedule through the backend. Guests see the example schedule below, read-only.
+const itemSchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  title: z.string(),
+  kind: z.enum(['LATIHAN', 'ULANG', 'BARU', 'SARAN', 'ISTIRAHAT']),
+  reason: z.string(),
+})
+
+const TONE_OF: Record<ScheduleKind, ScheduleTone> = {
+  LATIHAN: 'learning',
+  ULANG: 'review',
+  BARU: 'learning',
+  SARAN: 'suggested',
+  ISTIRAHAT: 'rest',
+}
+
+function usesServer(): boolean {
+  return useSessionStore.getState().mode === 'signedIn'
+}
 
 // Mock schedule until the backend exists. Items are placed relative to the current week,
 // so the mock stays visible whatever the date is.
@@ -39,11 +63,20 @@ function ensureItems(now: Date): ScheduleItem[] {
 }
 
 export async function fetchSchedule(now: Date = new Date()): Promise<ScheduleItem[]> {
+  if (usesServer()) {
+    const data = z.object({ items: z.array(itemSchema) }).parse(await apiRequest('GET', '/api/jadwal'))
+    return data.items.map((item) => ({ ...item, tone: TONE_OF[item.kind] }))
+  }
   return structuredClone(ensureItems(now))
 }
 
 // Used for both accepting a suggestion and moving an item to another day.
 export async function placeScheduleItem(itemId: string, date: string): Promise<void> {
+  if (usesServer()) {
+    // The server accepts a suggestion when it is moved, so the same call covers both cases.
+    await apiRequest('PATCH', `/api/jadwal/item/${encodeURIComponent(itemId)}`, { date })
+    return
+  }
   const current = ensureItems(new Date())
   items = current.map((item) => (item.id === itemId ? placeItem(item, date) : item))
 }
