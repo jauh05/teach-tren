@@ -236,26 +236,30 @@ test.describe('Learning tamu', () => {
     expect(before.x - (after?.x ?? 0)).toBeGreaterThan(4)
   })
 
-  test('bulat contoh lain menyingkir saat sebuah bulat contoh ditarik', async ({ page }) => {
+  test('semua bulat contoh ikut bergerak saat satu bulat ditarik', async ({ page }) => {
     await page.goto('/learning')
     const dragged = page.locator('[data-sample="BARU"] circle')
-    const pushed = page.locator('[data-sample="PERLU_DIULANG"] circle')
+    const other = page.locator('[data-sample="PERLU_DIULANG"] circle')
+    // The first circle of the sample is the bulat itself. The second is the progress ring of its score.
+    const far = page.locator('[data-sample="SEDANG"] circle').first()
     const draggedBox = await dragged.boundingBox()
-    const pushedBefore = await pushed.boundingBox()
-    if (!draggedBox || !pushedBefore) {
+    const otherBefore = await other.boundingBox()
+    const farBefore = await far.boundingBox()
+    if (!draggedBox || !otherBefore || !farBefore) {
       throw new Error('Bulat contoh tidak terlihat')
     }
-    // The circle above is pulled down, so it reaches the circle below and pushes it down.
+    // Pulled a little to the left, where the sample has room. Every circle moves by the same amount.
     const startX = draggedBox.x + draggedBox.width / 2
     const startY = draggedBox.y + draggedBox.height / 2
     await page.mouse.move(startX, startY)
     await page.mouse.down()
-    await page.mouse.move(startX, startY + 60, { steps: 10 })
+    await page.mouse.move(startX - 16, startY, { steps: 8 })
     await page.mouse.up()
 
-    const pushedAfter = await pushed.boundingBox()
-    expect(pushedAfter).not.toBeNull()
-    expect((pushedAfter?.y ?? 0) - pushedBefore.y).toBeGreaterThan(4)
+    const otherAfter = await other.boundingBox()
+    const farAfter = await far.boundingBox()
+    expect(otherBefore.x - (otherAfter?.x ?? 0)).toBeGreaterThan(4)
+    expect(farBefore.x - (farAfter?.x ?? 0)).toBeGreaterThan(4)
   })
 
   test('tamu generate sekali di perangkat, lalu diminta masuk', async ({ page }) => {
