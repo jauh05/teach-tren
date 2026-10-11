@@ -62,6 +62,7 @@ export default defineConfig({
         AUTH_IP_PER_15_MIN: '100000',
         REGISTER_PER_HOUR: '100000',
         POLA_SARAN_PER_HOUR: '100000',
+        MATERI_BULAT_PER_HOUR: '100000',
       },
     },
   ],
