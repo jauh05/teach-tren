@@ -3,6 +3,7 @@ import cors from 'cors'
 import express from 'express'
 import { pinoHttp } from 'pino-http'
 import { authRouter } from './auth/routes.js'
+import { chatRouter } from './chat/routes.js'
 import { conversationsRouter } from './conversations/routes.js'
 import { errorHandler } from './http/errors.js'
 import { logger } from './logger.js'
@@ -26,6 +27,7 @@ export function createApp(options: AppOptions) {
     res.json({ status: 'ok' })
   })
   app.use('/api/auth', authRouter)
+  app.use('/api/conversations', chatRouter)
   app.use('/api/conversations', conversationsRouter)
   app.use('/api/topics', topicsRouter)
   app.use('/api/materi', materiRouter)

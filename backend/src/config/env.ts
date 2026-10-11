@@ -22,6 +22,10 @@ const envSchema = z.object({
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(45000),
   AI_MAX_TOKENS_CHAT: z.coerce.number().int().positive().default(1200),
   AI_MAX_TOKENS_KUIS: z.coerce.number().int().positive().default(3000),
+  // Pause between pieces of a mock answer. Tests use zero.
+  AI_MOCK_DELAY_MS: z.coerce.number().int().nonnegative().default(20),
+  // Chat messages allowed per minute, per IP and per account or guest (docs/role.md CC-10).
+  CHAT_RATE_PER_MINUTE: z.coerce.number().int().positive().default(10),
 })
 
 export type Config = z.infer<typeof envSchema>

@@ -66,10 +66,35 @@ Aturan unggahan:
 
 Setiap materi: `id`, `title`, `type` (`PDF`, `DOCX`, atau `PPTX`), `sizeBytes`, `status`, `summary`, `suggestedTopics`, `linkedTopicId`, `error`.
 
+## Chat
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| POST | `/api/conversations/:id/messages` | `content` (1 sampai 3000 karakter), `history` (opsional, maksimal 10 pesan terakhir), `topicName` (opsional) | Aliran SSE: `meta`, `delta`, `done`, atau `error` |
+
+Identitas:
+- Pengguna masuk: cookie sesi.
+- Tamu: header `X-Guest-Id` berisi UUID dari perangkat. Tanpa keduanya: 401.
+
+Event:
+- `meta` `{ conversationId, messageId }`: dikirim pertama, sebelum teks.
+- `delta` `{ text }`: potongan jawaban.
+- `done` `{ messageId, status: "done" }`: jawaban selesai.
+- `error` `{ pesan, kode }`: jawaban gagal. `kode` bisa `AI_TIDAK_TERSEDIA` atau `JAWABAN_GAGAL`.
+
+Aturan:
+- Pengguna masuk: pertanyaan disimpan dulu. Jawaban disimpan setelah selesai. Jika aliran dibatalkan (koneksi ditutup), jawaban yang sudah terbentuk disimpan dengan status `stopped`. Di kontrak ini statusnya `stopped`, bukan GAGAL.
+- Tamu: tidak ada yang disimpan di server. Riwayat tamu tetap di perangkat.
+- Kuota tamu: 2 aksi per perangkat. Jawaban yang selesai atau dihentikan dihitung satu aksi. Jawaban yang gagal tidak dihitung. Melewati batas: 429 `KUOTA_HABIS`.
+- Kuota pengguna masuk: 200 pesan per hari (UTC). Melewati batas: 429 `KUOTA_HABIS`.
+- Batas kecepatan: 10 pesan per menit per IP dan per akun atau tamu. Melewati batas: 429 `TERLALU_CEPAT`.
+- Id percakapan dibuat per akun. Id yang sama dari akun lain menjadi percakapan baru milik pengguna yang sedang masuk, dan tidak membocorkan keberadaan percakapan orang lain. Ini menyimpang dari tabel CC-05 yang meminta 404.
+- Log tidak memuat isi pesan.
+
 ## Kesehatan server
 
 `GET /api/health` mengembalikan `{ "status": "ok" }`. Tidak butuh sesi.
 
 ## Yang belum ada
 
-Jadwal, ingatan AI, pembuatan soal oleh AI, dan batas tamu di sisi server. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
+Jadwal, ingatan AI, pembuatan soal oleh AI, dan penilaian kuis di server. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.

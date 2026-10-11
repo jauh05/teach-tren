@@ -15,7 +15,7 @@ export async function resetDatabase(): Promise<void> {
     throw new Error('Test hanya boleh berjalan di database yang namanya berakhiran _test.')
   }
   await prisma.$executeRawUnsafe(
-    'TRUNCATE TABLE "QuizAttempt", "Message", "Conversation", "TopicLink", "Topic", "User" RESTART IDENTITY CASCADE',
+    'TRUNCATE TABLE "GuestUsage", "Material", "QuizAttempt", "Message", "Conversation", "TopicLink", "Topic", "User" RESTART IDENTITY CASCADE',
   )
 }
 
