@@ -216,34 +216,47 @@ test.describe('Learning tamu', () => {
     await expectNoHorizontalScroll(page)
   })
 
-  test('tamu bisa menambah satu pola tanpa masuk, lalu diminta masuk untuk pola kedua', async ({ page }) => {
+  test('tamu menambah dua pola di perangkat, lalu diminta masuk', async ({ page }) => {
     await page.goto('/learning')
     await page.getByRole('button', { name: 'Tambah belajar pertama' }).click()
     const dialog = page.getByRole('dialog', { name: 'Tambah belajar' })
     await dialog.getByLabel('Nama pola belajar').fill('Pecahan')
     await dialog.getByRole('button', { name: 'Tambah', exact: true }).click()
 
-    // The next step offers AI and finished patterns, which need an account.
+    // The next step: the AI option is open once for a guest, the finished-pattern option needs an account.
     await expect(page.getByRole('dialog', { name: 'Pola berikutnya' })).toBeVisible()
     await expect(page.getByText('Masuk untuk memakai pilihan ini.').first()).toBeVisible()
+    await page.getByRole('button', { name: 'Generate pola berikutnya dengan AI' }).click()
+    await page.getByRole('button', { name: 'Tambah', exact: true }).first().click()
+    await expect(page.getByRole('dialog', { name: 'Pola berikutnya' })).toBeVisible()
     await page.getByRole('button', { name: 'Selesai', exact: true }).click()
     await expect(page.getByRole('dialog')).toBeHidden()
-    await expect(topic(page, await topicIdByName(page, 'Pecahan'))).toBeVisible()
+    await expect(page.locator('[data-topic-id][role="button"]').filter({ hasText: 'Pecahan' }).first()).toBeVisible()
 
+    // Two patterns are on the device. A third one needs an account.
     await page.getByRole('button', { name: 'Tambah belajar', exact: true }).click()
-    await expect(page.getByRole('dialog').getByText('Kamu sudah punya satu pola di perangkat ini.')).toBeVisible()
+    await expect(page.getByRole('dialog').getByText('Pola di perangkat ini sudah penuh untuk tamu.')).toBeVisible()
     await expect(page.getByRole('dialog').getByLabel('Nama pola belajar')).toHaveCount(0)
   })
 })
 
-// Guest topics have no fixed id, so the test reads it from the canvas.
-async function topicIdByName(page: Page, name: string): Promise<string> {
-  const id = await page.locator('[data-topic-id][role="button"]').filter({ hasText: name }).first().getAttribute('data-topic-id')
-  if (!id) {
-    throw new Error(`Bulat ${name} tidak ditemukan`)
-  }
-  return id
-}
+test.describe('Materi dan ganti nama', () => {
+  test('generate materi satu bagian setiap klik, dan nama diganti dengan tiga klik', async ({ page }) => {
+    await page.goto('/learning')
+    await topic(page, 'persamaan-linear').focus()
+    await page.keyboard.press('Enter')
+
+    const panel = topicChat(page)
+    const materi = page.getByRole('region', { name: 'Materi bulat' })
+    await panel.getByRole('button', { name: 'Generate materi' }).click()
+    await expect(materi.getByRole('heading', { name: 'Bagian 1: Persamaan linear' })).toBeVisible()
+    await panel.getByRole('button', { name: 'Generate materi' }).click()
+    await expect(materi.getByRole('heading', { name: 'Bagian 2: Persamaan linear' })).toBeVisible()
+
+    await panel.getByRole('heading', { name: 'Persamaan linear', level: 2 }).click({ clickCount: 3 })
+    await expect(panel.getByLabel('Nama bulat')).toBeVisible()
+  })
+})
 
 test.describe('Tambah belajar', () => {
   test('kanvas kosong menampilkan lingkaran tambah, dan pola pertama lanjut ke langkah berikutnya', async ({ page }) => {
