@@ -24,6 +24,7 @@ import {
   QUICK_START,
   type GuideIcon,
 } from '../../content/tentang'
+import { useTabScroll } from '../../lib/tabScroll'
 
 const ICONS: Record<GuideIcon, LucideIcon> = {
   rocket: Rocket,
@@ -40,9 +41,10 @@ const ICONS: Record<GuideIcon, LucideIcon> = {
 // Guide page (/tentang). Visible to guests and signed-in users. Content lives in src/content/tentang.ts.
 export function TentangPage() {
   const navigate = useNavigate()
+  const scroll = useTabScroll<HTMLElement>('tentang')
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
+    <section {...scroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
       <div className="mx-auto w-full max-w-[1040px] px-4 py-6 md:px-8 md:py-8">
         <header className="rounded-[20px] border border-line bg-white p-6 md:p-8">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">

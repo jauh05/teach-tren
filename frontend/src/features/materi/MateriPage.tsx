@@ -8,6 +8,7 @@ import { createTopic, fetchTopicGraph } from '../../api/topics'
 import { Button } from '../../components/ui/Button'
 import { MAX_MATERIALS_PER_USER } from '../../domain/materi'
 import type { MaterialStatus } from '../../domain/materi'
+import { useTabScroll } from '../../lib/tabScroll'
 import { MaterialUploadDialog } from './MaterialUploadDialog'
 
 const STATUS_LABEL: Record<MaterialStatus, string> = {
@@ -27,6 +28,7 @@ const STATUS_CLASS: Record<MaterialStatus, string> = {
 // Study materials (/materi). Upload PDF, DOCX, or PPTX from a pop-up, then get a summary and topic suggestions.
 export function MateriPage() {
   const [uploadOpen, setUploadOpen] = useState(false)
+  const scroll = useTabScroll<HTMLElement>('materi')
 
   const materials = useQuery({
     queryKey: ['materi'],
@@ -40,7 +42,7 @@ export function MateriPage() {
   const full = list.length >= MAX_MATERIALS_PER_USER
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
+    <section {...scroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-canvas">
       <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5 px-4 py-6 md:px-6">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>

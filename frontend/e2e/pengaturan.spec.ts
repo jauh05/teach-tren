@@ -112,6 +112,29 @@ test.describe('Pengaturan', () => {
     expect(download.suggestedFilename()).toBe('riwayat-teach-tren.json')
   })
 
+  test('posisi scroll tetap saat pindah tab lalu kembali', async ({ page }) => {
+    await page.goto('/pengaturan')
+    const area = page.locator('[data-scroll-tab="pengaturan"]')
+    // The scroll event is what the page uses to remember the position, so wait for it.
+    await area.evaluate(
+      (element) =>
+        new Promise<void>((resolve) => {
+          element.addEventListener('scroll', () => resolve(), { once: true })
+          element.scrollTop = 150
+        }),
+    )
+    await expect(area).toHaveJSProperty('scrollTop', 150)
+
+    await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
+    await page.getByRole('menuitem', { name: 'Tentang' }).click()
+    await expect(page).toHaveURL(/\/tentang$/)
+
+    await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
+    await page.getByRole('menuitem', { name: 'Profil' }).click()
+    await expect(page).toHaveURL(/\/pengaturan$/)
+    await expect(page.locator('[data-scroll-tab="pengaturan"]')).toHaveJSProperty('scrollTop', 150)
+  })
+
   test('mode gelap ditandai segera hadir dan tidak bisa dipilih', async ({ page }) => {
     await page.goto('/pengaturan')
     await expect(page.getByRole('radio', { name: 'Gelap (segera hadir)' })).toBeDisabled()

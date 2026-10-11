@@ -9,7 +9,7 @@ const itemSchema = z.object({
   id: z.string(),
   date: z.string(),
   title: z.string(),
-  kind: z.enum(['LATIHAN', 'ULANG', 'BARU', 'SARAN', 'ISTIRAHAT']),
+  kind: z.enum(['LATIHAN', 'ULANG', 'BARU', 'SARAN', 'ISTIRAHAT', 'DIKUASAI']),
   reason: z.string(),
 })
 
@@ -19,6 +19,7 @@ const TONE_OF: Record<ScheduleKind, ScheduleTone> = {
   BARU: 'learning',
   SARAN: 'suggested',
   ISTIRAHAT: 'rest',
+  DIKUASAI: 'mastered',
 }
 
 function usesServer(): boolean {

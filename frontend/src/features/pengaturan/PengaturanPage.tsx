@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTabScroll } from '../../lib/tabScroll'
 import { useSessionStore } from '../../stores/sessionStore'
 import { DataSection, HelpSection, SignOutSection } from './DataSections'
 import { DisplaySection, LearningSection } from './PreferenceSections'
@@ -16,6 +17,7 @@ const SECTION_LINKS = [
 export function PengaturanPage() {
   const signOut = useSessionStore((state) => state.signOut)
   const navigate = useNavigate()
+  const scroll = useTabScroll<HTMLDivElement>('pengaturan')
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -37,7 +39,7 @@ export function PengaturanPage() {
         </button>
       </nav>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-7">
+      <div {...scroll} className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-7">
         <h1 className="mb-3 font-heading text-lg font-semibold text-ink">Pengaturan</h1>
         <div className="flex max-w-[620px] flex-col gap-3">
           <ProfileSection />

@@ -17,6 +17,7 @@ import {
   startOfWeek,
   weekDays,
 } from '../../domain/week'
+import { useTabScroll } from '../../lib/tabScroll'
 import { useSessionStore } from '../../stores/sessionStore'
 import { DayAgenda } from './DayAgenda'
 import { MemoryPanel } from './MemoryPanel'
@@ -39,6 +40,7 @@ export function JadwalPage() {
   const [anchor, setAnchor] = useState(() => today)
   const [view, setView] = useState<CalendarView>('minggu')
   const [memoryOpen, setMemoryOpen] = useState(false)
+  const scroll = useTabScroll<HTMLDivElement>('jadwal')
 
   const schedule = useQuery({
     queryKey: ['schedule'],
@@ -94,7 +96,7 @@ export function JadwalPage() {
 
   return (
     <section className="flex min-h-0 flex-1">
-      <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 md:px-5">
+      <div {...scroll} className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4 md:px-5">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="font-heading text-base font-semibold text-ink">

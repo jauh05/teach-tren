@@ -1,6 +1,6 @@
 // Schedule items (JadwalItem in docs/role.md 6.2). Suggestions become normal items once accepted.
 
-export type ScheduleKind = 'LATIHAN' | 'ULANG' | 'BARU' | 'SARAN' | 'ISTIRAHAT'
+export type ScheduleKind = 'LATIHAN' | 'ULANG' | 'BARU' | 'SARAN' | 'ISTIRAHAT' | 'DIKUASAI'
 
 // Display tone of an item. Colors come from the mockup (docs/design/html/05-jadwal-desktop.html).
 export type ScheduleTone = 'mastered' | 'learning' | 'review' | 'suggested' | 'rest'
