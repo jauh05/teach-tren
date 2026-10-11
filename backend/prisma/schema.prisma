@@ -92,6 +92,7 @@ model User {
   materials    Material[]
   scheduleItems ScheduleItem[]
   scheduleRuns ScheduleRun[]
+  bankSeen     BankSeen[]
 }
 
 // A topic (bulat). The id is unique per user, so the same slug can exist for two accounts.
@@ -99,6 +100,8 @@ model Topic {
   userId            String
   id                String
   name              String
+  // Subject used for quiz prompts and checks, for example Matematika or IPA.
+  subject           String        @default("Umum")
   x                 Float         @default(0)
   y                 Float         @default(0)
   unlocked          Boolean       @default(true)
@@ -179,4 +182,100 @@ model QuizAttempt {
   topic     Topic    @relation(fields: [userId, topicId], references: [userId, id], onDelete: Cascade)
 
   @@index([userId, topicId])
+}
+
+enum QuestionType {
+  PG
+  CERITA
+  ISIAN
+  ESAI
+}
+
+// Long text shared by several questions of the same topic and level. Stored once and reused.
+model Stimulus {
+  id        String   @id @default(uuid())
+  topicKey  String
+  level     String
+  text      String
+  createdAt DateTime @default(now())
+
+  questions BankQuestion[]
+
+  @@index([topicKey, level])
+}
+
+// Question bank (docs/role.md section 9): questions are generated once per topic, level, and type, then reused.
+model BankQuestion {
+  id              String       @id @default(uuid())
+  topicKey        String
+  level           String
+  subject         String
+  type            QuestionType
+  stimulusId      String?
+  stimulus        Stimulus?    @relation(fields: [stimulusId], references: [id], onDelete: SetNull)
+  prompt          String
+  options         Json?
+  answer          String?
+  acceptedAnswers String[]     @default([])
+  rubric          Json?
+  explanation     String
+  createdAt       DateTime     @default(now())
+  seen            BankSeen[]
+
+  @@index([topicKey, level, type])
+}
+
+// Questions a signed-in user has already done. Reuse from the bank skips them.
+model BankSeen {
+  userId     String
+  bankId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bank       BankQuestion @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@id([userId, bankId])
+}
+
+// One quiz run. Answer keys stay on the server. Retry runs contain only the questions answered wrong.
+model QuizRun {
+  id        String   @id @default(uuid())
+  userId    String?
+  guestId   String?
+  topicId   String?
+  topicName String
+  subject   String
+  level     String
+  style     String
+  count     Int
+  retry     Boolean  @default(false)
+  status    String   @default("BERJALAN")
+  percent   Int?
+  stimuli   Json
+  createdAt DateTime @default(now())
+  finishedAt DateTime?
+  items     QuizItem[]
+
+  @@index([userId, createdAt])
+  @@index([guestId])
+}
+
+model QuizItem {
+  id              String       @id @default(uuid())
+  quizId          String
+  quiz            QuizRun      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  position        Int
+  type            QuestionType
+  stimulusId      String?
+  prompt          String
+  options         Json?
+  answer          String?
+  acceptedAnswers String[]     @default([])
+  rubric          Json?
+  explanation     String
+  bankId          String?
+  userAnswer      String?
+  score           Int?
+  feedback        String?
+  lowConfidence   Boolean      @default(false)
+
+  @@index([quizId, position])
 }

@@ -70,3 +70,83 @@ export function repairSystemPrompt(validationError: string, previousOutput: stri
     'Perbaiki dan keluarkan HANYA JSON valid sesuai skema asli. Pertahankan isi yang benar. Jangan menambah data baru. Setiap backslash ditulis ganda di dalam string JSON.',
   ].join('\n')
 }
+
+// P-AI-02: a batch of at most five questions (task KUIS_GENERATE). The composition is a hint for the model.
+export function quizBatchPrompt(params: {
+  mapel: string
+  topik: string
+  tingkat: string
+  jumlah: number
+  komposisi: string
+}): string {
+  return [
+    RULES,
+    '',
+    'PERAN',
+    'Kamu membuat kumpulan soal untuk pelajar Indonesia. Kebenaran kunci dan format JSON wajib.',
+    'PERMINTAAN',
+    `Mapel: ${params.mapel}`,
+    `Topik: ${params.topik}`,
+    `Tingkat: ${params.tingkat} (mudah, sedang, atau sulit)`,
+    `Jumlah soal pada panggilan ini: ${params.jumlah} (maksimal 5)`,
+    `Komposisi: ${params.komposisi} (contoh: PG 2, CERITA 2, ISIAN 1)`,
+    'Konteks materi (boleh kosong):',
+    'ATURAN UMUM',
+    '1. Setiap soal PG memiliki tepat empat pilihan A sampai D dan satu kunci benar. Pengecoh berasal dari kesalahan umum.',
+    '2. Soal cerita memakai konteks kehidupan pelajar Indonesia. Data ditulis di cerita, lalu pertanyaan menanyakan hal yang dicari. Jawaban tidak ditulis di cerita.',
+    '3. Teks panjang (stimulus) berisi 80 sampai 200 kata dan boleh memuat rumus LaTeX. Satu stimulus dipakai oleh 2 sampai 3 soal yang merujuknya lewat stimulusId.',
+    '4. Soal ISIAN berupa jawaban angka atau satu kata. Tulis satuan di pertanyaan jika perlu. Kunci berisi jawaban yang diterima sebagai teks.',
+    '5. Soal ESAI meminta penjelasan 3 sampai 6 kalimat. Sertakan rubrik 3 sampai 5 poin dengan bobot total 100.',
+    '6. Untuk matematika dan IPA: rumus, pecahan, akar, dan satuan memakai LaTeX dengan tanda dolar. Untuk mapel lain jangan memakai LaTeX kecuali simbol matematika.',
+    '7. Pembahasan 1 sampai 3 kalimat. Untuk matematika boleh memakai langkah LaTeX.',
+    '8. Jangan merujuk gambar, tabel, atau diagram yang tidak ada di teks.',
+    '9. Setiap soal berbeda dari soal lain dalam panggilan yang sama.',
+    'SKEMA JSON',
+    '{ "stimulus": [ { "id": "S1", "teks": "string" } ], "soal": [ { "nomor": 1, "tipe": "PG | CERITA | ISIAN | ESAI", "stimulusId": "S1 atau null", "pertanyaan": "string", "pilihan": [ { "huruf": "A", "teks": "string" }, { "huruf": "B", "teks": "string" }, { "huruf": "C", "teks": "string" }, { "huruf": "D", "teks": "string" } ], "kunci": "A | B | C | D untuk PG dan CERITA, teks jawaban untuk ISIAN, null untuk ESAI", "rubrik": [ { "poin": "string", "bobot": 0 } ], "pembahasan": "string" } ] }',
+    'Catatan skema: pilihan hanya untuk PG dan CERITA (null untuk tipe lain). rubrik hanya untuk ESAI (null untuk tipe lain).',
+    'ATURAN SKEMA',
+    `- Jumlah item soal harus sama dengan ${params.jumlah}.`,
+    '- stimulus berupa array kosong jika tidak ada soal yang memakainya.',
+    '- Jumlah bobot rubrik untuk ESAI harus 100.',
+    'Keluarkan HANYA JSON valid.',
+  ].join('\n')
+}
+
+// P-AI-08: essays of one quiz graded in one call (task NILAI_ESAI).
+export function essayGradingPrompt(essaysJson: string): string {
+  return [
+    RULES,
+    '',
+    'PERAN',
+    'Kamu menilai jawaban esai pelajar berdasarkan rubrik. Nilai secara adil dan konsisten. Jangan menilai gaya tulis kecuali rubrik memintanya.',
+    'DATA (satu item per soal esai)',
+    essaysJson,
+    'Setiap item berisi id, pertanyaan, rubrik, dan jawaban.',
+    'ATURAN',
+    '1. Nilai setiap poin rubrik: penuh, sebagian, atau nol. Skor dalam batas bobot poin.',
+    '2. Jangan mengurangi nilai karena panjang jawaban yang wajar.',
+    '3. Jawaban kosong atau tidak relevan dinilai nol dengan alasan singkat.',
+    '4. Umpan balik 1 sampai 2 kalimat, sopan, dan menunjuk bagian yang kurang.',
+    '5. Tingkat keyakinan TINGGI, SEDANG, atau RENDAH. Jika RENDAH, jawaban ditandai untuk ditinjau pengguna.',
+    'SKEMA JSON',
+    '{ "hasil": [ { "id": "string", "skor": 0, "umpanBalik": "string", "keyakinan": "TINGGI | SEDANG | RENDAH" } ] }',
+    'Keluarkan HANYA JSON valid.',
+  ].join('\n')
+}
+
+// Key check for math and science questions (task VERIFIKASI_KUNCI). The checker solves each question itself.
+export function verifyKeyPrompt(): string {
+  return [
+    RULES,
+    '',
+    'PERAN',
+    'Kamu memeriksa kunci soal untuk pelajar Indonesia. Kamu tidak membuat soal baru.',
+    'ATURAN',
+    '1. Untuk setiap soal, selesaikan sendiri dari teks soal dan stimulus jika ada. Jangan melihat kunci dari pembuat soal lebih dulu.',
+    '2. Periksa apakah angka di stimulus konsisten dengan pertanyaan. Jika tidak konsisten, tandai benar false.',
+    '3. Jika kunci dari pembuat sama dengan hasilmu, tandai benar true. Jika tidak, tandai benar false dan isi jawabanBenar.',
+    'SKEMA JSON',
+    '{ "hasil": [ { "nomor": 1, "benar": true, "jawabanBenar": "huruf atau teks jawaban" } ] }',
+    'Keluarkan HANYA JSON valid.',
+  ].join('\n')
+}

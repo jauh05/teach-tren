@@ -113,10 +113,33 @@ Job saran harian:
 - Jika AI gagal, tidak ada yang disimpan dan percobaan berikutnya dilakukan saat jadwal dibuka lagi.
 - Respons GET menunggu job paling lama dua belas detik, karena model berbayar bisa memakan sekitar sepuluh detik. Jika lebih lama, job tetap berjalan di latar belakang.
 
+## Kuis
+
+Tamu dan pengguna masuk memakai endpoint yang sama. Tamu mengirim `X-Guest-Id`, seperti di chat.
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| POST | `/api/kuis/generate` | `sumberId` (id bulat atau percakapan), `topicName` (opsional), `count` (5, 10, 15, atau 20), `level`, `style` | 201 `{ quiz }`. Tanpa kunci jawaban dan tanpa pembahasan |
+| POST | `/api/kuis/:quizId/jawaban/:itemId` | `answer` (1 sampai 1000 karakter) | 200. PG dan soal cerita serta isian langsung dinilai dan memberi `kunci`. Esai hanya disimpan |
+| POST | `/api/kuis/:quizId/kumpul` | - | 200 `{ percent, benar, total, items, stimuli }`. Esai dinilai AI dalam satu panggilan |
+| POST | `/api/kuis/:quizId/ulangi-salah` | - | 201 `{ quiz }` baru berisi soal yang salah saja. Tidak mengubah skor |
+
+Aturan:
+- Tamu: tepat 5 soal. Satu kuis memakai satu aksi dari dua aksi gratis. Melewati batas: 429 `KUOTA_HABIS`.
+- Pengguna masuk: 5 sampai 20 soal, 20 kuis per hari (UTC). Melewati batas: 429 `KUOTA_HABIS`.
+- Pembahasan (`pembahasan`) hanya ada untuk pengguna masuk, di respons jawaban dan hasil. Tamu tidak mendapat field ini.
+- Skor pengguna masuk disimpan dan memperbarui status bulat, kecuali pada ulangi soal salah.
+- Komposisi default: PG 50%, soal cerita 25%, isian 10%, esai 15%. Gaya "Pilihan ganda saja" hanya PG. "Banyak cerita" memberi cerita 50%.
+- Bank soal: soal dibuat AI sekali, lalu dipakai ulang. Pengguna masuk tidak mendapat soal yang sudah pernah dikerjakan. Kunci bank memakai mapel, sehingga soal dari mapel lain tidak dipakai.
+- AI membuat soal dalam batch maksimal 5. Soal matematika dan IPA diperiksa ulang kuncinya (`VERIFIKASI_KUNCI`). Soal yang kuncinya tidak cocok dibuang dan dibuat ulang.
+- Pembahasan dibuat bersama soal, bukan saat hasil dibuka. Ini menghemat satu panggilan AI per soal salah. Menyimpang dari CC-07 (yang menunda pembahasan).
+- Penilaian esai: satu panggilan AI untuk semua esai. Jika AI tidak tersedia, kata kunci dipakai dan jawabannya ditandai `lowConfidence`.
+- Kuis yang sudah dikumpulkan tidak bisa dijawab lagi (409).
+
 ## Kesehatan server
 
 `GET /api/health` mengembalikan `{ "status": "ok" }`. Tidak butuh sesi.
 
 ## Yang belum ada
 
-Pembuatan soal oleh AI dan penilaian kuis di server. Penghapusan akun setelah 30 hari belum berjalan otomatis. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
+Penghapusan akun setelah 30 hari belum berjalan otomatis. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.

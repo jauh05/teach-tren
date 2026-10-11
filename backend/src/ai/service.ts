@@ -14,16 +14,20 @@ export type AiTask =
   | 'JADWAL_SARAN'
   | 'KLASIFIKASI'
   | 'NILAI_ESAI'
+  | 'VERIFIKASI_KUNCI'
   | 'REPAIR_JSON'
   | 'MODERASI'
 
 export type ChainName = 'chat' | 'kuis' | 'ringan'
+
+export type Effort = 'low' | 'medium' | 'high'
 
 const CHAIN_OF: Record<AiTask, ChainName> = {
   CHAT: 'chat',
   KUIS_GENERATE: 'kuis',
   PEMBAHASAN: 'kuis',
   NILAI_ESAI: 'kuis',
+  VERIFIKASI_KUNCI: 'ringan',
   JADWAL_SARAN: 'ringan',
   KLASIFIKASI: 'ringan',
   REPAIR_JSON: 'ringan',
@@ -41,7 +45,7 @@ export interface AiOptions {
   chains: Record<ChainName, string[]>
   timeoutMs: number
   maxTokens: { chat: number; kuis: number }
-  reasoningEffort: 'low' | 'medium' | 'high'
+  reasoningEffort: Record<ChainName, Effort>
   fetchImpl: typeof fetch
   breaker?: CircuitBreaker
   // Pause between mock stream pieces. Tests set it to zero.
@@ -132,7 +136,7 @@ export class AiService {
             maxTokens: this.options.maxTokens.chat,
             temperature: CHAT_TEMPERATURE,
             timeoutMs: this.options.timeoutMs,
-            reasoningEffort: this.options.reasoningEffort,
+            reasoningEffort: this.options.reasoningEffort.chat,
             signal: request.signal,
           },
           (text) => {
@@ -168,7 +172,7 @@ export class AiService {
       maxTokens: request.task === 'CHAT' ? this.options.maxTokens.chat : this.options.maxTokens.kuis,
       temperature: JSON_TEMPERATURE,
       timeoutMs: this.options.timeoutMs,
-      reasoningEffort: this.options.reasoningEffort,
+      reasoningEffort: this.options.reasoningEffort[CHAIN_OF[request.task]],
     }
     const first = await completeText(this.settings(), {
       ...call,
