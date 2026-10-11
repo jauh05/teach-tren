@@ -1,3 +1,4 @@
+import { User } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { initialsOf } from '../../lib/format'
@@ -76,7 +77,7 @@ export function AvatarMenu() {
         onClick={() => setOpen((value) => !value)}
         className="min-h-[36px] min-w-[36px] px-0 md:min-h-[36px] md:min-w-[36px]"
       >
-        {mode === 'signedIn' ? initialsOf(account.name) : '?'}
+        {mode === 'signedIn' ? initialsOf(account.name) : <User size={18} aria-hidden="true" />}
       </Button>
       {open && (
         <div

@@ -6,7 +6,7 @@ const LEGEND_ITEMS: ReadonlyArray<{ status: TopicStatus; hint: string; color: st
   { status: 'DIKUASAI', hint: 'Skor 80 ke atas', color: colors.status.kuasai },
   { status: 'SEDANG', hint: 'Skor 50 sampai 79', color: colors.status.sedang },
   { status: 'PERLU_DIULANG', hint: 'Skor di bawah 50', color: colors.status.ulang },
-  { status: 'BARU', hint: 'Dari chat atau materi', color: colors.status.baru },
+  { status: 'BARU', hint: 'Belum ada latihan', color: colors.status.belum },
   { status: 'BELUM_DIBUKA', hint: 'Pelajari prasyaratnya', color: colors.status.belum },
   { status: 'SARAN', hint: 'Dari topik yang terkait', color: colors.status.saran },
 ]

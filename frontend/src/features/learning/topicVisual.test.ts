@@ -18,7 +18,8 @@ describe('TOPIC_VISUALS', () => {
     expect(sealed).toEqual(['BELUM_DIBUKA', 'DIKUASAI', 'PERLU_DIULANG'])
   })
 
-  it('status baru memakai label baru di atas bulat', () => {
-    expect(TOPIC_VISUALS.BARU.tagLabel).toBe('baru')
+  it('status kosong adalah lingkaran kosong tanpa segel', () => {
+    expect(TOPIC_VISUALS.BARU.fill).toBe('#FFFFFF')
+    expect(TOPIC_VISUALS.BARU.seal).toBeUndefined()
   })
 })

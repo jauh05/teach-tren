@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { saveConversationMessages } from '../../api/conversations'
 import { ApiError } from '../../api/http'
 import { historyOf, streamAnswer } from '../../api/chat'
+import { createTopic } from '../../api/topics'
 import { isGuestLimitReached } from '../../domain/guestQuota'
+import { topicNameFromQuestion } from '../../domain/topicNames'
 import type { ChatMessage } from '../../domain/types'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUiStore } from '../../stores/uiStore'
@@ -82,7 +84,7 @@ export function ConversationThread({
   const chatQuiz = useUiStore((state) => state.chatQuiz)
   const openQuizSetup = useUiStore((state) => state.openQuizSetup)
   const endChatQuiz = useUiStore((state) => state.endChatQuiz)
-
+  const [topicNotice, setTopicNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
     const node = scrollRef.current
@@ -204,6 +206,22 @@ export function ConversationThread({
     runStream(assistantId, question, messages.slice(0, index))
   }
 
+  // A question can become a topic on Learning. The name comes from the question, so the user can rename it later.
+  async function makeTopic(question: string) {
+    const name = topicNameFromQuestion(question)
+    if (name === '') {
+      setTopicNotice({ tone: 'error', text: 'Pertanyaan ini terlalu pendek untuk dijadikan nama bulat.' })
+      return
+    }
+    try {
+      await createTopic(name)
+      await queryClient.invalidateQueries({ queryKey: ['topics'] })
+      setTopicNotice({ tone: 'ok', text: `Bulat “${name}” dibuat. Lihat di Learning.` })
+    } catch (error) {
+      setTopicNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Bulat belum bisa dibuat. Coba lagi.' })
+    }
+  }
+
   async function copy(content: string) {
     try {
       await navigator.clipboard.writeText(content)
@@ -232,6 +250,7 @@ export function ConversationThread({
               onCopy={() => void copy(message.content)}
               onRegenerate={() => regenerate(message.id)}
               onCreateQuiz={() => openQuizSetup(storageId)}
+              onMakeTopic={isGuest ? undefined : () => void makeTopic(message.content)}
             />
           ))}
           {showNextSteps && <NextStepsCard conversationId={storageId} />}
@@ -239,6 +258,11 @@ export function ConversationThread({
       </div>
 
       <div className={clsx('mx-auto w-full', compact ? 'px-3 pb-3' : 'max-w-[820px] px-4 pb-4 md:px-7')}>
+        {topicNotice && (
+          <p role={topicNotice.tone === 'error' ? 'alert' : 'status'} className={clsx('mb-2 text-xs', topicNotice.tone === 'error' ? 'text-red-700' : 'text-brand-dark')}>
+            {topicNotice.text}
+          </p>
+        )}
         <Composer
           locked={limitReached}
           value={draft}

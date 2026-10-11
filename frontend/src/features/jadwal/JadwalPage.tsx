@@ -31,7 +31,7 @@ const VIEW_OPTIONS: { value: CalendarView; label: string }[] = [
   { value: 'bulan', label: 'Bulan' },
 ]
 
-// Schedule (/jadwal). Guests see the same schedule as a read-only example.
+// Schedule (/jadwal). Guests see an empty calendar that they cannot change.
 export function JadwalPage() {
   const isGuest = useSessionStore((state) => state.mode === 'guest')
   const queryClient = useQueryClient()
@@ -165,8 +165,8 @@ export function JadwalPage() {
 
         {isGuest && (
           <p className="rounded-xl border border-line bg-slate-50 px-3 py-2 text-sm text-ink">
-            Ini contoh jadwal.{' '}
-            <Link to="/masuk" className="font-semibold text-brand-dark underline">
+            Jadwal belajar hanya untuk akun.{' '}
+            <Link to="/masuk?redirect=%2Fjadwal" className="font-semibold text-brand-dark underline">
               Masuk
             </Link>{' '}
             untuk menerima saran dan mengatur jadwal.

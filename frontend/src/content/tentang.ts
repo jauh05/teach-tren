@@ -119,7 +119,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
 | Kuis | 1 kuis lima soal | 20 kuis per hari, 5 sampai 20 soal |
 | Pembahasan | Tidak | Ya |
 | Riwayat | Di perangkat ini, maksimal 2 percakapan | Tersimpan di akun |
-| Jadwal | Contoh, hanya baca | Penuh |`,
+| Jadwal | Kosong, hanya baca | Penuh |`,
   },
   {
     id: 'privasi-dan-data',

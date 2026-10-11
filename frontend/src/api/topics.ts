@@ -1,13 +1,20 @@
 import { z } from 'zod'
-import { isTopicNameTaken } from '../domain/topicNames'
-import type { TopicGraph } from '../domain/types'
+import type { Topic, TopicGraph } from '../domain/types'
 import { useSessionStore } from '../stores/sessionStore'
 import { ApiError, apiRequest } from './http'
 
-// Signed-in users read and change topics through the backend. Guests keep the mock graph below.
+// Topics of a signed-in account are read and changed through the backend.
+// A guest may add one topic, kept on this device. More topics need an account, and the guest's topic moves to the
+// account on sign-in (importGuestTopics). Guests cannot link topics or ask for AI suggestions.
 function usesServer(): boolean {
   return useSessionStore.getState().mode === 'signedIn'
 }
+
+const SIGN_IN_TO_ADD_MORE = 'Masuk untuk menambah pola lagi.'
+const SIGN_IN_TO_USE = 'Masuk untuk memakai fitur ini.'
+const GUEST_TOPIC_KEY = 'teach-tren-pola-tamu'
+// Center of the canvas, the same place the backend uses for the first topic.
+const GUEST_TOPIC_POSITION = { x: 280, y: 170 }
 
 const graphSchema = z.object({
   topics: z.array(
@@ -25,164 +32,86 @@ const graphSchema = z.object({
   links: z.array(z.object({ source: z.string(), target: z.string(), suggested: z.boolean() })),
 })
 
+const guestTopicsSchema = z.array(z.object({ id: z.string(), name: z.string(), x: z.number(), y: z.number() }))
+const suggestionsSchema = z.object({ saran: z.array(z.object({ nama: z.string(), alasan: z.string() })) })
+
+type GuestTopic = z.infer<typeof guestTopicsSchema>[number]
+
 function encodeId(id: string): string {
   return encodeURIComponent(id)
 }
 
-// Mock data until the backend exists. Renames are kept in memory and reset on reload.
-// Positions come from the mockup (docs/design/html/02-learning-desktop.html), in world units.
-const graph: TopicGraph = {
-  topics: [
-    {
-      id: 'bilangan',
-      name: 'Bilangan',
-      lastScore: 90,
-      unlocked: true,
-      pendingSuggestion: false,
-      conversationCount: 2,
-      materials: ['Bilangan bulat dan pecahan'],
-      initialX: 100,
-      initialY: 110,
-    },
-    {
-      id: 'persamaan-linear',
-      name: 'Persamaan linear',
-      lastScore: 72,
-      unlocked: true,
-      pendingSuggestion: false,
-      conversationCount: 3,
-      materials: ['Modul persamaan linear satu variabel'],
-      initialX: 240,
-      initialY: 110,
-    },
-    {
-      id: 'fungsi-kuadrat',
-      name: 'Fungsi kuadrat',
-      lastScore: null,
-      unlocked: true,
-      pendingSuggestion: false,
-      conversationCount: 1,
-      materials: [],
-      initialX: 380,
-      initialY: 70,
-    },
-    {
-      id: 'sistem-persamaan',
-      name: 'Sistem persamaan',
-      lastScore: null,
-      unlocked: false,
-      pendingSuggestion: false,
-      conversationCount: 0,
-      materials: [],
-      initialX: 330,
-      initialY: 230,
-    },
-    {
-      id: 'bangun-datar',
-      name: 'Bangun datar',
-      lastScore: 85,
-      unlocked: true,
-      pendingSuggestion: false,
-      conversationCount: 2,
-      materials: ['Bangun datar dan luasnya'],
-      initialX: 110,
-      initialY: 240,
-    },
-    {
-      id: 'sel-tumbuhan',
-      name: 'Sel tumbuhan',
-      lastScore: 38,
-      unlocked: true,
-      pendingSuggestion: false,
-      conversationCount: 1,
-      materials: [],
-      initialX: 420,
-      initialY: 240,
-    },
-    {
-      id: 'fotosintesis',
-      name: 'Fotosintesis',
-      lastScore: null,
-      unlocked: false,
-      pendingSuggestion: false,
-      conversationCount: 0,
-      materials: [],
-      initialX: 455,
-      initialY: 150,
-    },
-    {
-      id: 'pertidaksamaan',
-      name: 'Pertidaksamaan',
-      lastScore: null,
-      unlocked: true,
-      pendingSuggestion: true,
-      conversationCount: 0,
-      materials: [],
-      initialX: 200,
-      initialY: 290,
-    },
-    {
-      id: 'grafik-fungsi',
-      name: 'Grafik fungsi',
-      lastScore: null,
-      unlocked: true,
-      pendingSuggestion: true,
-      conversationCount: 0,
-      materials: [],
-      initialX: 380,
-      initialY: 160,
-    },
-  ],
-  links: [
-    { source: 'bilangan', target: 'persamaan-linear', suggested: false },
-    { source: 'persamaan-linear', target: 'fungsi-kuadrat', suggested: false },
-    { source: 'persamaan-linear', target: 'sistem-persamaan', suggested: false },
-    { source: 'bilangan', target: 'bangun-datar', suggested: false },
-    { source: 'sel-tumbuhan', target: 'fotosintesis', suggested: false },
-    { source: 'bangun-datar', target: 'pertidaksamaan', suggested: true },
-    { source: 'fungsi-kuadrat', target: 'grafik-fungsi', suggested: true },
-  ],
+// Reads the guest's topic from this device. A damaged value counts as no topic.
+function readGuestTopics(): GuestTopic[] {
+  try {
+    const parsed = guestTopicsSchema.safeParse(JSON.parse(localStorage.getItem(GUEST_TOPIC_KEY) ?? '[]'))
+    return parsed.success ? parsed.data : []
+  } catch {
+    return []
+  }
 }
 
-// Returns copies so callers cannot mutate the stored graph directly.
-export async function fetchTopicGraph(): Promise<TopicGraph> {
-  if (usesServer()) {
-    const data = graphSchema.parse(await apiRequest('GET', '/api/topics'))
-    return {
-      topics: data.topics.map((topic) => ({
-        id: topic.id,
-        name: topic.name,
-        lastScore: topic.lastScore,
-        unlocked: topic.unlocked,
-        pendingSuggestion: topic.pendingSuggestion,
-        // The backend does not count conversations per topic yet. The UI does not show this value.
-        conversationCount: 0,
-        materials: topic.materials,
-        initialX: topic.x,
-        initialY: topic.y,
-      })),
-      links: data.links.map((link) => ({ source: link.source, target: link.target, suggested: link.suggested })),
-    }
+function writeGuestTopics(topics: GuestTopic[]): void {
+  try {
+    localStorage.setItem(GUEST_TOPIC_KEY, JSON.stringify(topics))
+  } catch {
+    // Storage can be blocked. The topic then lasts for this page only.
   }
-  return structuredClone(graph)
+}
+
+function sameName(a: string, b: string): boolean {
+  return a.trim().toLocaleLowerCase('id-ID') === b.trim().toLocaleLowerCase('id-ID')
+}
+
+function toTopic(topic: GuestTopic): Topic {
+  return {
+    id: topic.id,
+    name: topic.name,
+    lastScore: null,
+    unlocked: true,
+    pendingSuggestion: false,
+    conversationCount: 0,
+    materials: [],
+    initialX: topic.x,
+    initialY: topic.y,
+  }
+}
+
+export async function fetchTopicGraph(): Promise<TopicGraph> {
+  if (!usesServer()) {
+    return { topics: readGuestTopics().map(toTopic), links: [] }
+  }
+  const data = graphSchema.parse(await apiRequest('GET', '/api/topics'))
+  return {
+    topics: data.topics.map((topic) => ({
+      id: topic.id,
+      name: topic.name,
+      lastScore: topic.lastScore,
+      unlocked: topic.unlocked,
+      pendingSuggestion: topic.pendingSuggestion,
+      // The backend does not count conversations per topic yet. The UI does not show this value.
+      conversationCount: 0,
+      materials: topic.materials,
+      initialX: topic.x,
+      initialY: topic.y,
+    })),
+    links: data.links.map((link) => ({ source: link.source, target: link.target, suggested: link.suggested })),
+  }
 }
 
 // Quiz scores update the topic status (docs/role.md 4.1). A missing topic is ignored: quizzes can exist without one.
+// Guest topics have no scores, so nothing is stored for guests.
 export async function recordTopicScore(topicId: string, percent: number): Promise<void> {
-  if (usesServer()) {
-    try {
-      await apiRequest('POST', `/api/topics/${encodeId(topicId)}/scores`, { percent })
-    } catch (error) {
-      // Quizzes can exist without a topic, so a missing topic is ignored here too.
-      if (!(error instanceof ApiError && error.status === 404)) {
-        throw error
-      }
-    }
+  if (!usesServer()) {
     return
   }
-  const topic = graph.topics.find((item) => item.id === topicId)
-  if (topic) {
-    topic.lastScore = percent
+  try {
+    await apiRequest('POST', `/api/topics/${encodeId(topicId)}/scores`, { percent })
+  } catch (error) {
+    // Quizzes can exist without a topic, so a missing topic is ignored here too.
+    if (!(error instanceof ApiError && error.status === 404)) {
+      throw error
+    }
   }
 }
 
@@ -192,58 +121,69 @@ export async function renameTopic(topicId: string, name: string): Promise<void> 
     await apiRequest('PATCH', `/api/topics/${encodeId(topicId)}`, { name: trimmed })
     return
   }
-  if (isTopicNameTaken(graph.topics, trimmed, topicId)) {
-    throw new Error('Nama sudah dipakai bulat lain.')
+  const topics = readGuestTopics()
+  if (topics.some((topic) => topic.id !== topicId && sameName(topic.name, trimmed))) {
+    throw new Error('Nama bulat sudah dipakai.')
   }
-  const topic = graph.topics.find((item) => item.id === topicId)
-  if (!topic) {
-    throw new Error('Bulat tidak ditemukan.')
-  }
-  topic.name = trimmed
+  writeGuestTopics(topics.map((topic) => (topic.id === topicId ? { ...topic, name: trimmed } : topic)))
 }
 
-// Creates a topic from a material suggestion. Returns the new topic id.
-export async function createTopic(name: string): Promise<string> {
+// Creates a pattern and returns its id. With dariId, the new pattern follows that one.
+export async function createTopic(name: string, dariId?: string): Promise<string> {
   const trimmed = name.trim()
   if (usesServer()) {
-    return z.object({ topic: z.object({ id: z.string() }) }).parse(await apiRequest('POST', '/api/topics', { name: trimmed })).topic.id
+    const data = await apiRequest('POST', '/api/topics', dariId ? { name: trimmed, dariId } : { name: trimmed })
+    return z.object({ topic: z.object({ id: z.string() }) }).parse(data).topic.id
   }
-  if (isTopicNameTaken(graph.topics, trimmed, '')) {
-    throw new Error('Nama sudah dipakai bulat lain.')
+  if (dariId) {
+    throw new Error(SIGN_IN_TO_USE)
   }
-  const slug = trimmed
-    .toLocaleLowerCase('id-ID')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  let id = slug || 'topik-baru'
-  let suffix = 2
-  while (graph.topics.some((topic) => topic.id === id)) {
-    id = `${slug}-${suffix}`
-    suffix += 1
+  const topics = readGuestTopics()
+  if (topics.length >= 1) {
+    throw new Error(SIGN_IN_TO_ADD_MORE)
   }
-  // New topics appear in a free area around the center of the seed layout.
-  const index = graph.topics.length
-  graph.topics.push({
-    id,
-    name: trimmed,
-    lastScore: null,
-    unlocked: true,
-    pendingSuggestion: false,
-    conversationCount: 0,
-    materials: [],
-    initialX: 150 + ((index * 73) % 260),
-    initialY: 60 + ((index * 97) % 240),
-  })
+  if (topics.some((topic) => sameName(topic.name, trimmed))) {
+    throw new Error('Nama bulat sudah dipakai.')
+  }
+  const id = crypto.randomUUID()
+  writeGuestTopics([...topics, { id, name: trimmed, ...GUEST_TOPIC_POSITION }])
   return id
 }
 
-// Links a material title to a topic, so the topic lists it under "Materi terkait".
-export async function addTopicMaterial(topicId: string, materialTitle: string): Promise<void> {
-  const topic = graph.topics.find((item) => item.id === topicId)
-  if (!topic) {
-    throw new Error('Bulat tidak ditemukan.')
+// Links a finished pattern to another one: the first comes before the second.
+export async function linkTopics(dariId: string, keId: string): Promise<void> {
+  if (!usesServer()) {
+    throw new Error(SIGN_IN_TO_USE)
   }
-  if (!topic.materials.includes(materialTitle)) {
-    topic.materials.push(materialTitle)
+  await apiRequest('POST', '/api/topics/tautan', { dariId, keId })
+}
+
+export interface PatternSuggestion {
+  nama: string
+  alasan: string
+}
+
+// Patterns that could follow the given one. Nothing is created until the user accepts one.
+export async function suggestPatterns(polaId: string): Promise<PatternSuggestion[]> {
+  if (!usesServer()) {
+    throw new Error(SIGN_IN_TO_USE)
+  }
+  return suggestionsSchema.parse(await apiRequest('POST', '/api/topics/saran', { polaId })).saran
+}
+
+// Moves the guest's topic to the account after sign-in. A name the account already has is skipped.
+export async function importGuestTopics(): Promise<void> {
+  const topics = readGuestTopics()
+  for (const topic of topics) {
+    try {
+      await apiRequest('POST', '/api/topics', { name: topic.name })
+    } catch (error) {
+      if (!(error instanceof ApiError && error.status === 409)) {
+        throw error
+      }
+    }
+  }
+  if (topics.length > 0) {
+    writeGuestTopics([])
   }
 }

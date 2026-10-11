@@ -15,8 +15,6 @@ export interface TopicVisual {
   scoreInCenter: boolean
   labelColor: string
   labelWeight: number
-  // Small label above the topic (the "baru" tag).
-  tagLabel?: string
 }
 
 export const TOPIC_VISUALS: Record<TopicStatus, TopicVisual> = {
@@ -52,16 +50,16 @@ export const TOPIC_VISUALS: Record<TopicStatus, TopicVisual> = {
     labelColor: colors.status.ulang,
     labelWeight: 600,
   },
+  // Kosong: a topic without any practice yet. An empty circle with a plain outline.
   BARU: {
     radius: 30,
-    fill: '#CCFBF1',
-    stroke: colors.status.baru,
+    fill: '#FFFFFF',
+    stroke: colors.status.belum,
     strokeWidth: 2,
     dashed: false,
     scoreInCenter: false,
-    labelColor: '#0F766E',
+    labelColor: colors.ink,
     labelWeight: 400,
-    tagLabel: 'baru',
   },
   BELUM_DIBUKA: {
     radius: 30,

@@ -28,7 +28,7 @@ export const TOPIC_STATUS_LABEL: Record<TopicStatus, string> = {
   DIKUASAI: 'Sudah dikuasai',
   SEDANG: 'Sedang dipelajari',
   PERLU_DIULANG: 'Perlu diulang',
-  BARU: 'Baru ditambahkan',
+  BARU: 'Kosong, belum ada latihan',
   BELUM_DIBUKA: 'Belum dibuka',
   SARAN: 'Saran berikutnya',
 }

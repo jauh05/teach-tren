@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// Form rules for the sign-in and sign-up pages. The frontend simulates these until the backend exists.
+// Form rules for the sign-in and sign-up pages. They match the rules the backend checks (backend/src/auth).
 export const signInSchema = z.object({
   email: z.email('Masukkan email yang valid.'),
   password: z.string().min(8, 'Kata sandi minimal 8 karakter.'),

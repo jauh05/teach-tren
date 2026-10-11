@@ -1,4 +1,4 @@
-import { ClipboardList, Copy, RotateCcw } from 'lucide-react'
+import { ClipboardList, Copy, Plus, RotateCcw } from 'lucide-react'
 import type { ChatMessage } from '../../domain/types'
 import { RichText } from '../../components/markdown/RichText'
 
@@ -7,14 +7,17 @@ interface MessageBubbleProps {
   onCopy: () => void
   onRegenerate: () => void
   onCreateQuiz: () => void
+  // Only for signed-in users. Guests have no topics.
+  onMakeTopic?: () => void
 }
 
 // One message. User messages are bubbles on the right. Assistant messages are plain text on the left.
-export function MessageBubble({ message, onCopy, onRegenerate, onCreateQuiz }: MessageBubbleProps) {
+export function MessageBubble({ message, onCopy, onRegenerate, onCreateQuiz, onMakeTopic }: MessageBubbleProps) {
   if (message.role === 'user') {
     return (
-      <div className="max-w-[70%] self-end whitespace-pre-wrap rounded-2xl bg-soft px-3.5 py-2.5 text-[14px] text-ink">
-        {message.content}
+      <div className="flex max-w-[70%] flex-col items-end gap-1 self-end">
+        <div className="whitespace-pre-wrap rounded-2xl bg-soft px-3.5 py-2.5 text-[14px] text-ink">{message.content}</div>
+        {onMakeTopic && <ActionButton icon={Plus} label="Jadikan bulat" onClick={onMakeTopic} />}
       </div>
     )
   }

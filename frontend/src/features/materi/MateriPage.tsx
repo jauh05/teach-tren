@@ -8,6 +8,7 @@ import { createTopic, fetchTopicGraph } from '../../api/topics'
 import { Button } from '../../components/ui/Button'
 import { MAX_MATERIALS_PER_USER } from '../../domain/materi'
 import type { MaterialStatus } from '../../domain/materi'
+import { useSessionStore } from '../../stores/sessionStore'
 import { useTabScroll } from '../../lib/tabScroll'
 import { MaterialUploadDialog } from './MaterialUploadDialog'
 
@@ -27,6 +28,7 @@ const STATUS_CLASS: Record<MaterialStatus, string> = {
 
 // Study materials (/materi). Upload PDF, DOCX, or PPTX from a pop-up, then get a summary and topic suggestions.
 export function MateriPage() {
+  const isGuest = useSessionStore((state) => state.mode === 'guest')
   const [uploadOpen, setUploadOpen] = useState(false)
   const scroll = useTabScroll<HTMLElement>('materi')
 
@@ -51,11 +53,26 @@ export function MateriPage() {
               {list.length} dari {MAX_MATERIALS_PER_USER} materi
             </p>
           </div>
-          <Button disabled={full} onClick={() => setUploadOpen(true)}>
-            <FileUp size={16} aria-hidden="true" />
-            Unggah materi
-          </Button>
+          {isGuest ? (
+            <Link
+              to="/masuk?redirect=%2Fmateri"
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-brand px-3.5 text-[13px] font-semibold text-white hover:bg-brand-dark md:min-h-0 md:py-2"
+            >
+              Masuk untuk mengunggah
+            </Link>
+          ) : (
+            <Button disabled={full} onClick={() => setUploadOpen(true)}>
+              <FileUp size={16} aria-hidden="true" />
+              Unggah materi
+            </Button>
+          )}
         </header>
+
+        {isGuest && (
+          <p className="rounded-xl border border-line bg-slate-50 px-3 py-2 text-sm text-ink">
+            Materi hanya untuk akun. Setelah masuk, kamu bisa mengunggah modul atau catatan, lalu mengaitkannya ke bulat.
+          </p>
+        )}
 
         <MaterialUploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
 
@@ -71,12 +88,6 @@ export function MateriPage() {
           </ul>
         )}
 
-        <p className="text-center text-xs text-muted">
-          Ringkasan di sini adalah contoh. Ringkasan dari isi berkas akan dibuat AI setelah backend tersedia.{' '}
-          <Link to="/learning" className="font-semibold text-brand-dark underline">
-            Buka Learning
-          </Link>
-        </p>
       </div>
     </section>
   )

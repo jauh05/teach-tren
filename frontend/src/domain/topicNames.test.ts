@@ -1,28 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isTopicNameTaken, topicNameSchema } from './topicNames'
-
-const topics = [
-  { id: 'persamaan-linear', name: 'Persamaan linear' },
-  { id: 'bilangan', name: 'Bilangan' },
-]
-
-describe('isTopicNameTaken', () => {
-  it('menolak nama yang sama dengan bulat lain tanpa memperhatikan huruf besar kecil', () => {
-    expect(isTopicNameTaken(topics, 'BILANGAN', 'persamaan-linear')).toBe(true)
-  })
-
-  it('mengabaikan spasi di awal dan akhir', () => {
-    expect(isTopicNameTaken(topics, '  Bilangan  ', 'persamaan-linear')).toBe(true)
-  })
-
-  it('mengizinkan nama lama milik bulat itu sendiri', () => {
-    expect(isTopicNameTaken(topics, 'Bilangan', 'bilangan')).toBe(false)
-  })
-
-  it('mengizinkan nama yang belum dipakai', () => {
-    expect(isTopicNameTaken(topics, 'Bangun datar', 'persamaan-linear')).toBe(false)
-  })
-})
+import { topicNameFromQuestion, topicNameSchema } from './topicNames'
 
 describe('topicNameSchema', () => {
   it('menolak nama kosong dan nama yang terlalu panjang', () => {
@@ -33,5 +10,21 @@ describe('topicNameSchema', () => {
   it('menerima nama biasa dan memotong spasi', () => {
     const result = topicNameSchema.safeParse('  Sel tumbuhan ')
     expect(result.success && result.data).toBe('Sel tumbuhan')
+  })
+})
+
+describe('topicNameFromQuestion', () => {
+  it('membuang tanda tanya dan spasi berlebih', () => {
+    expect(topicNameFromQuestion('  Apa   itu fotosintesis?  ')).toBe('Apa itu fotosintesis')
+  })
+
+  it('memotong pertanyaan panjang menjadi 60 karakter dengan elipsis', () => {
+    const name = topicNameFromQuestion('a'.repeat(80))
+    expect(name.length).toBe(60)
+    expect(name.endsWith('…')).toBe(true)
+  })
+
+  it('mengembalikan kosong jika tidak ada huruf yang tersisa', () => {
+    expect(topicNameFromQuestion(' ?! ')).toBe('')
   })
 })

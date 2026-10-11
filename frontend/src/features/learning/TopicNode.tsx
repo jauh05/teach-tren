@@ -30,9 +30,11 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
   const visual = topicVisualOf(status)
   const radius = visual.radius
   const score = topic.lastScore
-  const lines = wrapLabel(topic.name)
+  // A finished topic shows an explanation instead of its name. The name stays in the chat panel and in the accessible label.
+  const caption = status === 'DIKUASAI' && score !== null ? `Selesai, skor ${score}` : topic.name
+  const lines = wrapLabel(caption)
   const labelY = radius + 15
-  const showScoreBelow = status === 'DIKUASAI' || status === 'PERLU_DIULANG'
+  const showScoreBelow = status === 'PERLU_DIULANG'
   const ariaLabel = `${topic.name}, ${TOPIC_STATUS_LABEL[status]}${score !== null ? `, skor ${score}` : ''}`
 
   return (
@@ -58,11 +60,6 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
             strokeWidth={visual.strokeWidth}
             strokeDasharray={visual.dashed ? '4 3' : undefined}
           />
-          {visual.tagLabel && (
-            <text y={-radius - 8} textAnchor="middle" fontSize={11} fontWeight={600} fill="#0D9488">
-              {visual.tagLabel}
-            </text>
-          )}
           {visual.scoreInCenter && score !== null && (
             <text y={4} textAnchor="middle" fontSize={13} fontWeight={600} fill="#92400E">
               {score}
