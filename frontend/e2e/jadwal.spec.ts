@@ -9,6 +9,7 @@ test.describe('Jadwal', () => {
     await expect(visibleOnly(page.getByText('Karena skor 38 pada Sel tumbuhan'))).toBeVisible()
 
     if (testInfo.project.name === 'desktop') {
+      await page.getByRole('button', { name: 'Ingatan AI' }).click()
       await expect(page.getByRole('complementary', { name: 'Ingatan AI' })).toBeVisible()
     } else {
       await expect(page.getByRole('link', { name: 'Ingatan AI' })).toBeVisible()
@@ -70,10 +71,21 @@ test.describe('Jadwal', () => {
     await expect(page.getByRole('button', { name: /Terima saran/ })).toHaveCount(0)
 
     if (testInfo.project.name === 'desktop') {
+      await page.getByRole('button', { name: 'Ingatan AI' }).click()
       await expect(page.getByText('Ingatan AI tersedia setelah masuk.')).toBeVisible()
     } else {
       await page.goto('/jadwal/ingatan')
       await expect(page.getByText('Ingatan AI tersedia setelah masuk.')).toBeVisible()
     }
+  })
+})
+
+test.describe('Kalender bulan', () => {
+  test('tampilan bulan menampilkan kotak kalender enam minggu', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'tampilan bulan hanya di layar 768px ke atas')
+    await page.goto('/jadwal')
+    await page.getByRole('radio', { name: 'Bulan' }).click()
+    await expect(page.locator('[data-date]')).toHaveCount(42)
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('2026')
   })
 })

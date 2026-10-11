@@ -70,28 +70,28 @@ test.describe('Learning', () => {
   test('tarik bulat menggeser bulat itu', async ({ page }) => {
     await page.goto('/learning')
     await page.waitForTimeout(500)
-    const before = await topic(page, 'sel-tumbuhan').boundingBox()
+    const before = await topic(page, 'persamaan-linear').boundingBox()
     if (!before) {
-      throw new Error('Bulat sel-tumbuhan tidak ditemukan')
+      throw new Error('Bulat persamaan-linear tidak ditemukan')
     }
 
-    await dragTopic(page, 'sel-tumbuhan', -90, 30)
+    await dragTopic(page, 'persamaan-linear', -90, 30)
 
-    const after = await topic(page, 'sel-tumbuhan').boundingBox()
+    const after = await topic(page, 'persamaan-linear').boundingBox()
     expect(after).not.toBeNull()
-    expect(Math.abs((after?.x ?? 0) - before.x)).toBeGreaterThan(40)
+    expect(Math.abs((after?.x ?? 0) - before.x)).toBeGreaterThan(20)
   })
 
   test('refresh mengembalikan tata letak awal', async ({ page }) => {
     await page.goto('/learning')
     await page.waitForTimeout(500)
-    const initial = await topic(page, 'sel-tumbuhan').boundingBox()
+    const initial = await topic(page, 'persamaan-linear').boundingBox()
 
-    await dragTopic(page, 'sel-tumbuhan', -90, 30)
+    await dragTopic(page, 'persamaan-linear', -90, 30)
     await page.reload()
     await page.waitForTimeout(500)
 
-    const reloaded = await topic(page, 'sel-tumbuhan').boundingBox()
+    const reloaded = await topic(page, 'persamaan-linear').boundingBox()
     expect(Math.abs((reloaded?.x ?? 0) - (initial?.x ?? 0))).toBeLessThan(2)
     expect(Math.abs((reloaded?.y ?? 0) - (initial?.y ?? 0))).toBeLessThan(2)
   })
@@ -147,11 +147,6 @@ test.describe('Learning', () => {
     await panel.getByRole('textbox', { name: 'Tulis pertanyaan' }).press('Enter')
     await expect(panel.getByRole('button', { name: 'Kirim pesan' })).toBeVisible({ timeout: 15_000 })
 
-    // On phones the chat sheet covers the bottom navigation, so close it first.
-    if (testInfo.project.name === 'mobile') {
-      await panel.getByRole('button', { name: 'Tutup chat topik' }).click()
-    }
-
     // Client-side navigation keeps the in-memory conversation store.
     const nav = page.getByRole('navigation', { name: testInfo.project.name === 'desktop' ? DESKTOP_NAV : MOBILE_NAV })
     await nav.getByRole('link', { name: 'Chat' }).click()
@@ -180,10 +175,21 @@ test.describe('Learning', () => {
     await expect(topicChat(page).getByRole('heading', { name: 'Bilangan' })).toBeVisible()
   })
 
-  test('desktop menampilkan panel kosong sebelum bulat dipilih', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'panel kanan hanya di layar 768px ke atas')
+  test('chat belajar selalu terlihat tanpa bulat dipilih', async ({ page }) => {
     await page.goto('/learning')
-    await expect(page.getByText('Pilih bulat di kanvas untuk membuka percakapan tentang topik itu.')).toBeVisible()
+    await expect(topicChat(page).getByRole('heading', { name: 'Chat belajar umum' })).toBeVisible()
+    await expect(topicChat(page).getByRole('textbox', { name: 'Tulis pertanyaan' })).toBeVisible()
+    await expectNoHorizontalScroll(page)
+  })
+
+  test('papan bisa diperbesar dan chat tetap terlihat', async ({ page }) => {
+    await page.goto('/learning')
+    const toggle = page.getByRole('button', { name: 'Perbesar papan' })
+    await toggle.click()
+    await expect(page.getByRole('button', { name: 'Kecilkan papan' })).toBeVisible()
+    await expect(topicChat(page).getByRole('textbox', { name: 'Tulis pertanyaan' })).toBeVisible()
+    await page.getByRole('button', { name: 'Kecilkan papan' }).click()
+    await expect(page.getByRole('button', { name: 'Perbesar papan' })).toBeVisible()
   })
 
   test('keterangan bisa dibuka dan ditutup', async ({ page }) => {

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addMonths,
+  formatMonthLabel,
+  monthGridDays,
+  startOfMonth,
   dateKey,
   formatShortDate,
   formatTodayLabel,
@@ -57,5 +61,22 @@ describe('dateKey dan parseDateKey', () => {
 
   it('mengembalikan kunci ke tanggal lokal yang sama', () => {
     expect(parseDateKey('2026-10-14')).toEqual(new Date(2026, 9, 14))
+  })
+})
+
+describe('tampilan bulan', () => {
+  it('monthGridDays memberi 42 hari mulai Senin yang memuat seluruh bulan', () => {
+    const days = monthGridDays(startOfMonth(new Date(2026, 9, 11)))
+    expect(days).toHaveLength(42)
+    expect(days[0]).toEqual(new Date(2026, 8, 28))
+    expect(days.some((day) => dateKey(day) === '2026-10-31')).toBe(true)
+  })
+
+  it('formatMonthLabel menulis bulan dan tahun', () => {
+    expect(formatMonthLabel(new Date(2026, 9, 1))).toBe('Oktober 2026')
+  })
+
+  it('addMonths berpindah ke tanggal 1 bulan berikutnya', () => {
+    expect(addMonths(new Date(2026, 9, 11), 1)).toEqual(new Date(2026, 10, 1))
   })
 })

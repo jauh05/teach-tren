@@ -72,3 +72,22 @@ export function parseDateKey(key: string): Date {
   const [year, month, day] = key.split('-').map(Number)
   return new Date(year, month - 1, day)
 }
+
+export function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+export function addMonths(date: Date, months: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1)
+}
+
+// Six full weeks, Monday first, that cover the month. Days outside the month are included.
+export function monthGridDays(monthStart: Date): Date[] {
+  const first = startOfWeek(monthStart)
+  return Array.from({ length: 42 }, (_, index) => addDays(first, index))
+}
+
+// "Oktober 2026"
+export function formatMonthLabel(date: Date): string {
+  return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`
+}
