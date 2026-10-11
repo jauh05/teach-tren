@@ -7,6 +7,8 @@ import { Button } from '../../components/ui/Button'
 import { BrandLink } from '../../components/layout/BrandLink'
 import { safeRedirect, signInSchema, signUpSchema, type SignInValues, type SignUpValues } from '../../domain/auth'
 import { useSessionStore } from '../../stores/sessionStore'
+import { hydratePreferences } from '../../stores/preferencesStore'
+import { importGuestHistory } from '../../api/conversations'
 
 interface AuthPageProps {
   kind: 'masuk' | 'daftar'
@@ -19,8 +21,11 @@ export function AuthPage({ kind }: AuthPageProps) {
   const signIn = useSessionStore((state) => state.signIn)
   const isSignUp = kind === 'daftar'
 
-  function finish(user: AuthUser) {
+  async function finish(user: AuthUser) {
+    // The session cookie is already set by the server, so the carried-over history can be saved.
+    await importGuestHistory().catch(() => undefined)
     signIn({ name: user.name, email: user.email })
+    void hydratePreferences()
     navigate(safeRedirect(params.get('redirect')), { replace: true })
   }
 

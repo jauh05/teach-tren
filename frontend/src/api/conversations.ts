@@ -81,6 +81,9 @@ let seedVisible = true
 // Conversations created during this page session, for example a chat opened from a topic on Learning.
 let created: Conversation[] = []
 
+// Guest conversations in the order they were last saved. Only the last two are carried over on sign-in.
+const guestSaved: string[] = []
+
 // Conversations the user removed, and titles the user changed. Seed items are kept but hidden or renamed here.
 const deletedIds = new Set<string>()
 const renamedTitles = new Map<string, string>()
@@ -103,6 +106,8 @@ export async function clearConversations(): Promise<void> {
     await apiRequest('DELETE', '/api/conversations')
     return
   }
+  guestSaved.length = 0
+  persistGuestHistory()
   seedVisible = false
   created = []
   messageStore.clear()
@@ -199,6 +204,12 @@ export async function saveConversationMessages(
     return
   }
   messageStore.set(conversationId, structuredClone(messages))
+  const position = guestSaved.indexOf(conversationId)
+  if (position >= 0) {
+    guestSaved.splice(position, 1)
+  }
+  guestSaved.push(conversationId)
+  persistGuestHistory()
 
   const isSeeded = seedVisible && SEED.some((item) => item.id === conversationId)
   if (isSeeded) {
@@ -256,3 +267,68 @@ function toChatMessage(message: z.infer<typeof detailSchema>['conversation']['me
 function truncateTitle(text: string): string {
   return text.length > TITLE_MAX_LENGTH ? `${text.slice(0, TITLE_MAX_LENGTH - 1)}…` : text
 }
+
+// Sends the last two guest conversations to the account after sign-in (docs/role.md CC-05).
+// The server skips conversations it already has, so sending twice does not duplicate them.
+export async function importGuestHistory(): Promise<void> {
+  const ids = guestSaved.filter((id) => messageStore.has(id) && !deletedIds.has(id)).slice(-2)
+  if (ids.length === 0) {
+    return
+  }
+  const percakapan = ids.map((id) => ({
+    id,
+    title: renamedTitles.get(id) ?? created.find((item) => item.id === id)?.title ?? titleFromMessages(messageStore.get(id) ?? []),
+    messages: (messageStore.get(id) ?? []).map((message) => ({
+      id: message.id,
+      role: message.role,
+      content: message.content,
+      status: message.status === 'streaming' ? ('stopped' as const) : message.status,
+    })),
+  }))
+  await apiRequest('POST', '/api/conversations/import', { percakapan })
+}
+
+function titleFromMessages(messages: ChatMessage[]): string {
+  const question = messages.find((message) => message.role === 'user')?.content ?? 'Percakapan baru'
+  return truncateTitle(question)
+}
+
+// Guest history stays on this device, with the last two conversations only (docs/role.md CC-05).
+const GUEST_HISTORY_KEY = 'teach-tren-riwayat-tamu'
+const GUEST_HISTORY_LIMIT = 2
+
+interface GuestRecord {
+  id: string
+  title: string
+  messages: ChatMessage[]
+}
+
+function persistGuestHistory(): void {
+  const records: GuestRecord[] = guestSaved.slice(-GUEST_HISTORY_LIMIT).map((id) => ({
+    id,
+    title: renamedTitles.get(id) ?? created.find((item) => item.id === id)?.title ?? titleFromMessages(messageStore.get(id) ?? []),
+    messages: messageStore.get(id) ?? [],
+  }))
+  try {
+    localStorage.setItem(GUEST_HISTORY_KEY, JSON.stringify(records))
+  } catch {
+    // Storage can be blocked. The guest history then lasts for this page only.
+  }
+}
+
+// Restores the guest history saved on this device when the page opens.
+function restoreGuestHistory(): void {
+  let records: GuestRecord[] = []
+  try {
+    records = JSON.parse(localStorage.getItem(GUEST_HISTORY_KEY) ?? '[]') as GuestRecord[]
+  } catch {
+    records = []
+  }
+  for (const record of records.slice(-GUEST_HISTORY_LIMIT)) {
+    guestSaved.push(record.id)
+    messageStore.set(record.id, record.messages)
+    created = [...created.filter((item) => item.id !== record.id), { id: record.id, title: record.title, updatedAt: new Date().toISOString() }]
+  }
+}
+
+restoreGuestHistory()

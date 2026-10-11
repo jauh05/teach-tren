@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { usePreferencesStore, type QuestionCount, type QuizLevel, type QuizStyle, type ThemeChoice } from '../../stores/preferencesStore'
+import { requestReminderPermission } from '../../lib/reminder'
 import { INPUT_CLASS, SECTION_CLASS, TITLE_CLASS } from './styles'
 
 // Learning defaults used when a new quiz is created (docs/role.md 4.7).
@@ -89,8 +90,16 @@ export function DisplaySection() {
       <SwitchRow
         label="Pengingat jadwal harian"
         checked={reminderEnabled}
-        onChange={(checked) => updatePreferences({ reminderEnabled: checked })}
+        onChange={(checked) => {
+          updatePreferences({ reminderEnabled: checked })
+          if (checked) {
+            void requestReminderPermission()
+          }
+        }}
       />
+      {reminderEnabled && typeof Notification !== 'undefined' && Notification.permission === 'denied' && (
+        <p className="text-xs text-[#92400E]">Notifikasi diblokir di browser. Ubah izinnya di pengaturan browser.</p>
+      )}
       <div className="flex items-center justify-between gap-3">
         <label htmlFor="pengingat-jam" className="text-sm text-ink">
           Jam pengingat

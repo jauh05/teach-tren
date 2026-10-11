@@ -99,3 +99,30 @@ test.describe('Tamu', () => {
     await expect(page.getByRole('alert').filter({ hasText: 'Kata sandi minimal 8 karakter.' })).toBeVisible()
   })
 })
+
+test.describe('Impor riwayat tamu', () => {
+  test.use({ asGuest: true })
+
+  test('chat dari tamu ikut tersimpan ke akun saat masuk', async ({ page, request, account }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'daftar riwayat diuji di layar lebar')
+    // The account exists on the server, but this page stays a guest until it signs in.
+    const registered = await request.post('/api/auth/register', { data: { name: 'Rafi Arkan', email: account.email, password: account.password } })
+    expect(registered.ok()).toBeTruthy()
+
+    await page.goto('/chat')
+    const input = page.getByRole('textbox', { name: 'Tulis pertanyaan' })
+    await input.fill('Apa itu sel tumbuhan?')
+    await input.press('Enter')
+    await expect(page.getByRole('region', { name: 'Langkah berikutnya' })).toBeVisible({ timeout: 15_000 })
+
+    // Move to the sign-in page inside the app, the way a guest does it.
+    await page.getByRole('button', { name: 'Masuk', exact: true }).first().click()
+    await page.getByLabel('Email').fill(account.email)
+    await page.getByLabel('Kata sandi').fill(account.password)
+    await page.getByRole('button', { name: 'Masuk', exact: true }).click()
+    await expect(page).toHaveURL(/\/chat$/)
+
+    const history = page.getByRole('navigation', { name: 'Riwayat percakapan' })
+    await expect(history.getByRole('link', { name: 'Apa itu sel tumbuhan?' })).toBeVisible()
+  })
+})

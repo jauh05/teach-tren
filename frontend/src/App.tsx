@@ -11,6 +11,8 @@ import { MemoryPage } from './features/jadwal/MemoryPage'
 import { ChatLayout } from './features/chat/ChatLayout'
 import { queryClient } from './lib/queryClient'
 import { useSessionStore } from './stores/sessionStore'
+import { hydratePreferences } from './stores/preferencesStore'
+import { ReminderWatcher } from './components/ReminderWatcher'
 import { RequireSignedIn } from './components/auth/RequireSignedIn'
 import { PengaturanPage } from './features/pengaturan/PengaturanPage'
 import { AuthPage } from './features/auth/AuthPage'
@@ -26,13 +28,18 @@ function SessionGate({ children }: { children: ReactNode }) {
   const loadSession = useSessionStore((state) => state.loadSession)
 
   useEffect(() => {
-    void loadSession()
+    void loadSession().then(() => hydratePreferences())
   }, [loadSession])
 
   if (!ready) {
     return <p className="p-6 text-sm text-muted">Memuat...</p>
   }
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <ReminderWatcher />
+    </>
+  )
 }
 
 export default function App() {

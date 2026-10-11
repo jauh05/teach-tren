@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { fetchPreferences, savePreferences } from '../api/preferences'
+import { useSessionStore } from './sessionStore'
 
 export type QuestionCount = 5 | 10 | 15 | 20
 export type QuizLevel = 'Mudah' | 'Sedang' | 'Sulit'
@@ -29,14 +31,33 @@ export const DEFAULT_PREFERENCES: Preferences = {
 
 interface PreferencesState extends Preferences {
   updatePreferences: (patch: Partial<Preferences>) => void
+  hydrate: (preferences: Preferences) => void
 }
 
-// Per-device preferences (docs/role.md 4.7). Stored in the browser, not on the server.
+function snapshot(state: Preferences): Preferences {
+  return {
+    questionCount: state.questionCount,
+    level: state.level,
+    quizStyle: state.quizStyle,
+    quickChoiceAfterMaterial: state.quickChoiceAfterMaterial,
+    theme: state.theme,
+    reminderEnabled: state.reminderEnabled,
+    reminderTime: state.reminderTime,
+  }
+}
+
+// Preferences are kept on the device. A signed-in user's changes are also saved to the account.
 export const usePreferencesStore = create<PreferencesState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...DEFAULT_PREFERENCES,
-      updatePreferences: (patch) => set(patch),
+      updatePreferences: (patch) => {
+        set(patch)
+        if (useSessionStore.getState().mode === 'signedIn') {
+          void savePreferences(snapshot(get())).catch(() => undefined)
+        }
+      },
+      hydrate: (preferences) => set(preferences),
     }),
     {
       name: 'teach-tren-preferences',
@@ -44,3 +65,15 @@ export const usePreferencesStore = create<PreferencesState>()(
     },
   ),
 )
+
+// Loads the saved preferences of a signed-in user. If the server cannot be reached, the device's values stay.
+export async function hydratePreferences(): Promise<void> {
+  if (useSessionStore.getState().mode !== 'signedIn') {
+    return
+  }
+  try {
+    usePreferencesStore.getState().hydrate(await fetchPreferences())
+  } catch {
+    // Keep the values from this device.
+  }
+}

@@ -136,10 +136,30 @@ Aturan:
 - Penilaian esai: satu panggilan AI untuk semua esai. Jika AI tidak tersedia, kata kunci dipakai dan jawabannya ditandai `lowConfidence`.
 - Kuis yang sudah dikumpulkan tidak bisa dijawab lagi (409).
 
+## Pengaturan, impor tamu, dan keamanan
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| GET | `/api/pengaturan/preferensi` | - | 200 `{ preferensi }`. Nilai default bila belum pernah disimpan |
+| PUT | `/api/pengaturan/preferensi` | `questionCount` (5, 10, 15, 20), `level`, `quizStyle`, `quickChoiceAfterMaterial`, `theme` (`light` atau `system`), `reminderEnabled`, `reminderTime` (HH:mm) | 200 `{ preferensi }` |
+| POST | `/api/conversations/import` | `percakapan` (paling banyak dua item, masing-masing `id`, `title`, `messages`) | 201 `{ diimpor, dilewati }`. Percakapan yang sudah ada dilewati |
+
+Aturan keamanan:
+- Tamu yang memanggil endpoint pengguna masuk mendapat 403 dengan kode `HANYA_MASUK`. Permintaan tanpa identitas mendapat 401.
+- Setiap respons punya header `X-Request-Id`. Id dari pemanggil dipakai bila formatnya benar.
+- Header keamanan dari helmet ada di setiap respons.
+- Batas waktu 60 detik per permintaan. Generate kuis mendapat 180 detik.
+- Tamu membuat paling banyak tiga kuis per jam, dihitung per ID tamu dan per IP. Pengguna masuk tidak dibatasi per jam, hanya kuota harian.
+
+Pembersihan data (sekali sehari saat server berjalan):
+- Tamu yang tidak aktif 30 hari dihapus dari catatan kuota.
+- Kuis tamu yang lebih dari 7 hari dihapus.
+- Akun yang dijadwalkan dihapus lebih dari 30 hari yang lalu dihapus beserta datanya.
+
 ## Kesehatan server
 
 `GET /api/health` mengembalikan `{ "status": "ok" }`. Tidak butuh sesi.
 
 ## Yang belum ada
 
-Penghapusan akun setelah 30 hari belum berjalan otomatis. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
+Refresh token dan endpoint sesi tamu belum ada (CC-01). Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
