@@ -10,6 +10,39 @@ datasource db {
   provider = "postgresql"
 }
 
+enum MaterialType {
+  PDF
+  DOCX
+  PPTX
+}
+
+enum MaterialStatus {
+  MENGUNGGAH
+  MEMPROSES
+  SIAP
+  GAGAL
+}
+
+// A study material (materi). The file itself is not stored: only its checked metadata and the summary.
+model Material {
+  id              String         @id @default(uuid())
+  userId          String
+  title           String
+  type            MaterialType
+  sizeBytes       Int
+  status          MaterialStatus
+  summary         String[]       @default([])
+  suggestedTopics String[]       @default([])
+  error           String?
+  // Id of the topic (bulat) this material is linked to. Null when not linked.
+  topicId         String?
+  createdAt       DateTime       @default(now())
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, topicId])
+}
+
 model User {
   id           String         @id @default(uuid())
   name         String
@@ -22,6 +55,7 @@ model User {
   links        TopicLink[]
   conversations Conversation[]
   attempts     QuizAttempt[]
+  materials    Material[]
 }
 
 // A topic (bulat). The id is unique per user, so the same slug can exist for two accounts.

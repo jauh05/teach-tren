@@ -6,6 +6,7 @@ import { authRouter } from './auth/routes.js'
 import { conversationsRouter } from './conversations/routes.js'
 import { errorHandler } from './http/errors.js'
 import { logger } from './logger.js'
+import { materiRouter } from './materi/routes.js'
 import { topicsRouter } from './topics/routes.js'
 
 export interface AppOptions {
@@ -27,6 +28,7 @@ export function createApp(options: AppOptions) {
   app.use('/api/auth', authRouter)
   app.use('/api/conversations', conversationsRouter)
   app.use('/api/topics', topicsRouter)
+  app.use('/api/materi', materiRouter)
 
   app.use((_req, res) => {
     res.status(404).json({ pesan: 'Alamat tidak ditemukan.' })

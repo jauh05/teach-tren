@@ -32,7 +32,7 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 | PATCH | `/api/topics/:id` | `name` | 200 `{ topic: { id, name } }` |
 | POST | `/api/topics/:id/scores` | `percent` (bilangan bulat 0 sampai 100) | 201 `{ lastScore }`. Mencatat satu kali kuis dan menjadikannya skor terbaru |
 
-Setiap item di `topics`: `id`, `name`, `x`, `y`, `lastScore` (atau `null`), `unlocked`, `pendingSuggestion`.
+Setiap item di `topics`: `id`, `name`, `x`, `y`, `lastScore` (atau `null`), `unlocked`, `pendingSuggestion`, `materials` (judul materi yang dikaitkan).
 Setiap item di `links`: `source`, `target`, `suggested`.
 
 ## Percakapan
@@ -48,10 +48,28 @@ Setiap item di `links`: `source`, `target`, `suggested`.
 
 Setiap pesan: `id` (maksimal 64 karakter, unik di dalam percakapan), `role` (`user` atau `assistant`), `content` (maksimal 20.000 karakter), `status` (`streaming`, `done`, atau `stopped`). Urutan pesan mengikuti urutan di array.
 
+## Materi
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| GET | `/api/materi` | - | 200 `{ materials }`, urut dari yang lama |
+| POST | `/api/materi` | formulir ganda dengan berkas di field `berkas` | 201 `{ material }` berstatus `MEMPROSES`. Lihat aturan unggahan di bawah |
+| POST | `/api/materi/:id/link` | `topicId` | 200 `{ material }`. Materi dikaitkan ke bulat milik pengguna itu |
+
+Aturan unggahan:
+- Format PDF, DOCX, atau PPTX. Isi berkas dicek dari awal berkas (magic bytes): PDF harus diawali `%PDF-`, DOCX dan PPTX harus berupa arsip zip.
+- Ukuran maksimal 20 MB. Berkas kosong ditolak.
+- Maksimal 50 materi per pengguna.
+- Status: `MENGUNGGAH`, `MEMPROSES`, `SIAP`, `GAGAL`. Setelah diproses, materi berstatus `SIAP` dengan `summary` (3 sampai 5 poin) dan `suggestedTopics`.
+- Kesalahan: format, ukuran, batas 50, dan berkas kosong memakai status 400. Isi berkas yang tidak sesuai jenisnya memakai status 422.
+- Berkas tidak disimpan di server. Ringkasan saat ini masih teks contoh sampai pembuatan ringkasan dengan AI tersedia.
+
+Setiap materi: `id`, `title`, `type` (`PDF`, `DOCX`, atau `PPTX`), `sizeBytes`, `status`, `summary`, `suggestedTopics`, `linkedTopicId`, `error`.
+
 ## Kesehatan server
 
 `GET /api/health` mengembalikan `{ "status": "ok" }`. Tidak butuh sesi.
 
 ## Yang belum ada
 
-Materi, jadwal, ingatan AI, pembuatan soal oleh AI, dan batas tamu di sisi server. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.
+Jadwal, ingatan AI, pembuatan soal oleh AI, dan batas tamu di sisi server. Penghapusan akun yang sudah lewat 30 hari belum dijalankan otomatis. Endpoint ini ditambahkan di tahap berikutnya dan dicatat di dokumen ini saat dibuat.

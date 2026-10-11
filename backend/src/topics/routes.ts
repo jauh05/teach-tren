@@ -18,9 +18,11 @@ async function isNameTaken(userId: string, name: string, exceptId: string | null
 }
 
 topicsRouter.get('/', async (req, res) => {
-  const [topics, links] = await Promise.all([
-    prisma.topic.findMany({ where: { userId: userIdOf(req) }, orderBy: { createdAt: 'asc' } }),
-    prisma.topicLink.findMany({ where: { userId: userIdOf(req) } }),
+  const userId = userIdOf(req)
+  const [topics, links, materials] = await Promise.all([
+    prisma.topic.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
+    prisma.topicLink.findMany({ where: { userId } }),
+    prisma.material.findMany({ where: { userId, topicId: { not: null } }, select: { title: true, topicId: true } }),
   ])
   res.json({
     topics: topics.map((topic) => ({
@@ -31,6 +33,8 @@ topicsRouter.get('/', async (req, res) => {
       lastScore: topic.lastScore,
       unlocked: topic.unlocked,
       pendingSuggestion: topic.pendingSuggestion,
+      // Titles of the materials linked to this topic.
+      materials: materials.filter((material) => material.topicId === topic.id).map((material) => material.title),
     })),
     links: links.map((link) => ({ source: link.sourceId, target: link.targetId, suggested: link.suggested })),
   })
