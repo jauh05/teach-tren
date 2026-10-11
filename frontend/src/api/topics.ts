@@ -13,6 +13,8 @@ function usesServer(): boolean {
 const SIGN_IN_TO_ADD_MORE = 'Masuk untuk menambah pola lagi.'
 const SIGN_IN_TO_USE = 'Masuk untuk memakai fitur ini.'
 const GUEST_TOPIC_KEY = 'teach-tren-pola-tamu'
+// Topics a guest may hold on the device. After that, signing in is needed.
+export const GUEST_TOPIC_LIMIT = 2
 // Center of the canvas, the same place the backend uses for the first topic.
 const GUEST_TOPIC_POSITION = { x: 280, y: 170 }
 
@@ -39,6 +41,12 @@ type GuestTopic = z.infer<typeof guestTopicsSchema>[number]
 
 function encodeId(id: string): string {
   return encodeURIComponent(id)
+}
+
+// A guest is identified by the device id, the same as in chat and quizzes.
+function identityHeaders(): Record<string, string> | undefined {
+  const session = useSessionStore.getState()
+  return session.mode === 'guest' ? { 'X-Guest-Id': session.guestId } : undefined
 }
 
 // Reads the guest's topic from this device. A damaged value counts as no topic.
@@ -139,7 +147,7 @@ export async function createTopic(name: string, dariId?: string): Promise<string
     throw new Error(SIGN_IN_TO_USE)
   }
   const topics = readGuestTopics()
-  if (topics.length >= 1) {
+  if (topics.length >= GUEST_TOPIC_LIMIT) {
     throw new Error(SIGN_IN_TO_ADD_MORE)
   }
   if (topics.some((topic) => sameName(topic.name, trimmed))) {
@@ -163,12 +171,46 @@ export interface PatternSuggestion {
   alasan: string
 }
 
-// Patterns that could follow the given one. Nothing is created until the user accepts one.
-export async function suggestPatterns(polaId: string): Promise<PatternSuggestion[]> {
+export interface SuggestInput {
+  // A pattern of the account. Signed-in users send the id.
+  polaId?: string
+  // A pattern on the device. Guests send the name, because the pattern is not on the server.
+  nama?: string
+  // What the user wants to learn.
+  tujuan?: string
+  sudahAda?: string[]
+}
+
+// Patterns that could come next. Nothing is created until the user accepts one.
+// Guests can use this once or twice (the guest AI quota), with a goal or with the name of their pattern.
+export async function suggestPatterns(input: SuggestInput): Promise<PatternSuggestion[]> {
+  const body = usesServer() ? input : { nama: input.nama, tujuan: input.tujuan, sudahAda: input.sudahAda }
+  return suggestionsSchema.parse(await apiRequest('POST', '/api/topics/saran', body, identityHeaders())).saran
+}
+
+export interface MateriPart {
+  id: string
+  position: number
+  judul: string
+  isi: string
+}
+
+const materiPartSchema = z.object({ id: z.string(), position: z.number(), judul: z.string(), isi: z.string() })
+
+// Study material of a pattern, one part at a time. Only accounts have it.
+export async function fetchMateriParts(topicId: string): Promise<MateriPart[]> {
+  if (!usesServer()) {
+    return []
+  }
+  return z.object({ materi: z.array(materiPartSchema) }).parse(await apiRequest('GET', `/api/topics/${encodeId(topicId)}/materi-ai`)).materi
+}
+
+// Writes the next part of the material. One call gives one part.
+export async function generateMateriPart(topicId: string): Promise<MateriPart> {
   if (!usesServer()) {
     throw new Error(SIGN_IN_TO_USE)
   }
-  return suggestionsSchema.parse(await apiRequest('POST', '/api/topics/saran', { polaId })).saran
+  return z.object({ materi: materiPartSchema }).parse(await apiRequest('POST', `/api/topics/${encodeId(topicId)}/materi-ai`)).materi
 }
 
 // Moves the guest's topic to the account after sign-in. A name the account already has is skipped.

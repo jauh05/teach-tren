@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Maximize2, Minimize2, Plus } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
-import { fetchTopicGraph } from '../../api/topics'
+import { fetchTopicGraph, GUEST_TOPIC_LIMIT } from '../../api/topics'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUiStore } from '../../stores/uiStore'
 import { AddTopicDialog } from './AddTopicDialog'
@@ -146,7 +146,7 @@ export function LearningPage() {
         )}
         <AddTopicDialog
           open={adding}
-          locked={mode === 'guest' && data.topics.length >= 1}
+          locked={mode === 'guest' && data.topics.length >= GUEST_TOPIC_LIMIT}
           onClose={() => setAdding(false)}
           onCreated={(topicId) => setSelectedId(topicId)}
         />

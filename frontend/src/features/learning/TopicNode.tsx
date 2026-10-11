@@ -66,6 +66,7 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
             </text>
           )}
           {visual.seal && <Seal kind={visual.seal.kind} badgeFill={visual.seal.badgeFill} iconColor={visual.seal.iconColor} />}
+          {status === 'BARU' && <EmptyIcon />}
           <text textAnchor="middle" fontSize={11} fill={visual.labelColor} fontWeight={visual.labelWeight} y={labelY}>
             {lines.map((line, index) => (
               <tspan key={index} x={0} dy={index === 0 ? 0 : 13}>
@@ -91,6 +92,16 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
           <path d="M-4 0H4M0 -4V4" stroke="#2563EB" strokeWidth={1.8} strokeLinecap="round" />
         </g>
       </g>
+    </g>
+  )
+}
+
+// Book icon (lucide BookOpen) in an empty topic, so the circle does not look blank.
+function EmptyIcon() {
+  return (
+    <g transform="translate(-9 -9) scale(0.75)" fill="none" stroke="#94A3B8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none">
+      <path d="M12 7v14" />
+      <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
     </g>
   )
 }

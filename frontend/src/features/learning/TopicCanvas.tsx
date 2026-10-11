@@ -330,19 +330,19 @@ export function TopicCanvas({ topics, links, selectedId, onSelect }: TopicCanvas
       <div
         role="toolbar"
         aria-label="Kontrol zoom"
-        className="absolute bottom-3 right-3 flex items-center gap-1 rounded-xl border border-line bg-white p-1 shadow-sm"
+        className="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-lg border border-line bg-white p-0.5 shadow-sm"
       >
         <IconButton label="Perkecil" onClick={() => zoomBy(1 / ZOOM_STEP)}>
-          <Minus size={16} aria-hidden="true" />
+          <Minus size={13} aria-hidden="true" />
         </IconButton>
-        <span className="min-w-[44px] text-center text-xs text-muted" aria-live="polite">
+        <span className="min-w-[36px] text-center text-[11px] text-muted" aria-live="polite">
           {zoomPercent(view.k)}%
         </span>
         <IconButton label="Perbesar" onClick={() => zoomBy(ZOOM_STEP)}>
-          <Plus size={16} aria-hidden="true" />
+          <Plus size={13} aria-hidden="true" />
         </IconButton>
         <IconButton label="Atur ulang zoom" onClick={() => setViewState(null)}>
-          <RotateCcw size={16} aria-hidden="true" />
+          <RotateCcw size={13} aria-hidden="true" />
         </IconButton>
       </div>
 
@@ -366,7 +366,7 @@ function IconButton({ label, onClick, children }: IconButtonProps) {
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="flex h-11 w-11 items-center justify-center rounded-lg text-ink hover:bg-slate-50 md:h-8 md:w-8"
+      className="flex h-7 w-7 items-center justify-center rounded-md text-ink hover:bg-slate-50 md:h-6 md:w-6"
     >
       {children}
     </button>
