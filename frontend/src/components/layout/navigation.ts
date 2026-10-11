@@ -19,6 +19,9 @@ export const TABS: TabItem[] = [
   { id: 'tentang', label: 'Tentang', path: '/tentang', icon: Info },
 ]
 
+// Desktop top bar shows Learning, Jadwal, and Chat. Pengaturan and Tentang open from the avatar menu.
+export const TOP_TABS: TabItem[] = TABS.filter((tab) => tab.id !== 'pengaturan' && tab.id !== 'tentang')
+
 // Mobile bottom navigation has four tabs. Tentang opens from the avatar menu instead.
 export const BOTTOM_TABS: TabItem[] = TABS.filter((tab) => tab.id !== 'tentang')
 

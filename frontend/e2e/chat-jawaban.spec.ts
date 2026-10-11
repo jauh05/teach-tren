@@ -65,6 +65,16 @@ test.describe('Chat jawaban', () => {
     await expect(page.getByText('Sel tumbuhan memiliki dinding sel')).toHaveCount(0)
   })
 
+  test('lampiran membuka menu unggah tanpa pindah halaman', async ({ page }) => {
+    await page.goto('/c/sel-tumbuhan')
+    await page.getByRole('button', { name: 'Lampiran' }).click()
+    await page.getByRole('menuitem', { name: 'Unggah berkas' }).click()
+    await expect(page.getByRole('dialog', { name: 'Unggah materi' })).toBeVisible()
+    await expect(page).toHaveURL(/\/c\/sel-tumbuhan$/)
+    await page.getByRole('button', { name: 'Tutup' }).click()
+    await expect(page.getByRole('dialog')).toBeHidden()
+  })
+
   test('percakapan yang tidak ada menampilkan pesan tidak ditemukan', async ({ page }) => {
     await page.goto('/c/tidak-ada')
     await expect(page.getByRole('heading', { name: 'Percakapan tidak ditemukan' })).toBeVisible()

@@ -5,7 +5,7 @@ import { Button } from '../ui/Button'
 import { AvatarMenu } from './AvatarMenu'
 import { BrandLink } from './BrandLink'
 import { ModeBadge } from './ModeBadge'
-import { TABS, tabForPath } from './navigation'
+import { TOP_TABS, tabForPath } from './navigation'
 
 // Desktop and tablet top bar (768px and up). Mobile uses MobileHeader and BottomNav.
 export function TopNav() {
@@ -18,7 +18,7 @@ export function TopNav() {
     <header className="relative z-20 hidden h-nav shrink-0 items-center justify-between gap-3 border-b border-line px-4 md:flex">
       <BrandLink />
       <nav aria-label="Navigasi utama" className="flex gap-0.5 rounded-[10px] bg-slate-50 p-[3px]">
-        {TABS.map((tab) => {
+        {TOP_TABS.map((tab) => {
           const active = tab.id === activeTab
           return (
             <Link

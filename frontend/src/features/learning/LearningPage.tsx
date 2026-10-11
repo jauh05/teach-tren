@@ -49,16 +49,19 @@ export function LearningPage() {
       </div>
 
       <div className="flex min-h-[240px] flex-col border-t border-line" style={{ flex: boardExpanded ? 1 : 1.2 }}>
-        <LearningChatPanel
-          topic={selected}
-          mode={mode}
-          onClose={() => setSelectedId(null)}
-          onGenerateQuiz={() => {
-            if (selected) {
-              openQuizSetup(selected.id)
-            }
-          }}
-        />
+        {/* Desktop: the chat keeps side margins and a readable width. Mobile uses the full width. */}
+        <div className="mx-auto flex h-full min-h-0 w-full flex-col md:max-w-[880px] md:px-6">
+          <LearningChatPanel
+            topic={selected}
+            mode={mode}
+            onClose={() => setSelectedId(null)}
+            onGenerateQuiz={() => {
+              if (selected) {
+                openQuizSetup(selected.id)
+              }
+            }}
+          />
+        </div>
       </div>
     </section>
   )

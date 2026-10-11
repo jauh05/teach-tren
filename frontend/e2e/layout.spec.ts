@@ -27,9 +27,15 @@ test.describe('app shell', () => {
     await expect(nav.getByRole('link', { name: 'Jadwal' })).toHaveAttribute('aria-current', 'page')
     await expect(nav.getByRole('link', { name: 'Learning' })).not.toHaveAttribute('aria-current', 'page')
 
-    await nav.getByRole('link', { name: 'Pengaturan' }).click()
+    // Desktop keeps Pengaturan in the avatar menu. Only the mobile bottom bar has the link.
+    if ((await nav.getByRole('link', { name: 'Pengaturan' }).count()) > 0) {
+      await nav.getByRole('link', { name: 'Pengaturan' }).click()
+      await expect(nav.getByRole('link', { name: 'Pengaturan' })).toHaveAttribute('aria-current', 'page')
+    } else {
+      await visibleOnly(page.getByRole('button', { name: 'Menu akun' })).click()
+      await page.getByRole('menuitem', { name: 'Profil' }).click()
+    }
     await expect(page).toHaveURL(/\/pengaturan$/)
-    await expect(nav.getByRole('link', { name: 'Pengaturan' })).toHaveAttribute('aria-current', 'page')
     await expectNoHorizontalScroll(page)
   })
 
