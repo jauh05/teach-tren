@@ -1,6 +1,6 @@
 import { prisma } from '../src/db.js'
 import { hashPassword } from '../src/auth/password.js'
-import { seedDefaultTopics } from '../src/topics/defaultGraph.js'
+import { seedDemoGraph } from '../src/topics/defaultGraph.js'
 import { DEMO_CONVERSATIONS } from './demo-data.js'
 
 // Creates one demo account when DEMO_EMAIL and DEMO_PASSWORD are set. No credentials are stored in the repo.
@@ -17,8 +17,9 @@ if (!email || !password) {
     const passwordHash = await hashPassword(password)
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ data: { name: 'Akun Demo', email, passwordHash } })
-      await seedDefaultTopics(tx, user.id)
-      for (const conversation of DEMO_CONVERSATIONS) {
+      await seedDemoGraph(tx, user.id)
+      // Two example chats, as in the mockup.
+      for (const conversation of DEMO_CONVERSATIONS.slice(0, 2)) {
         await tx.conversation.create({
           data: {
             userId: user.id,

@@ -5,7 +5,8 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 ## Konvensi
 
 - Format data: JSON. Nama field dan endpoint memakai Bahasa Inggris. Pesan untuk pengguna memakai Bahasa Indonesia.
-- Sesi: cookie `tt_sesi` (httpOnly, SameSite=Lax, berlaku 7 hari). Dibuat saat daftar atau masuk, dihapus saat keluar.
+- Sesi: cookie `tt_sesi` (httpOnly, SameSite=Lax, berlaku 15 menit). Dibuat saat daftar atau masuk, dihapus saat keluar.
+- Perpanjangan sesi: cookie `tt_segar` (httpOnly, SameSite=Lax, berlaku 30 hari, hanya dikirim ke `/api/auth`). Isinya token acak yang disimpan di server dalam bentuk hash. Setiap pemakaian diganti dengan token baru. Token lama yang dipakai lagi berarti pencurian: semua token milik akun itu dicabut.
 - Error selalu berbentuk `{ "pesan": "..." }`. Jika data tidak valid, ada tambahan `rincian: [{ "path": "email", "pesan": "..." }]` dengan status 400.
 - Status yang dipakai: 200, 201, 204, 400 (data tidak valid), 401 (belum masuk atau salah kata sandi), 404 (tidak ditemukan atau milik orang lain), 409 (data sudah ada).
 
@@ -15,13 +16,22 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 | --- | --- | --- | --- |
 | POST | `/api/auth/register` | `name` (1 sampai 60 karakter), `email`, `password` (8 sampai 72 karakter) | 201 `{ user }`. Membuat sesi dan 9 bulat awal beserta 7 tautan |
 | POST | `/api/auth/login` | `email`, `password` | 200 `{ user }`. Salah email atau kata sandi: 401 dengan pesan yang sama |
-| POST | `/api/auth/logout` | - | 204 |
+| POST | `/api/auth/logout` | - | 204. Mencabut token `tt_segar` yang dikirim |
+| POST | `/api/auth/refresh` | - (memakai cookie `tt_segar`) | 200 `{ user }` dengan cookie `tt_sesi` dan `tt_segar` baru. Tanpa cookie yang sah, token kedaluwarsa, atau token yang sudah dipakai: 401 `Sesi sudah berakhir. Masuk lagi.` |
 | GET | `/api/auth/me` | - | 200 `{ user }`, atau 401 |
 | PATCH | `/api/auth/me` | `name` (1 sampai 60 karakter) | 200 `{ user }`. Email tidak bisa diubah |
 | POST | `/api/auth/password` | `currentPassword`, `newPassword` (8 sampai 72 karakter) | 204. Kata sandi lama salah: 400 |
 | DELETE | `/api/auth/me` | `password` | 204. Akun dijadwalkan dihapus dan sesi berakhir. Salah kata sandi: 400. Masuk lagi dalam 30 hari memulihkan akun |
 
 `user` berisi `id`, `name`, dan `email`. Kata sandi tidak pernah dikembalikan.
+
+## Identitas tamu
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| POST | `/api/guest/session` | - | 201 `{ guestId }` berupa UUID baru. Dibatasi per alamat IP. Melewati batas: 429 `TERLALU_CEPAT` |
+
+Aplikasi meminta `guestId` sekali per perangkat, lalu mengirimnya di header `X-Guest-Id`. Keluar dari akun juga membuat `guestId` baru.
 
 ## Bulat
 
@@ -74,7 +84,7 @@ Setiap materi: `id`, `title`, `type` (`PDF`, `DOCX`, atau `PPTX`), `sizeBytes`, 
 
 Identitas:
 - Pengguna masuk: cookie sesi.
-- Tamu: header `X-Guest-Id` berisi UUID dari perangkat. Tanpa keduanya: 401.
+- Tamu: header `X-Guest-Id` berisi UUID dari `POST /api/guest/session`. Tanpa keduanya: 401.
 
 Event:
 - `meta` `{ conversationId, messageId }`: dikirim pertama, sebelum teks.

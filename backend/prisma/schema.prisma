@@ -94,6 +94,7 @@ model User {
   scheduleRuns ScheduleRun[]
   bankSeen     BankSeen[]
   preferences  UserPreference?
+  refreshTokens RefreshToken[]
 }
 
 // A topic (bulat). The id is unique per user, so the same slug can exist for two accounts.
@@ -163,6 +164,20 @@ model Message {
 
   @@id([userId, conversationId, id])
   @@index([userId, conversationId, position])
+}
+
+// Refresh token of a session. Only a hash is stored. A token is used once: each refresh replaces it.
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // Study preferences of a signed-in user (docs/role.md 4.7). Defaults match the browser's first version.

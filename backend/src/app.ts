@@ -8,6 +8,7 @@ import { chatRouter } from './chat/routes.js'
 import { jadwalRouter, memoriRouter } from './jadwal/routes.js'
 import { kuisRouter } from './kuis/routes.js'
 import { pengaturanRouter } from './pengaturan/routes.js'
+import { guestRouter } from './guest/routes.js'
 import { conversationsRouter } from './conversations/routes.js'
 import { errorHandler } from './http/errors.js'
 import { requestId } from './http/requestId.js'
@@ -45,6 +46,7 @@ export function createApp(options: AppOptions) {
   app.use('/api/memori', memoriRouter)
   app.use('/api/kuis', kuisRouter)
   app.use('/api/pengaturan', pengaturanRouter)
+  app.use('/api/guest', guestRouter)
 
   app.use((_req, res) => {
     res.status(404).json({ pesan: 'Alamat tidak ditemukan.' })

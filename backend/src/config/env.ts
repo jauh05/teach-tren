@@ -32,6 +32,8 @@ const envSchema = z.object({
   CHAT_RATE_PER_MINUTE: z.coerce.number().int().positive().default(10),
   // Quizzes a guest (per guest id and per IP address) may start per hour (docs/role.md CC-10).
   QUIZ_RATE_PER_HOUR: z.coerce.number().int().positive().default(3),
+  // Guest sessions one IP address may start per hour.
+  GUEST_SESSION_RATE_PER_HOUR: z.coerce.number().int().positive().default(30),
   // Seconds an answer may take before the server gives up (docs/role.md CC-10).
   REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
 })

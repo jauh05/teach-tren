@@ -5,7 +5,7 @@ import { AppError } from '../http/errors.js'
 import { seedDefaultTopics } from '../topics/defaultGraph.js'
 import { requireUser, userIdOf } from './requireUser.js'
 import { hashPassword, verifyPassword } from './password.js'
-import { clearSession, issueSession } from './session.js'
+import { clearSession, createRefreshToken, hashRefreshToken, issueSession, REFRESH_COOKIE, setSessionCookies } from './session.js'
 
 export const authRouter = Router()
 
@@ -54,7 +54,7 @@ authRouter.post('/register', async (req, res) => {
     await seedDefaultTopics(tx, created.id)
     return created
   })
-  issueSession(res, user.id)
+  await issueSession(res, user.id)
   res.status(201).json({ user: publicUser(user) })
 })
 
@@ -70,11 +70,45 @@ authRouter.post('/login', async (req, res) => {
   if (user.deletionScheduledAt) {
     await prisma.user.update({ where: { id: user.id }, data: { deletionScheduledAt: null } })
   }
-  issueSession(res, user.id)
+  await issueSession(res, user.id)
   res.json({ user: publicUser(user) })
 })
 
-authRouter.post('/logout', (_req, res) => {
+// Gives a new access cookie and a new refresh token. The old refresh token cannot be used again.
+authRouter.post('/refresh', async (req, res) => {
+  const raw = req.cookies?.[REFRESH_COOKIE]
+  const expired = new AppError(401, 'Sesi sudah berakhir. Masuk lagi.')
+  if (typeof raw !== 'string') {
+    clearSession(res)
+    throw expired
+  }
+  const row = await prisma.refreshToken.findUnique({ where: { tokenHash: hashRefreshToken(raw) } })
+  if (!row) {
+    clearSession(res)
+    throw expired
+  }
+  if (row.revokedAt) {
+    // A token used twice was copied somewhere. Every session of this user ends.
+    await prisma.refreshToken.updateMany({ where: { userId: row.userId, revokedAt: null }, data: { revokedAt: new Date() } })
+    clearSession(res)
+    throw expired
+  }
+  const user = await prisma.user.findUnique({ where: { id: row.userId } })
+  if (row.expiresAt < new Date() || !user) {
+    clearSession(res)
+    throw expired
+  }
+  const next = await createRefreshToken(user.id)
+  await prisma.refreshToken.update({ where: { id: row.id }, data: { revokedAt: new Date(), replacedById: next.id } })
+  setSessionCookies(res, user.id, next.raw)
+  res.json({ user: publicUser(user) })
+})
+
+authRouter.post('/logout', async (req, res) => {
+  const raw = req.cookies?.[REFRESH_COOKIE]
+  if (typeof raw === 'string') {
+    await prisma.refreshToken.updateMany({ where: { tokenHash: hashRefreshToken(raw), revokedAt: null }, data: { revokedAt: new Date() } })
+  }
   clearSession(res)
   res.status(204).end()
 })
@@ -117,6 +151,8 @@ authRouter.delete('/me', requireUser, async (req, res) => {
     throw new AppError(400, 'Kata sandi tidak sesuai.')
   }
   await prisma.user.update({ where: { id: user.id }, data: { deletionScheduledAt: new Date() } })
+  // Every session of the account ends with the deletion request.
+  await prisma.refreshToken.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } })
   clearSession(res)
   res.status(204).end()
 })
