@@ -34,7 +34,7 @@ test.describe('Tamu', () => {
 
   test('dua aksi habis mengunci composer dan menampilkan ajakan daftar', async ({ page }) => {
     await signOut(page)
-    await page.goto('/c/persamaan-linear')
+    await page.goto('/chat')
     await sendMessage(page, 'Apa itu fotosintesis?')
     await sendMessage(page, 'Jelaskan lagi dengan singkat.')
 
@@ -47,7 +47,7 @@ test.describe('Tamu', () => {
 
   test('kuota habis memblokir kuis baru', async ({ page }) => {
     await signOut(page)
-    await page.goto('/c/persamaan-linear')
+    await page.goto('/chat')
     await sendMessage(page, 'Apa itu fotosintesis?')
     await sendMessage(page, 'Jelaskan lagi dengan singkat.')
 
@@ -59,6 +59,10 @@ test.describe('Tamu', () => {
   test('riwayat tamu dibatasi dua percakapan di desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'sidebar hanya tampil di layar 1024px ke atas')
     await signOut(page)
+    await sendMessage(page, 'Apa itu sel tumbuhan?')
+    await page.goto('/chat')
+    await sendMessage(page, 'Apa itu fotosintesis?')
+
     const history = page.getByRole('navigation', { name: 'Riwayat percakapan' })
     await expect(history.getByText('Di perangkat ini')).toBeVisible()
     await expect(history.getByText('Maksimal 2 percakapan.')).toBeVisible()
@@ -77,7 +81,7 @@ test.describe('Tamu', () => {
     if (testInfo.project.name === 'desktop') {
       await expect(header.getByText('Rafi', { exact: true })).toBeVisible()
     } else {
-      await expect(header.getByText('Masuk', { exact: true })).toBeVisible()
+      await expect(header.getByText('Rafi', { exact: true })).toBeVisible()
     }
   })
 

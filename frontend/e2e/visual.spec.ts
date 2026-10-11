@@ -48,7 +48,7 @@ test.describe('tangkapan tamu', () => {
       await page.setViewportSize({ width: DESKTOP_WIDTH, height: DESKTOP_HEIGHT })
     }
     // Two answers use up the guest quota, then the composer locks and the sign-up prompt shows.
-    await page.goto('/c/persamaan-linear')
+    await page.goto('/chat')
     const input = page.getByRole('textbox', { name: 'Tulis pertanyaan' })
     for (const question of ['Apa itu fotosintesis?', 'Jelaskan lagi dengan singkat.']) {
       await input.fill(question)

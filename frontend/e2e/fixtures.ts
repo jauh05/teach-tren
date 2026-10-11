@@ -1,5 +1,7 @@
 import { test as base, expect, type BrowserContext } from '@playwright/test'
-import { DEMO_CONVERSATIONS } from '../../backend/prisma/demo-data'
+import { createE2eDatabase } from '../../backend/test/e2eDb'
+import { seedExampleGraph } from '../../backend/test/exampleGraph'
+import { DEMO_CONVERSATIONS } from './exampleData'
 
 // Every test gets its own account, so tests cannot change each other's history.
 // Pass `test.use({ asGuest: true })` to start as a guest instead.
@@ -33,7 +35,7 @@ export const test = base.extend<Fixtures>({
   },
 })
 
-// Registers a fresh account in this browser context and gives it the demo conversations.
+// Registers a fresh account in this browser context, then gives it the example topics and chats.
 // The session cookie is stored by the context, so the page starts signed in.
 async function createSignedInAccount(context: BrowserContext, account: TestAccount): Promise<void> {
   const registered = await context.request.post('/api/auth/register', {
@@ -42,6 +44,7 @@ async function createSignedInAccount(context: BrowserContext, account: TestAccou
   if (!registered.ok()) {
     throw new Error(`Gagal membuat akun uji: ${registered.status()}`)
   }
+  await seedExampleTopics(account.email)
   for (const conversation of DEMO_CONVERSATIONS) {
     const saved = await context.request.put(`/api/conversations/${conversation.id}`, {
       data: {
@@ -52,5 +55,18 @@ async function createSignedInAccount(context: BrowserContext, account: TestAccou
     if (!saved.ok()) {
       throw new Error(`Gagal menyiapkan percakapan uji: ${saved.status()}`)
     }
+  }
+}
+
+// The example topics are written to the test database, so the signed-in account has the same topic ids as before.
+// The starter topic that registration creates is replaced by them. Only the test database is used.
+async function seedExampleTopics(email: string): Promise<void> {
+  const url = process.env.TEST_DATABASE_URL ?? ''
+  const db = createE2eDatabase(url)
+  try {
+    const user = await db.user.findUniqueOrThrow({ where: { email } })
+    await seedExampleGraph(db, user.id)
+  } finally {
+    await db.$disconnect()
   }
 }

@@ -71,7 +71,7 @@ test.describe('Jadwal', () => {
     await signOutFromMenu(page)
 
     await page.goto('/jadwal')
-    await expect(page.getByText('Ini contoh jadwal.')).toBeVisible()
+    await expect(page.getByText('Jadwal belajar hanya untuk akun.')).toBeVisible()
     await expect(page.getByRole('button', { name: /Terima saran/ })).toHaveCount(0)
 
     if (testInfo.project.name === 'desktop') {

@@ -14,7 +14,7 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 
 | Metode | Alamat | Isi permintaan | Hasil |
 | --- | --- | --- | --- |
-| POST | `/api/auth/register` | `name` (1 sampai 60 karakter), `email`, `password` (8 sampai 72 karakter) | 201 `{ user }`. Membuat sesi. Akun baru mulai tanpa bulat (kanvas Learning kosong). Dengan `SEED_EXAMPLE_TOPICS=true` di server, akun baru mendapat 9 bulat contoh beserta 7 tautan. Melewati batas pendaftaran per alamat IP (30 per jam): 429 `TERLALU_CEPAT` |
+| POST | `/api/auth/register` | `name` (1 sampai 60 karakter), `email`, `password` (8 sampai 72 karakter) | 201 `{ user }`. Membuat sesi. Akun baru mulai tanpa bulat (kanvas Learning kosong). Melewati batas pendaftaran per alamat IP (30 per jam): 429 `TERLALU_CEPAT` |
 | POST | `/api/auth/login` | `email`, `password` | 200 `{ user }`. Salah email atau kata sandi: 401 dengan pesan yang sama. Percobaan dibatasi 10 per 15 menit untuk satu email dari satu alamat IP, dan 100 per 15 menit per alamat IP: 429 `TERLALU_CEPAT` |
 | POST | `/api/auth/logout` | - | 204. Mencabut token `tt_segar` yang dikirim |
 | POST | `/api/auth/refresh` | - (memakai cookie `tt_segar`) | 200 `{ user }` dengan cookie `tt_sesi` dan `tt_segar` baru. Tanpa cookie yang sah, token kedaluwarsa, atau token yang sudah dipakai: 401 `Sesi sudah berakhir. Masuk lagi.` |
@@ -38,7 +38,9 @@ Aplikasi meminta `guestId` sekali per perangkat, lalu mengirimnya di header `X-G
 | Metode | Alamat | Isi permintaan | Hasil |
 | --- | --- | --- | --- |
 | GET | `/api/topics` | - | 200 `{ topics, links }` |
-| POST | `/api/topics` | `name` | 201 `{ topic: { id, name } }`. Nama sama (tanpa memperhatikan huruf besar dan spasi tepi) menghasilkan 409 |
+| POST | `/api/topics` | `name`, `dariId` (opsional, id bulat asal) | 201 `{ topic: { id, name } }`. Dengan `dariId`, bulat baru dihubungkan dari bulat asal (tautan). Nama sama (tanpa memperhatikan huruf besar dan spasi tepi) menghasilkan 409. `dariId` yang bukan milik akun: 404 |
+| POST | `/api/topics/tautan` | `dariId`, `keId` | 201 `{ link: { source, target, suggested } }`. Menghubungkan dua bulat milik akun. Sama dengan diri sendiri: 400. Sudah terhubung: 409. Bulat tidak ada: 404 |
+| POST | `/api/topics/saran` | `polaId` | 200 `{ saran: [{ nama, alasan }] }`. Tiga usulan pola berikutnya dari AI (`AI_MODE=mock` memberi contoh). Tidak membuat bulat. Nama yang sudah dipakai dibuang. Melewati batas per jam (`POLA_SARAN_PER_HOUR`, 20 secara default): 429 `TERLALU_CEPAT`. Bulat tidak ada: 404 |
 | PATCH | `/api/topics/:id` | `name` | 200 `{ topic: { id, name } }` |
 | POST | `/api/topics/:id/scores` | `percent` (bilangan bulat 0 sampai 100) | 201 `{ lastScore }`. Mencatat satu kali kuis dan menjadikannya skor terbaru |
 

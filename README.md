@@ -8,7 +8,7 @@ Frontend dan backend sudah terhubung, dan AI memakai OpenRouter. Akun, percakapa
 
 Yang belum ada:
 - **Lupa kata sandi dan verifikasi email.** Keduanya butuh layanan pengiriman email.
-- **AI yang menyusun jalur belajar** dari tujuan pengguna. Saat ini pengguna menambah bulat sendiri, dari materi, atau dari Learning.
+- **Jalur belajar dari tujuan pengguna.** Saat ini pola berikutnya diusulkan AI dari pola yang baru ditambahkan, atau disambung dari pola yang sudah dikuasai. Belum ada jalur otomatis dari tujuan belajar.
 - **PDF hasil scan.** Teks harus bisa dibaca dari berkas.
 - **Moderasi input.** Menunggu keputusan model dan perilakunya.
 
@@ -63,7 +63,7 @@ npm install
 npm run dev            # http://localhost:5173
 ```
 
-Buka `http://localhost:5173`. Aplikasi mulai sebagai tamu. Pilih **Daftar** untuk membuat akun pertama. Akun baru mulai dengan kanvas Learning kosong: tambah bulat dengan tombol **Tambah bulat**, dari halaman Materi, atau tanyakan sesuatu di chat.
+Buka `http://localhost:5173`. Aplikasi mulai sebagai tamu. Pilih **Daftar** untuk membuat akun pertama. Akun baru mulai dengan kanvas Learning kosong. Lingkaran putus-putus dengan tanda plus menambah pola belajar pertama. Tamu juga boleh menambah satu pola di perangkat ini. Pola kedua dan seterusnya perlu masuk, dan pola dari tamu ikut pindah ke akun saat masuk.
 
 Frontend tidak boleh berisi kunci API. Opsional: salin `frontend/.env.example` ke `frontend/.env` untuk mengubah `VITE_API_BASE_URL`.
 
@@ -81,7 +81,6 @@ Semua data pengembangan ada di `backend/.dev-db`. Untuk mengosongkannya, hentika
 | `AI_MAX_TOKENS_KUIS` | Batas token kuis. 7000 dipilih dari pengukuran, spesifikasi menulis 3000 |
 | `AUTH_ATTEMPTS_PER_15_MIN`, `AUTH_IP_PER_15_MIN`, `REGISTER_PER_HOUR` | Batas percobaan masuk dan daftar |
 | `TRUST_PROXY` | Jumlah proxy di depan server. Isi 1 di belakang reverse proxy |
-| `SEED_EXAMPLE_TOPICS` | `true` memberi akun baru sembilan bulat contoh, untuk demo |
 | `CORS_ORIGIN` | Alamat frontend yang boleh memanggil API |
 
 ## Keamanan
