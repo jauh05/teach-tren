@@ -118,10 +118,18 @@ model Message {
   content        String
   status         MessageStatus
   position       Int
+  createdAt DateTime @default(now())
   conversation   Conversation  @relation(fields: [userId, conversationId], references: [userId, id], onDelete: Cascade)
 
   @@id([userId, conversationId, id])
   @@index([userId, conversationId, position])
+}
+
+// AI actions used on this device by a guest. Guests get two actions in total (docs/role.md 2.3).
+model GuestUsage {
+  guestId   String   @id
+  actions   Int      @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 // One finished quiz run. The topic's lastScore is the most recent percent.
