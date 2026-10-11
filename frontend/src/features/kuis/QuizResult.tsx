@@ -22,10 +22,21 @@ interface QuizResultProps {
   retry: boolean
   onRestart: () => void
   onRetryWrong: () => void
+  // Set when the quiz runs inside a chat. Returns to that chat.
+  onExit?: () => void
 }
 
 // Final screen: score, one row per question with the answer and explanation, and the next actions.
-export function QuizResult({ quiz, questions, answers, isGuest, retry, onRestart, onRetryWrong }: QuizResultProps) {
+export function QuizResult({
+  quiz,
+  questions,
+  answers,
+  isGuest,
+  retry,
+  onRestart,
+  onRetryWrong,
+  onExit,
+}: QuizResultProps) {
   const navigate = useNavigate()
   const score = scoreQuiz(questions, answers)
   const wrongCount = questions.filter((question) => scoreQuestion(question, answers[question.id]) < 100).length
@@ -98,7 +109,11 @@ export function QuizResult({ quiz, questions, answers, isGuest, retry, onRestart
         <Button variant="secondary" onClick={onRestart}>
           Ulangi kuis
         </Button>
-        <Button onClick={() => navigate('/learning')}>Kembali ke Learning</Button>
+        {onExit ? (
+          <Button onClick={onExit}>Kembali ke chat</Button>
+        ) : (
+          <Button onClick={() => navigate('/learning')}>Kembali ke Learning</Button>
+        )}
       </div>
     </section>
   )

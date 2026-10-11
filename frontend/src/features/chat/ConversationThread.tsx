@@ -7,6 +7,8 @@ import { createMockAnswer } from '../../api/mockAnswer'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { ChatMessage } from '../../domain/types'
 import { useSessionStore } from '../../stores/sessionStore'
+import { useUiStore } from '../../stores/uiStore'
+import { ChatQuizPanel } from '../kuis/ChatQuizPanel'
 import { Composer } from './Composer'
 import { MessageBubble } from './MessageBubble'
 import { NextStepsCard } from './NextStepsCard'
@@ -74,6 +76,9 @@ export function ConversationThread({
   // A new chat is saved under its own id, so it shows in the history as soon as the first answer exists.
   const [draftId] = useState(() => crypto.randomUUID())
   const storageId = conversationId === UNSAVED_CONVERSATION_ID ? draftId : conversationId
+  const chatQuiz = useUiStore((state) => state.chatQuiz)
+  const openQuizSetup = useUiStore((state) => state.openQuizSetup)
+  const endChatQuiz = useUiStore((state) => state.endChatQuiz)
 
   useEffect(() => {
     if (initial.streamingId !== null && initialQuestion) {
@@ -185,6 +190,11 @@ export function ConversationThread({
     }
   }
 
+  // A quiz started from this chat replaces the thread until the user goes back to the chat.
+  if (chatQuiz?.quizId === storageId) {
+    return <ChatQuizPanel quizId={chatQuiz.quizId} settings={chatQuiz.settings} onExit={endChatQuiz} />
+  }
+
   const lastMessage = messages[messages.length - 1]
   const showNextSteps = !streaming && lastMessage?.role === 'assistant' && lastMessage.status === 'done'
 
@@ -199,7 +209,7 @@ export function ConversationThread({
               message={message}
               onCopy={() => void copy(message.content)}
               onRegenerate={() => regenerate(message.id)}
-              onCreateQuiz={() => navigate(`/kuis/${storageId}/atur`)}
+              onCreateQuiz={() => openQuizSetup(storageId)}
             />
           ))}
           {showNextSteps && <NextStepsCard conversationId={storageId} />}

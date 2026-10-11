@@ -6,19 +6,53 @@ async function answerChoice(page: Page, letter: string, next: string) {
   await page.getByRole('button', { name: next }).click()
 }
 
+// Opens Atur kuis from the chat of persamaan-linear and starts a five-question quiz in that chat.
+async function mulaiKuisDariChat(page: Page) {
+  await page.goto('/c/persamaan-linear')
+  await page.getByRole('region', { name: 'Langkah berikutnya' }).getByRole('button', { name: 'Mulai' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Atur kuis' })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('radiogroup', { name: 'Jumlah soal' }).getByRole('radio', { name: '5', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Mulai kuis' }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
+}
+
 test.describe('Kuis lanjutan', () => {
-  test('atur kuis dari chat tampil sebagai pop-up dan memulai kuis dari sana', async ({ page }) => {
-    await page.goto('/c/persamaan-linear')
-    await page.getByRole('region', { name: 'Langkah berikutnya' }).getByRole('button', { name: 'Mulai' }).click()
+  test('atur kuis dari chat memulai kuis di dalam chat', async ({ page }) => {
+    await mulaiKuisDariChat(page)
 
-    const dialog = page.getByRole('dialog', { name: 'Atur kuis' })
-    await expect(dialog).toBeVisible()
-    await dialog.getByRole('radiogroup', { name: 'Jumlah soal' }).getByRole('radio', { name: '5', exact: true }).click()
-    await dialog.getByRole('button', { name: 'Mulai kuis' }).click()
+    await expect(page).toHaveURL(/\/c\/persamaan-linear$/)
+    await expect(page.getByRole('region', { name: 'Kuis' }).getByText('Soal 1 dari 5')).toBeVisible()
+    await expectNoHorizontalScroll(page)
+  })
 
-    await expect(page).toHaveURL(/\/kuis\/persamaan-linear\?jumlah=5/)
-    await expect(page.getByRole('dialog')).toBeHidden()
-    await expect(page.getByText('Soal 1 dari 5')).toBeVisible()
+  test('kuis di chat bisa diperbesar layar penuh, dikecilkan, lalu ditutup kembali ke chat', async ({ page }) => {
+    await mulaiKuisDariChat(page)
+    const quiz = page.getByRole('region', { name: 'Kuis' })
+    const viewport = page.viewportSize()
+
+    await page.getByRole('button', { name: 'Perbesar kuis' }).click()
+    await expect(page.getByRole('button', { name: 'Kecilkan kuis' })).toBeVisible()
+    const expandedBox = await quiz.boundingBox()
+    expect(expandedBox?.width).toBe(viewport?.width)
+    expect(expandedBox?.height).toBe(viewport?.height)
+
+    await page.getByRole('button', { name: 'Kecilkan kuis' }).click()
+    await expect(page.getByRole('button', { name: 'Perbesar kuis' })).toBeVisible()
+    const shrunkBox = await quiz.boundingBox()
+    expect(shrunkBox?.height).toBeLessThan(viewport?.height ?? 0)
+
+    await page.getByRole('button', { name: 'Tutup kuis' }).click()
+    await expect(page.getByRole('region', { name: 'Kuis' })).toBeHidden()
+    await expect(page.getByRole('textbox', { name: 'Tulis pertanyaan' })).toBeVisible()
+  })
+
+  test('Escape mengecilkan kuis layar penuh', async ({ page }) => {
+    await mulaiKuisDariChat(page)
+    await page.getByRole('button', { name: 'Perbesar kuis' }).click()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('button', { name: 'Perbesar kuis' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Kuis' })).toBeVisible()
   })
 
   test('pop-up atur kuis bisa ditutup tanpa memulai kuis', async ({ page }) => {

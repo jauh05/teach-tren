@@ -39,11 +39,13 @@ const OPTION_CLASS: Record<OptionTone, string> = {
 
 interface QuizRunnerProps {
   quiz: Quiz
+  // Set when the quiz runs inside a chat. The result then offers a way back to that chat.
+  onExit?: () => void
 }
 
 // One question per screen. Feedback appears after each answer. Guests do not see the explanation (docs/role.md 4.4).
 // Fill-in and essay answers are typed, then checked or sent. Essays are graded against a rubric.
-export function QuizRunner({ quiz }: QuizRunnerProps) {
+export function QuizRunner({ quiz, onExit }: QuizRunnerProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const mode = useSessionStore((state) => state.mode)
@@ -98,6 +100,7 @@ export function QuizRunner({ quiz }: QuizRunnerProps) {
         retry={retry}
         onRestart={() => restart(quiz.questions, false)}
         onRetryWrong={() => restart(wrong, true)}
+        onExit={onExit}
       />
     )
   }

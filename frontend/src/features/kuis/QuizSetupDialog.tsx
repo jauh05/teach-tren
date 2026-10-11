@@ -1,8 +1,7 @@
-import { useNavigate } from 'react-router-dom'
 import { Dialog } from '../../components/ui/Dialog'
 import { useUiStore } from '../../stores/uiStore'
 import { QuizSetupCards, QuizSetupSummary } from './QuizSetup'
-import { quizStartUrl, useQuizSetupDraft, useQuizSourceName } from './quizSetupDraft'
+import { useQuizSetupDraft, useQuizSourceName } from './quizSetupDraft'
 
 // Atur kuis as a pop-up. Mounted once in App so Learning and Chat can open it.
 export function QuizSetupDialog() {
@@ -18,15 +17,16 @@ interface QuizSetupModalProps {
   quizId: string
 }
 
+// Starting the quiz runs it inside the chat it was opened from, not on a separate page.
 function QuizSetupModal({ quizId }: QuizSetupModalProps) {
-  const navigate = useNavigate()
   const closeQuizSetup = useUiStore((state) => state.closeQuizSetup)
+  const startChatQuiz = useUiStore((state) => state.startChatQuiz)
   const draft = useQuizSetupDraft()
   const sourceName = useQuizSourceName(quizId)
 
   function start() {
     closeQuizSetup()
-    navigate(quizStartUrl(quizId, draft))
+    startChatQuiz({ quizId, settings: { count: draft.count, level: draft.level, style: draft.style } })
   }
 
   return (
