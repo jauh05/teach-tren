@@ -87,8 +87,6 @@ export function pushOutOfRect(point: Point, radius: number, rect: LayoutRect, bo
 export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[], center: Point, bounds?: LayoutBounds) {
   const boundsWidth = bounds?.width ?? null
   const boundsHeight = bounds?.height ?? null
-  // Changes only when the rectangles move, so a new array with the same values does not restart the layout.
-  const obstaclesKey = JSON.stringify(bounds?.obstacles ?? [])
   // The layout reads the latest rectangles through this ref. The key above decides when it runs again.
   const obstaclesRef = useRef<LayoutRect[]>([])
   useEffect(() => {
@@ -190,7 +188,7 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
       }
       simulationRef.current = null
     }
-  }, [nodes, links, center.x, center.y, boundsWidth, boundsHeight, obstaclesKey])
+  }, [nodes, links, center.x, center.y, boundsWidth, boundsHeight])
 
   const scheduleStop = useCallback(() => {
     if (stopTimerRef.current !== null) {
@@ -201,6 +199,15 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
       stopTimerRef.current = null
     }, SETTLE_MS)
   }, [])
+
+  // Runs the layout for a short while, so circles move out of the way when the rectangles have moved.
+  const relax = useCallback(() => {
+    const simulation = simulationRef.current
+    if (simulation) {
+      simulation.alpha(0.3).restart()
+      scheduleStop()
+    }
+  }, [scheduleStop])
 
   const startDrag = useCallback(
     (id: string) => {
@@ -257,5 +264,5 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
     [scheduleStop],
   )
 
-  return { positions, startDrag, dragTo, endDrag, nudge }
+  return { positions, startDrag, dragTo, endDrag, nudge, relax }
 }

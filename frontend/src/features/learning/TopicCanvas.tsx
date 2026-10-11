@@ -53,10 +53,12 @@ interface TopicCanvasProps {
   links: TopicLink[]
   selectedId: string | null
   onSelect: (id: string | null) => void
+  // Reports the view (pan and zoom) to the page, so the example circles on an empty canvas move with it.
+  onViewChange?: (view: View) => void
 }
 
 // Pan, zoom, drag, and tap canvas for topics. Positions are not saved (docs/role.md 4.1).
-export function TopicCanvas({ topics, links, selectedId, onSelect }: TopicCanvasProps) {
+export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange }: TopicCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useElementSize(containerRef)
   // Layout starts from the topics on mount. Later data changes (renames, statuses) keep the same positions.
@@ -83,6 +85,11 @@ export function TopicCanvas({ topics, links, selectedId, onSelect }: TopicCanvas
   const gestureRef = useRef<Gesture>({ kind: 'none' })
 
   const view = viewState ?? centerView(size.width, size.height)
+  const { x: viewX, y: viewY, k: zoom } = view
+
+  useEffect(() => {
+    onViewChange?.({ x: viewX, y: viewY, k: zoom })
+  }, [viewX, viewY, zoom, onViewChange])
 
   useEffect(() => {
     const node = containerRef.current

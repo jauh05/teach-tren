@@ -1,17 +1,18 @@
-import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
 import type { TopicStatus } from '../../domain/topicStatus'
-import type { Point } from './canvasMath'
+import { centerView, type Point, type View } from './canvasMath'
 import { TOPIC_VISUALS } from './topicVisual'
 import { pushOutOfRect, useTopicLayout, type LayoutLinkInput, type LayoutNodeInput, type LayoutRect } from './useTopicLayout'
 
-// Sample circles on an empty canvas, in the colors and with the icons of the legend. They use the same layout as the
-// real canvas: dragging one moves the circles linked to it, the others move out of the way, and the layout settles
-// after the drag (docs/role.md 4.1). Nothing is saved, and clicking does nothing else. They are an example, not data.
+// Sample circles on an empty canvas, in the colors and with the icons of the legend. They have no text.
+// They use the same layout as the real canvas: dragging one moves the circles linked to it, and the others move out of
+// the way. They zoom and pan with the board, and they keep off the board controls and the add circle.
+// Nothing is saved, and clicking does nothing else. They are an example, not data.
 interface SampleSpec {
   id: string
   status: TopicStatus
   score?: number
-  // Starting place, as a fraction of the canvas width and height.
+  // Starting place, as a fraction of the board width and height.
   seed: Point
 }
 
@@ -54,7 +55,16 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-// Measures the canvas, so the sample can use its real size. Updates when the window or the layout changes.
+// Board pixels to layout coordinates. The layout starts at the board as it was when the sample first laid out.
+// Zoom and pan move the sample on screen, so the same circle has a different board position at each view.
+function toLayoutPoint(point: Point, view: { x: number; y: number; k: number }, origin: Point): Point {
+  return {
+    x: (point.x - view.x) / view.k + origin.x,
+    y: (point.y - view.y) / view.k + origin.y,
+  }
+}
+
+// Measures the board, so the sample can use its real size. Updates when the window or the layout changes.
 function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>) {
   const [size, setSize] = useState({ width: 0, height: 0 })
 
@@ -73,7 +83,7 @@ function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>) {
   return size
 }
 
-// Starting positions in pixels, from the fractions above. A circle always starts inside the canvas.
+// Starting positions in layout coordinates, from the fractions above. A circle always starts inside the board.
 function seedNodes(width: number, height: number): LayoutNodeInput[] {
   return SAMPLES.map((sample) => {
     const radius = radiusOf(sample.status)
@@ -87,8 +97,8 @@ function seedNodes(width: number, height: number): LayoutNodeInput[] {
   })
 }
 
-// Controls of the board and the add circle, measured in the sample's own coordinates. Marked with data-canvas-obstacle.
-function measureObstacles(container: HTMLElement): LayoutRect[] {
+// Controls of the board and the add circle, in board pixels. Marked with data-canvas-obstacle.
+function measureControls(container: HTMLElement): LayoutRect[] {
   const board = container.closest<HTMLElement>('[data-canvas-board]')
   if (!board) {
     return []
@@ -105,29 +115,57 @@ function measureObstacles(container: HTMLElement): LayoutRect[] {
   })
 }
 
-export function EmptyCanvasIllustration() {
+interface EmptyCanvasIllustrationProps {
+  // The view of the board (pan and zoom), as TopicCanvas has it. Null before the canvas reports it.
+  view: View | null
+}
+
+export function EmptyCanvasIllustration({ view }: EmptyCanvasIllustrationProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useElementSize(containerRef)
   const ready = size.width > 0 && size.height > 0
-  const [obstacles, setObstacles] = useState<LayoutRect[]>([])
-  // Measured again whenever the board changes size, for example when it is enlarged or made smaller.
+  // The view at which the layout starts. It is the same view TopicCanvas starts with.
+  const initial = useMemo(() => centerView(size.width, size.height), [size.width, size.height])
+  const current = view ?? initial
+  const { x: viewX, y: viewY, k: zoom } = current
+  const { x: originX, y: originY } = initial
+
+  const [controlRects, setControlRects] = useState<LayoutRect[]>([])
   useLayoutEffect(() => {
     const container = containerRef.current
     if (container) {
-      setObstacles(measureObstacles(container))
+      setControlRects(measureControls(container))
     }
   }, [size.width, size.height])
+
+  // The controls stay where they are on screen, so their place in layout coordinates moves with zoom and pan.
+  const obstacles = useMemo(
+    () =>
+      controlRects.map((rect) => {
+        const topLeft = toLayoutPoint({ x: rect.left, y: rect.top }, { x: viewX, y: viewY, k: zoom }, { x: originX, y: originY })
+        const bottomRight = toLayoutPoint({ x: rect.right, y: rect.bottom }, { x: viewX, y: viewY, k: zoom }, { x: originX, y: originY })
+        return { left: topLeft.x, top: topLeft.y, right: bottomRight.x, bottom: bottomRight.y }
+      }),
+    [controlRects, viewX, viewY, zoom, originX, originY],
+  )
+
   const nodes = useMemo(() => (ready ? seedNodes(size.width, size.height) : NO_NODES), [ready, size.width, size.height])
   const links = ready ? LAYOUT_LINKS : NO_LINKS
   const center = useMemo(() => ({ x: size.width / 2, y: size.height * 0.6 }), [size.width, size.height])
   const bounds = useMemo(() => ({ width: size.width, height: size.height, obstacles }), [size.width, size.height, obstacles])
-  const { positions, startDrag, dragTo, endDrag } = useTopicLayout(nodes, links, center, bounds)
+  const { positions, startDrag, dragTo, endDrag, relax } = useTopicLayout(nodes, links, center, bounds)
   const [dragId, setDragId] = useState<string | null>(null)
 
-  // Pointer position inside the canvas, in pixels.
-  function localPoint(event: ReactPointerEvent<SVGGElement>): Point {
+  // Settles the circles after the controls moved on screen (zoom, pan, or a resize).
+  useEffect(() => {
+    relax()
+  }, [obstacles, relax])
+
+  // Pointer position in layout coordinates.
+  function layoutPoint(event: ReactPointerEvent<SVGGElement>): Point {
     const rect = containerRef.current?.getBoundingClientRect()
-    return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) }
+    const board = { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) }
+    return toLayoutPoint(board, { x: viewX, y: viewY, k: zoom }, { x: originX, y: originY })
   }
 
   function beginDrag(id: string, event: ReactPointerEvent<SVGGElement>) {
@@ -141,7 +179,7 @@ export function EmptyCanvasIllustration() {
     if (dragId !== id) {
       return
     }
-    let target = localPoint(event)
+    let target = layoutPoint(event)
     target = {
       x: clamp(target.x, radius, size.width - radius),
       y: clamp(target.y, radius, size.height - radius),
@@ -166,61 +204,64 @@ export function EmptyCanvasIllustration() {
   return (
     <div ref={containerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       {ready && (
-        <svg width={size.width} height={size.height} className="absolute inset-0 block touch-none select-none" focusable="false">
-          {SAMPLE_LINKS.map((link) => {
-            const from = positions[link.source]
-            const to = positions[link.target]
-            if (!from || !to) {
-              return null
-            }
-            return (
-              <line
-                key={`${link.source}-${link.target}`}
-                x1={from.x}
-                y1={from.y}
-                x2={to.x}
-                y2={to.y}
-                stroke={link.suggested ? '#C4B5FD' : '#CBD5E1'}
-                strokeWidth={1.5}
-                strokeDasharray={link.suggested ? '4 3' : undefined}
-              />
-            )
-          })}
-          {SAMPLES.map((sample, index) => {
-            const point = positions[sample.id]
-            if (!point) {
-              return null
-            }
-            const visual = TOPIC_VISUALS[sample.status]
-            const radius = radiusOf(sample.status)
-            return (
-              <g
-                key={sample.id}
-                data-sample={sample.status}
-                style={{ pointerEvents: 'auto', cursor: dragId === sample.id ? 'grabbing' : 'grab' }}
-                onPointerDown={(event) => beginDrag(sample.id, event)}
-                onPointerMove={(event) => moveDrag(sample.id, radius, event)}
-                onPointerUp={(event) => finishDrag(sample.id, event)}
-                onPointerCancel={(event) => finishDrag(sample.id, event)}
-              >
-                <g transform={`translate(${point.x} ${point.y})`}>
-                  <g
-                    className={dragId === null ? 'topic-idle' : undefined}
-                    style={dragId === null ? { animationDelay: `${index * 0.6}s`, animationDuration: `${5 + index * 0.7}s` } : undefined}
-                  >
-                    <circle
-                      r={radius}
-                      fill={visual.fill}
-                      stroke={visual.stroke}
-                      strokeWidth={visual.strokeWidth}
-                      strokeDasharray={visual.dashed ? '4 3' : undefined}
-                    />
-                    <Icon status={sample.status} radius={radius} score={sample.score} />
+        <svg width={size.width} height={size.height} className="pointer-events-none absolute inset-0 block touch-none select-none" focusable="false">
+          {/* Layout coordinates to board pixels: the same mapping as the board's own pan and zoom. */}
+          <g transform={`translate(${viewX - zoom * originX} ${viewY - zoom * originY}) scale(${zoom})`}>
+            {SAMPLE_LINKS.map((link) => {
+              const from = positions[link.source]
+              const to = positions[link.target]
+              if (!from || !to) {
+                return null
+              }
+              return (
+                <line
+                  key={`${link.source}-${link.target}`}
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                  stroke={link.suggested ? '#C4B5FD' : '#CBD5E1'}
+                  strokeWidth={1.5}
+                  strokeDasharray={link.suggested ? '4 3' : undefined}
+                />
+              )
+            })}
+            {SAMPLES.map((sample, index) => {
+              const point = positions[sample.id]
+              if (!point) {
+                return null
+              }
+              const visual = TOPIC_VISUALS[sample.status]
+              const radius = radiusOf(sample.status)
+              return (
+                <g
+                  key={sample.id}
+                  data-sample={sample.status}
+                  style={{ pointerEvents: 'auto', cursor: dragId === sample.id ? 'grabbing' : 'grab' }}
+                  onPointerDown={(event) => beginDrag(sample.id, event)}
+                  onPointerMove={(event) => moveDrag(sample.id, radius, event)}
+                  onPointerUp={(event) => finishDrag(sample.id, event)}
+                  onPointerCancel={(event) => finishDrag(sample.id, event)}
+                >
+                  <g transform={`translate(${point.x} ${point.y})`}>
+                    <g
+                      className={dragId === null ? 'topic-idle' : undefined}
+                      style={dragId === null ? { animationDelay: `${index * 0.6}s`, animationDuration: `${5 + index * 0.7}s` } : undefined}
+                    >
+                      <circle
+                        r={radius}
+                        fill={visual.fill}
+                        stroke={visual.stroke}
+                        strokeWidth={visual.strokeWidth}
+                        strokeDasharray={visual.dashed ? '4 3' : undefined}
+                      />
+                      <Icon status={sample.status} radius={radius} score={sample.score} />
+                    </g>
                   </g>
                 </g>
-              </g>
-            )
-          })}
+              )
+            })}
+          </g>
         </svg>
       )}
     </div>

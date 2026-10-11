@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Maximize2, Minimize2, Plus } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { fetchTopicGraph, GUEST_TOPIC_LIMIT } from '../../api/topics'
+import type { View } from './canvasMath'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUiStore } from '../../stores/uiStore'
 import { AddTopicDialog } from './AddTopicDialog'
@@ -54,6 +55,7 @@ function useIsDesktop(): boolean {
 }
 
 export function LearningPage() {
+  const [canvasView, setCanvasView] = useState<View | null>(null)
   const mode = useSessionStore((state) => state.mode)
   const openQuizSetup = useUiStore((state) => state.openQuizSetup)
   const isDesktop = useIsDesktop()
@@ -121,9 +123,9 @@ export function LearningPage() {
         className="relative flex min-h-[180px] min-w-0 flex-col md:min-h-0"
         style={{ flex: isDesktop ? `0 0 ${boardShare * 100}%` : boardExpanded ? 3 : 1 }}
       >
-        <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} />
+        <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} onViewChange={setCanvasView} />
         {/* The sample moves over the whole board. It keeps off the controls and the add circle (data-canvas-obstacle). */}
-        {data.topics.length === 0 && <EmptyCanvasIllustration />}
+        {data.topics.length === 0 && <EmptyCanvasIllustration view={canvasView} />}
         <div data-canvas-obstacle className="absolute left-3 top-3 flex gap-2">
           <button
             type="button"

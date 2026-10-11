@@ -216,6 +216,24 @@ test.describe('Learning tamu', () => {
     await expectNoHorizontalScroll(page)
   })
 
+  test('zoom bekerja di kanvas kosong, dan bulat contoh ikut membesar dan kembali', async ({ page }) => {
+    await page.goto('/learning')
+    const toolbar = page.getByRole('toolbar', { name: 'Kontrol zoom' })
+    const sample = page.locator('[data-sample="DIKUASAI"] circle')
+    const before = await sample.boundingBox()
+    if (!before) {
+      throw new Error('Bulat contoh tidak terlihat')
+    }
+
+    await toolbar.getByRole('button', { name: 'Perbesar' }).click()
+    await expect(toolbar.getByText('125%')).toBeVisible()
+    await expect.poll(async () => (await sample.boundingBox())?.width ?? 0).toBeGreaterThan(before.width + 4)
+
+    await toolbar.getByRole('button', { name: 'Atur ulang zoom' }).click()
+    await expect(toolbar.getByText('100%')).toBeVisible()
+    await expect.poll(async () => (await sample.boundingBox())?.width ?? 0).toBeLessThan(before.width + 2)
+  })
+
   test('di desktop, tombol tambah ada di tengah papan', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'papan di tengah hanya di layar lebar')
     await page.goto('/learning')
