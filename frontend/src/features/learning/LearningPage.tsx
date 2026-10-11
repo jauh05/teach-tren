@@ -141,9 +141,9 @@ export function LearningPage() {
           </button>
         </div>
         {data.topics.length === 0 && (
-          <div className="pointer-events-none absolute inset-0 overflow-y-auto">
-            <div className="flex min-h-full flex-col items-center justify-center gap-5 px-6 py-12">
-              <EmptyTopicSlot onAdd={() => setAdding(true)} />
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14 pb-3">
+            <EmptyTopicSlot onAdd={() => setAdding(true)} />
+            <div className="relative mt-2 min-h-[120px] w-full max-w-[360px] flex-1">
               <EmptyCanvasIllustration />
             </div>
           </div>

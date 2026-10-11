@@ -218,14 +218,14 @@ test.describe('Learning tamu', () => {
 
   test('bulat contoh di kanvas kosong bisa digeser', async ({ page }) => {
     await page.goto('/learning')
-    const sample = page.getByText('Perlu diulang', { exact: true })
+    const sample = page.locator('[data-sample="PERLU_DIULANG"] circle')
     const before = await sample.boundingBox()
     if (!before) {
       throw new Error('Bulat contoh tidak terlihat')
     }
-    // Moves left, where the example has free space. Moving up would run into the label of the circle above.
+    // Moves left, where the example has free space.
     const startX = before.x + before.width / 2
-    const startY = before.y - 10
+    const startY = before.y + before.height / 2
     await page.mouse.move(startX, startY)
     await page.mouse.down()
     await page.mouse.move(startX - 16, startY, { steps: 8 })
@@ -234,6 +234,28 @@ test.describe('Learning tamu', () => {
     const after = await sample.boundingBox()
     expect(after).not.toBeNull()
     expect(before.x - (after?.x ?? 0)).toBeGreaterThan(4)
+  })
+
+  test('bulat contoh lain menyingkir saat sebuah bulat contoh ditarik', async ({ page }) => {
+    await page.goto('/learning')
+    const dragged = page.locator('[data-sample="BARU"] circle')
+    const pushed = page.locator('[data-sample="PERLU_DIULANG"] circle')
+    const draggedBox = await dragged.boundingBox()
+    const pushedBefore = await pushed.boundingBox()
+    if (!draggedBox || !pushedBefore) {
+      throw new Error('Bulat contoh tidak terlihat')
+    }
+    // The circle above is pulled down, so it reaches the circle below and pushes it down.
+    const startX = draggedBox.x + draggedBox.width / 2
+    const startY = draggedBox.y + draggedBox.height / 2
+    await page.mouse.move(startX, startY)
+    await page.mouse.down()
+    await page.mouse.move(startX, startY + 60, { steps: 10 })
+    await page.mouse.up()
+
+    const pushedAfter = await pushed.boundingBox()
+    expect(pushedAfter).not.toBeNull()
+    expect((pushedAfter?.y ?? 0) - pushedBefore.y).toBeGreaterThan(4)
   })
 
   test('tamu generate sekali di perangkat, lalu diminta masuk', async ({ page }) => {
