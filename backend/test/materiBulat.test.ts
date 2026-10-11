@@ -1,5 +1,6 @@
 import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { prisma } from '../src/db.js'
 import { createTestApp, registerAgent, registerWithExampleGraph, resetDatabase } from './helpers.js'
 
 const app = createTestApp()
@@ -8,16 +9,20 @@ const GUEST = '2f3c9a52-7d1e-4b8a-9c3f-0a1b2c3d4e5f'
 describe('saran pola untuk tamu', () => {
   beforeEach(resetDatabase)
 
-  it('tamu bisa meminta saran dengan tujuan dua kali, lalu kuota AI habis', async () => {
+  it('tamu bisa generate sekali tanpa masuk, lalu diminta masuk', async () => {
     const first = await request(app).post('/api/topics/saran').set('X-Guest-Id', GUEST).send({ tujuan: 'Pecahan' })
     expect(first.status).toBe(200)
     expect(first.body.saran).toHaveLength(3)
 
-    await request(app).post('/api/topics/saran').set('X-Guest-Id', GUEST).send({ nama: 'Pecahan', sudahAda: ['Pecahan'] }).expect(200)
-
     const blocked = await request(app).post('/api/topics/saran').set('X-Guest-Id', GUEST).send({ tujuan: 'Geometri' })
     expect(blocked.status).toBe(429)
     expect(blocked.body.kode).toBe('KUOTA_HABIS')
+  })
+
+  it('generate tamu tidak memakai kuota chat, dan kuota chat tidak memakai generate', async () => {
+    await request(app).post('/api/topics/saran').set('X-Guest-Id', GUEST).send({ tujuan: 'Pecahan' }).expect(200)
+    const usage = await prisma.guestUsage.findUnique({ where: { guestId: GUEST } })
+    expect(usage).toMatchObject({ generated: 1, actions: 0 })
   })
 
   it('tamu tidak bisa memakai pola id karena pola tamu belum ada di server', async () => {

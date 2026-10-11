@@ -5,7 +5,6 @@ import { requireUser, userIdOf } from '../auth/requireUser.js'
 import { prisma } from '../db.js'
 import { AppError } from '../http/errors.js'
 import { SlidingWindowLimiter } from '../chat/rateLimit.js'
-import { GUEST_ACTION_LIMIT } from '../chat/quota.js'
 import { config } from '../config/index.js'
 import { normalizeTopicName, topicNameSchema } from './names.js'
 import { freePosition } from './placement.js'
@@ -47,14 +46,14 @@ topicsRouter.post('/saran', async (req, res) => {
     if (input.polaId !== undefined) {
       throw new AppError(400, 'Pola di perangkat ini belum tersimpan di akun. Masuk untuk memakai pola yang tersimpan.')
     }
-    await checkGuestAi(actor.guestId)
+    await checkGuestGenerate(actor.guestId)
     const saran = await suggestPatterns({
       name: input.nama,
       tujuan: input.tujuan,
       existingNames: input.sudahAda ?? [],
       completedNames: [],
     })
-    await countGuestAi(actor.guestId)
+    await countGuestGenerate(actor.guestId)
     res.json({ saran })
     return
   }
@@ -237,18 +236,20 @@ function toMateriView(part: { id: string; position: number; title: string; conte
   return { id: part.id, position: part.position, judul: part.title, isi: part.content }
 }
 
-// Guest AI actions are counted per device, the same as in chat (docs/role.md 2.3).
-async function checkGuestAi(guestId: string): Promise<void> {
+// A guest may make one bulat with AI on the device. The chat quota is counted separately.
+const GUEST_GENERATE_LIMIT = 1
+
+async function checkGuestGenerate(guestId: string): Promise<void> {
   const usage = await prisma.guestUsage.findUnique({ where: { guestId } })
-  if ((usage?.actions ?? 0) >= GUEST_ACTION_LIMIT) {
-    throw new AppError(429, 'Aksi AI gratis sudah habis. Daftar atau masuk untuk lanjut.', 'KUOTA_HABIS')
+  if ((usage?.generated ?? 0) >= GUEST_GENERATE_LIMIT) {
+    throw new AppError(429, 'Generate AI gratis sudah dipakai di perangkat ini. Masuk untuk membuat bulat lagi.', 'KUOTA_HABIS')
   }
 }
 
-async function countGuestAi(guestId: string): Promise<void> {
+async function countGuestGenerate(guestId: string): Promise<void> {
   await prisma.guestUsage.upsert({
     where: { guestId },
-    create: { guestId, actions: 1 },
-    update: { actions: { increment: 1 } },
+    create: { guestId, generated: 1 },
+    update: { generated: { increment: 1 } },
   })
 }

@@ -216,6 +216,8 @@ model GeneratedMaterial {
 model GuestUsage {
   guestId   String   @id
   actions   Int      @default(0)
+  // Bulat made with AI on this device. A guest may do it once, then signing in is needed.
+  generated Int      @default(0)
   updatedAt DateTime @updatedAt
 }
 
