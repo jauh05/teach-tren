@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures'
 import { expectNoHorizontalScroll, visibleOnly } from './helpers'
 
 // Correct letters for the five mock questions (src/api/quizzes.ts).

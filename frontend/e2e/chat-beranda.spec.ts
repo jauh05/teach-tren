@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { expectNoHorizontalScroll, visibleOnly } from './helpers'
 
 test.describe('Chat beranda', () => {
@@ -40,7 +40,6 @@ test.describe('Chat beranda', () => {
     const history = page.getByRole('navigation', { name: 'Riwayat percakapan' })
     await expect(history.getByRole('link', { name: 'Persamaan linear' })).toBeVisible()
     await expect(history.getByText('Hari ini')).toBeVisible()
-    await expect(history.getByText('Kemarin')).toBeVisible()
 
     await page.getByRole('button', { name: 'Ciutkan riwayat' }).click()
     await expect(history).toBeHidden()

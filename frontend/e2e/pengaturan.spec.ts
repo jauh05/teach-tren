@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures'
 import { expectNoHorizontalScroll, visibleOnly } from './helpers'
 
 async function signOut(page: Page) {
@@ -22,13 +22,13 @@ test.describe('Pengaturan', () => {
     await expectNoHorizontalScroll(page)
   })
 
-  test('tamu diarahkan ke masuk lalu kembali ke pengaturan', async ({ page }) => {
+  test('tamu diarahkan ke masuk lalu kembali ke pengaturan', async ({ page, account }) => {
     await signOut(page)
     await page.goto('/pengaturan')
     await expect(page).toHaveURL(/\/masuk\?redirect=%2Fpengaturan$/)
 
-    await page.getByLabel('Email').fill('rafi@contoh.id')
-    await page.getByLabel('Kata sandi').fill('rahasia123')
+    await page.getByLabel('Email').fill(account.email)
+    await page.getByLabel('Kata sandi').fill(account.password)
     await page.getByRole('button', { name: 'Masuk', exact: true }).click()
     await expect(page).toHaveURL(/\/pengaturan$/)
   })
@@ -82,13 +82,13 @@ test.describe('Pengaturan', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Semua riwayat dihapus.' })).toBeVisible()
   })
 
-  test('hapus akun meminta kata sandi lalu mengubah status menjadi tamu', async ({ page }) => {
+  test('hapus akun meminta kata sandi lalu mengubah status menjadi tamu', async ({ page, account }) => {
     await page.goto('/pengaturan')
     await page.getByRole('button', { name: 'Hapus akun' }).click()
     await page.getByRole('button', { name: 'Hapus akun', exact: true }).last().click()
     await expect(page.getByRole('alert').filter({ hasText: 'Masukkan kata sandi untuk konfirmasi.' })).toBeVisible()
 
-    await page.getByLabel('Kata sandi untuk konfirmasi').fill('rahasia123')
+    await page.getByLabel('Kata sandi untuk konfirmasi').fill(account.password)
     await page.getByRole('button', { name: 'Hapus akun', exact: true }).last().click()
     await expect(page).toHaveURL(/\/chat$/)
   })

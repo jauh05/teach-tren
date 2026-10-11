@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { expectNoHorizontalScroll, visibleOnly } from './helpers'
 
 const DESKTOP_NAV = 'Navigasi utama'

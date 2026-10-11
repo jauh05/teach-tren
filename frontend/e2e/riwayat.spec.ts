@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures'
 import { visibleOnly } from './helpers'
 
 // The history list is the desktop sidebar, or the drawer on phones.

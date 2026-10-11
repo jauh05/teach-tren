@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 import { expectNoHorizontalScroll } from './helpers'
 
 const LONG_TIMEOUT = 15_000

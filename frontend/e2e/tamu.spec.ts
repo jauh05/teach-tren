@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures'
 import { expectNoHorizontalScroll, visibleOnly } from './helpers'
 
 // Switches the app to guest mode through the avatar menu, the same way a signed-in user would.
@@ -67,11 +67,11 @@ test.describe('Tamu', () => {
     await expect(history.getByRole('link')).toHaveCount(2)
   })
 
-  test('masuk dari halaman masuk kembali ke status akun', async ({ page }, testInfo) => {
+  test('masuk dari halaman masuk kembali ke status akun', async ({ page, account }, testInfo) => {
     await signOut(page)
     await page.goto('/masuk')
-    await page.getByLabel('Email').fill('rafi@contoh.id')
-    await page.getByLabel('Kata sandi').fill('rahasia123')
+    await page.getByLabel('Email').fill(account.email)
+    await page.getByLabel('Kata sandi').fill(account.password)
     await page.getByRole('button', { name: 'Masuk', exact: true }).click()
 
     await expect(page).toHaveURL(/\/chat$/)
@@ -83,11 +83,11 @@ test.describe('Tamu', () => {
     }
   })
 
-  test('redirect setelah masuk kembali ke halaman yang diminta', async ({ page }) => {
+  test('redirect setelah masuk kembali ke halaman yang diminta', async ({ page, account }) => {
     await signOut(page)
     await page.goto('/masuk?redirect=/jadwal')
-    await page.getByLabel('Email').fill('rafi@contoh.id')
-    await page.getByLabel('Kata sandi').fill('rahasia123')
+    await page.getByLabel('Email').fill(account.email)
+    await page.getByLabel('Kata sandi').fill(account.password)
     await page.getByRole('button', { name: 'Masuk', exact: true }).click()
     await expect(page).toHaveURL(/\/jadwal$/)
   })

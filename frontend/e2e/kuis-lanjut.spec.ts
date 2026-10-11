@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures'
 import { expectNoHorizontalScroll } from './helpers'
 
 async function answerChoice(page: Page, letter: string, next: string) {
