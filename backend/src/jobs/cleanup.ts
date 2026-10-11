@@ -11,6 +11,7 @@ export interface CleanupResult {
   guestUsage: number
   guestQuizzes: number
   accounts: number
+  refreshTokens: number
 }
 
 export async function runCleanup(now: Date = new Date()): Promise<CleanupResult> {
@@ -32,7 +33,11 @@ export async function runCleanup(now: Date = new Date()): Promise<CleanupResult>
   }
   const accounts = await prisma.user.deleteMany({ where: { id: { in: ids } } })
 
-  return { guestUsage: guestUsage.count, guestQuizzes: guestQuizzes.count, accounts: accounts.count }
+  // Refresh tokens past their expiry cannot be used anymore. A revoked token is kept until it expires, because a second
+  // use of it is how a stolen token is noticed (auth/routes.ts).
+  const refreshTokens = await prisma.refreshToken.deleteMany({ where: { expiresAt: { lt: now } } })
+
+  return { guestUsage: guestUsage.count, guestQuizzes: guestQuizzes.count, accounts: accounts.count, refreshTokens: refreshTokens.count }
 }
 
 // Runs the cleanup once a day while the server is up.

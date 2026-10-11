@@ -26,6 +26,10 @@ export interface AppOptions {
 export function createApp(options: AppOptions) {
   const app = express()
   app.disable('x-powered-by')
+  // Behind a reverse proxy, req.ip must be the client and not the proxy. Otherwise every limit would apply to one address.
+  if (config.TRUST_PROXY > 0) {
+    app.set('trust proxy', config.TRUST_PROXY)
+  }
   app.use(helmet())
   app.use(requestId)
   app.use(pinoHttp({ logger, genReqId: (req) => String(req.headers['x-request-id']) }))

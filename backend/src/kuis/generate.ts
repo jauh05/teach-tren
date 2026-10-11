@@ -18,9 +18,9 @@ const MAX_ROUNDS = 4
 const ORDER: QuestionKind[] = ['PG', 'CERITA', 'ISIAN', 'ESAI']
 // Only math and science keys are checked a second time (docs/role.md CC-07, rule 7).
 const CHECKED_SUBJECTS = ['Matematika', 'IPA']
-// A new attempt or round starts only before this time. The quiz request allows five minutes (kuis/routes.ts),
-// and one attempt can take up to 90 seconds, so a late start could not finish in time.
-const START_BEFORE_MS = 120_000
+// A new attempt or round starts only before this time. An attempt takes up to 120 seconds (AI_TIMEOUT_KUIS_MS) and the
+// key check up to 45 seconds, and the quiz request allows six minutes (kuis/routes.ts). 150 + 120 + 45 fits in that.
+const START_BEFORE_MS = 150_000
 // A batch is asked again up to this many times in all (the first try included), as long as there is time.
 const MAX_ATTEMPTS = 3
 

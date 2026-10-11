@@ -94,7 +94,7 @@ describe('pembersihan data', () => {
     await prisma.user.update({ where: { id: recentUser }, data: { deletionScheduledAt: new Date(Date.now() - 5 * DAY) } })
 
     const result = await runCleanup()
-    expect(result).toEqual({ guestUsage: 1, guestQuizzes: 1, accounts: 1 })
+    expect(result).toEqual({ guestUsage: 1, guestQuizzes: 1, accounts: 1, refreshTokens: 0 })
     expect(await prisma.guestUsage.findUnique({ where: { guestId: 'tamu-baru' } })).not.toBeNull()
     expect(await prisma.user.findUnique({ where: { id: oldUser } })).toBeNull()
     expect(await prisma.user.findUnique({ where: { id: recentUser } })).not.toBeNull()

@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
+import { SlidingWindowLimiter } from '../chat/rateLimit.js'
+import { config } from '../config/index.js'
 import { prisma } from '../db.js'
 import { AppError } from '../http/errors.js'
 import { seedDefaultTopics } from '../topics/defaultGraph.js'
@@ -33,6 +35,17 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Kata sandi wajib diisi.'),
 })
 
+// Attempt limits (kept in memory, like the other limits). A sign-in attempt counts whether it succeeds or not.
+// The per-email key includes the IP address, so someone guessing from elsewhere cannot lock the real owner out.
+const FIFTEEN_MINUTES_MS = 15 * 60 * 1000
+const signInByEmail = new SlidingWindowLimiter(config.AUTH_ATTEMPTS_PER_15_MIN, FIFTEEN_MINUTES_MS)
+const signInByIp = new SlidingWindowLimiter(config.AUTH_IP_PER_15_MIN, FIFTEEN_MINUTES_MS)
+const registerByIp = new SlidingWindowLimiter(config.REGISTER_PER_HOUR, 60 * 60 * 1000)
+
+function tooManyAttempts(message: string): AppError {
+  return new AppError(429, message, 'TERLALU_CEPAT')
+}
+
 // Hash used when the email is unknown, so a wrong email takes as long as a wrong password.
 let unknownUserHash: Promise<string> | null = null
 
@@ -41,6 +54,9 @@ function publicUser(user: { id: string; name: string; email: string }) {
 }
 
 authRouter.post('/register', async (req, res) => {
+  if (!registerByIp.take(req.ip ?? 'tidak-diketahui')) {
+    throw tooManyAttempts('Terlalu banyak pendaftaran dari jaringan ini. Coba lagi nanti.')
+  }
   const input = registerSchema.parse(req.body)
   const existing = await prisma.user.findUnique({ where: { email: input.email } })
   if (existing) {
@@ -51,7 +67,9 @@ authRouter.post('/register', async (req, res) => {
     const created = await tx.user.create({
       data: { name: input.name, email: input.email, passwordHash },
     })
-    await seedDefaultTopics(tx, created.id)
+    if (config.SEED_EXAMPLE_TOPICS) {
+      await seedDefaultTopics(tx, created.id)
+    }
     return created
   })
   await issueSession(res, user.id)
@@ -60,6 +78,10 @@ authRouter.post('/register', async (req, res) => {
 
 authRouter.post('/login', async (req, res) => {
   const input = loginSchema.parse(req.body)
+  const ip = req.ip ?? 'tidak-diketahui'
+  if (!signInByIp.take(ip) || !signInByEmail.take(`${input.email}|${ip}`)) {
+    throw tooManyAttempts('Terlalu banyak percobaan masuk. Coba lagi dalam beberapa menit.')
+  }
   const user = await prisma.user.findUnique({ where: { email: input.email } })
   const hash = user?.passwordHash ?? (await getUnknownUserHash())
   const valid = await verifyPassword(input.password, hash)
@@ -140,6 +162,9 @@ authRouter.post('/password', requireUser, async (req, res) => {
   }
   const passwordHash = await hashPassword(input.newPassword)
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash } })
+  // Every other device is signed out, because someone else may have known the old password. This device gets a new session.
+  await prisma.refreshToken.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } })
+  await issueSession(res, user.id)
   res.status(204).end()
 })
 
