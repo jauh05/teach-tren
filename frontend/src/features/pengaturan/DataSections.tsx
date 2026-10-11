@@ -82,11 +82,10 @@ export function DataSection() {
       <DeleteAccountDialog
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        onDeleted={() => {
+        onDeleted={async () => {
           setDeleteOpen(false)
-          // Navigate before signing out, so the signed-in guard does not redirect this page first.
+          await signOut()
           navigate('/chat')
-          signOut()
         }}
       />
     </section>
@@ -246,9 +245,9 @@ export function SignOutSection() {
       <p className="text-xs text-muted">Keluar menghapus sesi di perangkat ini. Data akun tetap tersimpan.</p>
       <Button
         variant="secondary"
-        onClick={() => {
+        onClick={async () => {
+          await signOut()
           navigate('/chat')
-          signOut()
         }}
       >
         Keluar

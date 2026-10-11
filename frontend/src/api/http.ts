@@ -15,14 +15,16 @@ export class ApiError extends Error {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
+// Plain objects are sent as JSON. FormData (file uploads) is sent as it is, so the browser sets its boundary.
 export async function apiRequest(method: HttpMethod, path: string, body?: unknown): Promise<unknown> {
+  const isForm = body instanceof FormData
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path.replace(/^\/api/, '')}`, {
       method,
       credentials: 'include',
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: body === undefined || isForm ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'Tidak bisa terhubung ke server. Coba lagi sebentar.')

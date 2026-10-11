@@ -19,13 +19,11 @@ const graphSchema = z.object({
       lastScore: z.number().nullable(),
       unlocked: z.boolean(),
       pendingSuggestion: z.boolean(),
+      materials: z.array(z.string()),
     }),
   ),
   links: z.array(z.object({ source: z.string(), target: z.string(), suggested: z.boolean() })),
 })
-
-// Materials are still mock data (src/api/materi.ts). Their links to topics are kept here for the signed-in graph.
-const materialsByTopic = new Map<string, string[]>()
 
 function encodeId(id: string): string {
   return encodeURIComponent(id)
@@ -159,7 +157,7 @@ export async function fetchTopicGraph(): Promise<TopicGraph> {
         pendingSuggestion: topic.pendingSuggestion,
         // The backend does not count conversations per topic yet. The UI does not show this value.
         conversationCount: 0,
-        materials: [...(materialsByTopic.get(topic.id) ?? [])],
+        materials: topic.materials,
         initialX: topic.x,
         initialY: topic.y,
       })),
@@ -241,13 +239,6 @@ export async function createTopic(name: string): Promise<string> {
 
 // Links a material title to a topic, so the topic lists it under "Materi terkait".
 export async function addTopicMaterial(topicId: string, materialTitle: string): Promise<void> {
-  if (usesServer()) {
-    const current = materialsByTopic.get(topicId) ?? []
-    if (!current.includes(materialTitle)) {
-      materialsByTopic.set(topicId, [...current, materialTitle])
-    }
-    return
-  }
   const topic = graph.topics.find((item) => item.id === topicId)
   if (!topic) {
     throw new Error('Bulat tidak ditemukan.')

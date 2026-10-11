@@ -24,7 +24,7 @@ interface SessionState {
   guestActionsUsed: number
   loadSession: () => Promise<void>
   signIn: (account: Account) => void
-  signOut: () => void
+  signOut: () => Promise<void>
   recordGuestAction: () => void
   updateAccountName: (name: string) => void
 }
@@ -59,8 +59,9 @@ export const useSessionStore = create<SessionState>()(
         set({ mode: 'signedIn', account })
       },
       // Signing out ends the session on the server and returns to guest mode with a new guestId (docs/role.md 2.4).
-      signOut: () => {
-        void logoutAccount().catch(() => undefined)
+      // The promise resolves after the server has cleared the cookie, so the next page load starts as a guest.
+      signOut: async () => {
+        await logoutAccount().catch(() => undefined)
         resetServerData()
         set({ mode: 'guest', guestId: createGuestId(), account: NO_ACCOUNT })
       },

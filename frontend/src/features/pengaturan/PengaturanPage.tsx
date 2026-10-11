@@ -27,9 +27,9 @@ export function PengaturanPage() {
         ))}
         <button
           type="button"
-          onClick={() => {
+          onClick={async () => {
+            await signOut()
             navigate('/chat')
-            signOut()
           }}
           className="rounded-lg px-2.5 py-2 text-left text-[13px] text-[#991B1B] hover:bg-white"
         >

@@ -52,10 +52,11 @@ export function AvatarMenu() {
           { label: 'Tentang', run: () => go('/tentang') },
           {
             label: 'Keluar',
-            run: () => {
-              // Navigate first: a signed-in page would redirect to sign-in once the session changes.
-              go('/chat')
-              signOut()
+            run: async () => {
+              // Wait for the sign-out, so the next page starts as a guest. An open page does not redirect on sign-out.
+              setOpen(false)
+              await signOut()
+              navigate('/chat')
             },
           },
         ]
