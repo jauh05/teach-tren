@@ -35,7 +35,7 @@ cd frontend
 npm run dev
 ```
 
-Buka `http://localhost:5173`. Aplikasi langsung masuk ke halaman Chat dalam mode masuk dengan akun demo `Rafi Arkan`. Untuk mencoba mode tamu, pilih **Keluar** dari menu avatar.
+Jalankan backend lebih dulu (lihat bagian Backend), lalu buka `http://localhost:5173`. Aplikasi memulai sebagai tamu. Daftar atau masuk untuk memakai akun: chat, riwayat, dan bulat tersimpan di server. Akun demo bisa dibuat dengan `npm run db:seed` di folder backend setelah mengisi `DEMO_EMAIL` dan `DEMO_PASSWORD` di `backend/.env`.
 
 Opsional: salin `.env.example` ke `frontend/.env` untuk mengubah `VITE_API_BASE_URL`. Frontend tidak boleh berisi kunci API.
 
@@ -66,11 +66,11 @@ cd frontend
 npm run lint     # oxlint, termasuk aturan dilarang memakai any
 npm test         # Vitest: logika domain, token warna, dan utilitas
 npm run build    # tsc -b dan build produksi, termasuk PWA
-npm run e2e      # Playwright: desktop 1280 px dan mobile 390 px
+npm run e2e      # Playwright: desktop 1280 px dan mobile 390 px. Menyalakan backend sendiri di database _test
 ```
 
-- `npm test` menjalankan 97 unit test. Mencakup status bulat, kuota tamu, skor kuis, penjadwalan, kalender, validasi formulir, dan paritas token warna dengan `styles.css`.
-- `npm run e2e` menjalankan alur pengguna dari setiap layar di dua ukuran layar. Termasuk pengecekan tidak ada scroll horizontal.
+- `npm test` menjalankan unit test. Mencakup status bulat, kuota tamu, skor kuis, penjadwalan, kalender, validasi formulir, dan paritas token warna dengan `styles.css`.
+- `npm run e2e` menjalankan alur pengguna dari setiap layar di dua ukuran layar. Setiap test mendaftarkan akun sendiri lewat API. Backend di-start sendiri, jadi hentikan `npm run dev` di folder backend sebelum menjalankan e2e (port 3001 harus kosong). Termasuk pengecekan tidak ada scroll horizontal.
 
 ## Daftar layar
 
