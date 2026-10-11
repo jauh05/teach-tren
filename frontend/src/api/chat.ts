@@ -1,5 +1,5 @@
 import type { ChatMessage } from '../domain/types'
-import { apiUrl, codeOf, messageOf, ApiError } from './http'
+import { apiUrl, codeOf, messageOf, ApiError, refreshSession } from './http'
 
 // Chat answers come from the backend as server-sent events: meta, delta, done, or error (docs/api.md).
 // Only the last ten finished messages are sent as context, which keeps each request small.
@@ -40,9 +40,8 @@ export async function streamAnswer(
     headers['X-Guest-Id'] = request.guestId
   }
 
-  let response: Response
-  try {
-    response = await fetch(apiUrl(`/api/conversations/${encodeURIComponent(request.conversationId)}/messages`), {
+  const send = () =>
+    fetch(apiUrl(`/api/conversations/${encodeURIComponent(request.conversationId)}/messages`), {
       method: 'POST',
       credentials: 'include',
       headers,
@@ -53,6 +52,13 @@ export async function streamAnswer(
       }),
       signal,
     })
+  let response: Response
+  try {
+    response = await send()
+    // The access cookie may have expired during a long chat. One refresh, then the same request again.
+    if (response.status === 401 && request.guestId === null && (await refreshSession())) {
+      response = await send()
+    }
   } catch {
     if (signal.aborted) {
       return 'stopped'

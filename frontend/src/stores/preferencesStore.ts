@@ -46,12 +46,16 @@ function snapshot(state: Preferences): Preferences {
   }
 }
 
+// Counts changes made on this device. A load that started before a change must not overwrite it.
+let localChanges = 0
+
 // Preferences are kept on the device. A signed-in user's changes are also saved to the account.
 export const usePreferencesStore = create<PreferencesState>()(
   persist(
     (set, get) => ({
       ...DEFAULT_PREFERENCES,
       updatePreferences: (patch) => {
+        localChanges += 1
         set(patch)
         if (useSessionStore.getState().mode === 'signedIn') {
           void savePreferences(snapshot(get())).catch(() => undefined)
@@ -67,12 +71,17 @@ export const usePreferencesStore = create<PreferencesState>()(
 )
 
 // Loads the saved preferences of a signed-in user. If the server cannot be reached, the device's values stay.
+// If the user changed a preference while the load was running, the newer device value is kept.
 export async function hydratePreferences(): Promise<void> {
   if (useSessionStore.getState().mode !== 'signedIn') {
     return
   }
+  const changesBefore = localChanges
   try {
-    usePreferencesStore.getState().hydrate(await fetchPreferences())
+    const saved = await fetchPreferences()
+    if (localChanges === changesBefore) {
+      usePreferencesStore.getState().hydrate(saved)
+    }
   } catch {
     // Keep the values from this device.
   }

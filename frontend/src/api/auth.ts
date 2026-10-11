@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ApiError, apiRequest } from './http'
+import { ApiError, apiRequest, refreshSession } from './http'
 
 const userSchema = z.object({
   id: z.string(),
@@ -35,6 +35,10 @@ export async function fetchCurrentUser(): Promise<AuthUser | null> {
     return userResponseSchema.parse(await apiRequest('GET', '/api/auth/me')).user
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
+      // The access cookie may only have expired. A refresh token can still start the session again.
+      if (await refreshSession()) {
+        return userResponseSchema.parse(await apiRequest('GET', '/api/auth/me')).user
+      }
       return null
     }
     throw error
