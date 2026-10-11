@@ -21,7 +21,7 @@ interface TopicChatPanelProps {
 }
 
 // Chat about one topic. Selecting a topic on the canvas opens its conversation here.
-// Right column on desktop, bottom sheet (70% height) on mobile.
+// Panel below the canvas on desktop, bottom sheet (70% height) on mobile.
 export function TopicChatPanel({ topic, mode, onClose, onGenerateQuiz }: TopicChatPanelProps) {
   const status = topicStatusOf(topic)
   const isGuest = mode === 'guest'
@@ -34,7 +34,7 @@ export function TopicChatPanel({ topic, mode, onClose, onGenerateQuiz }: TopicCh
   return (
     <aside
       aria-label="Chat topik"
-      className="fixed inset-x-0 bottom-0 z-30 flex h-[70%] flex-col rounded-t-[18px] border-t border-line bg-white shadow-xl md:static md:h-auto md:w-chat-panel md:shrink-0 md:rounded-none md:border-l md:border-t-0 md:shadow-none"
+      className="fixed inset-x-0 bottom-0 z-30 flex h-[70%] flex-col rounded-t-[18px] border-t border-line bg-white shadow-xl md:static md:h-[300px] md:shrink-0 md:rounded-none md:border-t md:shadow-none"
     >
       <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 rounded-full bg-slate-300 md:hidden" />
       <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">

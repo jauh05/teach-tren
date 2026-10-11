@@ -70,3 +70,4 @@ Status: **Diperbaiki** (sesuai role), **Diterapkan** (mockup dipakai karena tida
 | 62 | Ketuk bulat | Panel detail berisi materi dan tombol Mulai chat | Panel detail (bagian 4.1) | Panel detail diganti chat topik. Tombol Mulai chat dihapus karena chat sudah di panel | Diterapkan |
 | 63 | Riwayat chat topik | Tidak ada | Percakapan dari bulat tampil di riwayat chat umum | Percakapan tersimpan di store mock dan muncul di /chat setelah pesan pertama. Hilang saat reload | Terbuka |
 | 64 | Nama bulat tidak menabrak | Tata letak statis dari mockup | Nama bulat tidak boleh menabrak (permintaan pengguna) | Label diperiksa dan dipisahkan setelah simulasi selesai. Diuji e2e | Diterapkan |
+| 65 | Letak chat dan keterangan di Learning | Panel detail di samping kanvas | Permintaan pengguna: chat di bawah kanvas, keterangan bisa dibuka dan ditutup dengan tombol Lihat keterangan | Desktop: chat di bawah kanvas setinggi 300px. Keterangan tertutup secara default | Diterapkan |

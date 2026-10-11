@@ -32,7 +32,7 @@ export function LearningPage() {
   const selected = data.topics.find((topic) => topic.id === selectedId) ?? null
 
   return (
-    <section className="flex min-h-0 flex-1">
+    <section className="flex min-h-0 flex-1 flex-col">
       <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} />
       {selected ? (
         <TopicChatPanel
@@ -49,12 +49,12 @@ export function LearningPage() {
   )
 }
 
-// Desktop placeholder until a topic is selected.
+// Desktop placeholder below the canvas until a topic is selected.
 function EmptyChatColumn() {
   return (
     <aside
       aria-label="Chat topik"
-      className="hidden w-chat-panel shrink-0 flex-col items-center justify-center gap-3 border-l border-line bg-white p-6 text-center md:flex"
+      className="hidden h-[300px] shrink-0 flex-col items-center justify-center gap-3 border-t border-line bg-white p-6 text-center md:flex"
     >
       <p className="text-sm text-muted">Pilih bulat di kanvas untuk membuka percakapan tentang topik itu.</p>
       <Link to="/chat" className="text-sm font-semibold text-brand-dark underline">

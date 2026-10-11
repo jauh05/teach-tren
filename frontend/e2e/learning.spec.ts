@@ -186,13 +186,12 @@ test.describe('Learning', () => {
     await expect(page.getByText('Pilih bulat di kanvas untuk membuka percakapan tentang topik itu.')).toBeVisible()
   })
 
-  test('legenda tampil di desktop dan dibuka dari tombol di mobile', async ({ page }, testInfo) => {
+  test('keterangan bisa dibuka dan ditutup', async ({ page }) => {
     await page.goto('/learning')
-    if (testInfo.project.name === 'desktop') {
-      await expect(visibleOnly(page.getByText('Skor 80 ke atas'))).toBeVisible()
-      return
-    }
-    await page.getByRole('button', { name: 'Keterangan' }).click()
-    await expect(visibleOnly(page.getByText('Skor 80 ke atas'))).toBeVisible()
+    await expect(page.getByText('Skor 80 ke atas')).toBeHidden()
+    await page.getByRole('button', { name: 'Lihat keterangan' }).click()
+    await expect(page.getByText('Skor 80 ke atas')).toBeVisible()
+    await page.getByRole('button', { name: 'Sembunyikan keterangan' }).click()
+    await expect(page.getByText('Skor 80 ke atas')).toBeHidden()
   })
 })
