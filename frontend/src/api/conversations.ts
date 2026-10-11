@@ -158,6 +158,12 @@ export async function fetchConversations(now: Date = new Date()): Promise<Conver
 // A streaming message left over from an earlier visit is shown as stopped.
 export async function fetchConversationMessages(conversationId: string): Promise<ChatMessage[] | null> {
   if (usesServer()) {
+    // A conversation that was never saved does not exist on the server. Checking the list first avoids asking for it,
+    // which would show a 404 in the browser console on every first visit to a topic or to the general Learning chat.
+    const saved = await fetchConversations()
+    if (!saved.some((item) => item.id === conversationId)) {
+      return null
+    }
     try {
       const detail = detailSchema.parse(await apiRequest('GET', `/api/conversations/${encodeId(conversationId)}`))
       return detail.conversation.messages.map(toChatMessage)
