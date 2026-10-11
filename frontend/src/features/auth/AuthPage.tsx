@@ -34,7 +34,8 @@ export function AuthPage({ kind }: AuthPageProps) {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col bg-white md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,500px)]">
+    <main className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-white md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,500px)]">
+      <AuthBackdrop />
       <IntroPanel />
 
       <section className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8 md:px-10">
@@ -64,6 +65,38 @@ export function AuthPage({ kind }: AuthPageProps) {
   )
 }
 
+// Shaded spheres that float in 3D behind the forms. Pure CSS (perspective, shading, and a slow float), so no library is
+// added. They are decoration only, and they stop moving when the user prefers reduced motion (see index.css).
+const ORBS: { size: number; left: string; top: string; depth: number; duration: number; delay: number }[] = [
+  { size: 220, left: '-6%', top: '6%', depth: -80, duration: 17, delay: 0 },
+  { size: 130, left: '58%', top: '2%', depth: 60, duration: 13, delay: 2 },
+  { size: 96, left: '40%', top: '70%', depth: -30, duration: 11, delay: 1 },
+  { size: 190, left: '82%', top: '58%', depth: 90, duration: 19, delay: 3 },
+  { size: 64, left: '10%', top: '80%', depth: 0, duration: 9, delay: 4 },
+]
+
+function AuthBackdrop() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [perspective:900px]">
+      {ORBS.map((orb, index) => (
+        <span
+          key={index}
+          className="auth-orb absolute rounded-full"
+          style={{
+            width: orb.size,
+            height: orb.size,
+            left: orb.left,
+            top: orb.top,
+            '--z': `${orb.depth}px`,
+            animationDuration: `${orb.duration}s`,
+            animationDelay: `-${orb.delay}s`,
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  )
+}
+
 const POINTS: { icon: LucideIcon; title: string; text: string }[] = [
   { icon: MessageSquare, title: 'Tanya apa saja di chat', text: 'Minta penjelasan, soal latihan, atau ringkasan materi.' },
   { icon: Network, title: 'Susun topik sebagai bulat', text: 'Setiap topik menjadi bulat yang bisa dihubungkan ke topik lain.' },
@@ -73,7 +106,7 @@ const POINTS: { icon: LucideIcon; title: string; text: string }[] = [
 // Left side on desktop. It explains what the account is for. Hidden on mobile to keep the form first.
 function IntroPanel() {
   return (
-    <aside className="hidden flex-col justify-between bg-soft px-12 py-12 md:flex">
+    <aside className="hidden flex-col justify-between bg-soft/70 px-12 py-12 md:flex">
       <BrandLink />
       <div className="max-w-[420px]">
         <h2 className="font-heading text-3xl font-semibold leading-tight text-ink">Belajar lewat chat, lalu lihat kemajuanmu di bulat topik.</h2>

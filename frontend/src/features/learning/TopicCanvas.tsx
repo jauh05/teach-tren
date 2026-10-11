@@ -328,6 +328,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect }: TopicCanvas
       <TopicLegend />
 
       <div
+        data-canvas-obstacle
         role="toolbar"
         aria-label="Kontrol zoom"
         className="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-lg border border-line bg-white p-0.5 shadow-sm"
@@ -346,7 +347,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect }: TopicCanvas
         </IconButton>
       </div>
 
-      <p className="pointer-events-none absolute bottom-3 left-3 hidden rounded-lg border border-line bg-white px-2.5 py-1.5 text-micro text-muted md:block">
+      <p data-canvas-obstacle className="pointer-events-none absolute bottom-3 left-3 hidden rounded-lg border border-line bg-white px-2.5 py-1.5 text-micro text-muted md:block">
         Geser bulat · ketuk + untuk mulai chat
       </p>
     </div>

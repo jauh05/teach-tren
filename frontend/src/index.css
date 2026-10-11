@@ -158,3 +158,36 @@ h3 {
     scroll-behavior: auto !important;
   }
 }
+
+/* Sign-in and sign-up backdrop: shaded spheres that float in 3D. Pure CSS, decoration only. */
+.auth-orb {
+  --z: 0px;
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #dbeafe 26%, #60a5fa 62%, #2563eb 100%);
+  box-shadow:
+    inset -14px -18px 34px rgba(30, 64, 175, 0.28),
+    0 26px 50px -18px rgba(37, 99, 235, 0.38);
+  opacity: 0.5;
+  animation-name: auth-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes auth-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, var(--z)) rotateX(0deg) rotateY(0deg);
+  }
+  33% {
+    transform: translate3d(14px, -22px, var(--z)) rotateX(14deg) rotateY(-18deg);
+  }
+  66% {
+    transform: translate3d(-10px, 12px, var(--z)) rotateX(-10deg) rotateY(12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-orb {
+    animation: none;
+  }
+}

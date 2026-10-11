@@ -9,6 +9,7 @@ export function EmptyTopicSlot({ onAdd }: EmptyTopicSlotProps) {
   return (
     <button
       type="button"
+      data-canvas-obstacle
       onClick={onAdd}
       aria-label="Tambah belajar pertama"
       className="pointer-events-auto group flex flex-col items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"

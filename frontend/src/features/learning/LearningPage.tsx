@@ -117,17 +117,14 @@ export function LearningPage() {
   return (
     <section ref={sectionRef} className="flex min-h-0 flex-1 flex-col md:flex-row">
       <div
+        data-canvas-board
         className="relative flex min-h-[180px] min-w-0 flex-col md:min-h-0"
         style={{ flex: isDesktop ? `0 0 ${boardShare * 100}%` : boardExpanded ? 3 : 1 }}
       >
         <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} />
-        {/* The sample sits under the add circle and its caption, so no circle passes over the text. */}
-        {data.topics.length === 0 && (
-          <div className="absolute inset-x-0 bottom-0 top-[160px]">
-            <EmptyCanvasIllustration />
-          </div>
-        )}
-        <div className="absolute left-3 top-3 flex gap-2">
+        {/* The sample moves over the whole board. It keeps off the controls and the add circle (data-canvas-obstacle). */}
+        {data.topics.length === 0 && <EmptyCanvasIllustration />}
+        <div data-canvas-obstacle className="absolute left-3 top-3 flex gap-2">
           <button
             type="button"
             aria-pressed={boardExpanded}
@@ -147,7 +144,7 @@ export function LearningPage() {
           </button>
         </div>
         {data.topics.length === 0 && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14">
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14 md:justify-center md:pt-0">
             <EmptyTopicSlot onAdd={() => setAdding(true)} />
           </div>
         )}

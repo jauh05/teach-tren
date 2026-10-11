@@ -216,6 +216,44 @@ test.describe('Learning tamu', () => {
     await expectNoHorizontalScroll(page)
   })
 
+  test('di desktop, tombol tambah ada di tengah papan', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'papan di tengah hanya di layar lebar')
+    await page.goto('/learning')
+    const board = await page.locator('[data-canvas-board]').boundingBox()
+    const slot = await page.getByRole('button', { name: 'Tambah belajar pertama' }).boundingBox()
+    if (!board || !slot) {
+      throw new Error('Papan atau tombol tambah tidak terlihat')
+    }
+    expect(Math.abs(slot.x + slot.width / 2 - (board.x + board.width / 2))).toBeLessThan(6)
+    expect(Math.abs(slot.y + slot.height / 2 - (board.y + board.height / 2))).toBeLessThan(6)
+  })
+
+  test('bulat contoh tidak menimpa tombol papan saat ditarik ke sana', async ({ page }) => {
+    await page.goto('/learning')
+    const sample = page.locator('[data-sample="DIKUASAI"] circle')
+    const control = page.getByRole('button', { name: 'Perbesar papan' })
+    const from = await sample.boundingBox()
+    const target = await control.boundingBox()
+    if (!from || !target) {
+      throw new Error('Bulat contoh atau tombol papan tidak terlihat')
+    }
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 12 })
+    await page.mouse.up()
+    // Let the layout settle after the drag, then compare the boxes.
+    await page.waitForTimeout(600)
+
+    const circle = await sample.boundingBox()
+    const after = await control.boundingBox()
+    if (!circle || !after) {
+      throw new Error('Bulat contoh atau tombol papan tidak terlihat')
+    }
+    const overlaps =
+      circle.x < after.x + after.width && circle.x + circle.width > after.x && circle.y < after.y + after.height && circle.y + circle.height > after.y
+    expect(overlaps).toBe(false)
+  })
+
   test('bulat contoh di kanvas kosong bisa digeser', async ({ page }) => {
     await page.goto('/learning')
     const sample = page.locator('[data-sample="PERLU_DIULANG"] circle')

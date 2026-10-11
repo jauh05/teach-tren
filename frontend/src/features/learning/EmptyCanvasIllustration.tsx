@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactP
 import type { TopicStatus } from '../../domain/topicStatus'
 import type { Point } from './canvasMath'
 import { TOPIC_VISUALS } from './topicVisual'
-import { useTopicLayout, type LayoutLinkInput, type LayoutNodeInput } from './useTopicLayout'
+import { pushOutOfRect, useTopicLayout, type LayoutLinkInput, type LayoutNodeInput, type LayoutRect } from './useTopicLayout'
 
 // Sample circles on an empty canvas, in the colors and with the icons of the legend. They use the same layout as the
 // real canvas: dragging one moves the circles linked to it, the others move out of the way, and the layout settles
@@ -87,14 +87,40 @@ function seedNodes(width: number, height: number): LayoutNodeInput[] {
   })
 }
 
+// Controls of the board and the add circle, measured in the sample's own coordinates. Marked with data-canvas-obstacle.
+function measureObstacles(container: HTMLElement): LayoutRect[] {
+  const board = container.closest<HTMLElement>('[data-canvas-board]')
+  if (!board) {
+    return []
+  }
+  const origin = container.getBoundingClientRect()
+  return Array.from(board.querySelectorAll<HTMLElement>('[data-canvas-obstacle]')).map((element) => {
+    const box = element.getBoundingClientRect()
+    return {
+      left: box.left - origin.left,
+      top: box.top - origin.top,
+      right: box.right - origin.left,
+      bottom: box.bottom - origin.top,
+    }
+  })
+}
+
 export function EmptyCanvasIllustration() {
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useElementSize(containerRef)
   const ready = size.width > 0 && size.height > 0
+  const [obstacles, setObstacles] = useState<LayoutRect[]>([])
+  // Measured again whenever the board changes size, for example when it is enlarged or made smaller.
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    if (container) {
+      setObstacles(measureObstacles(container))
+    }
+  }, [size.width, size.height])
   const nodes = useMemo(() => (ready ? seedNodes(size.width, size.height) : NO_NODES), [ready, size.width, size.height])
   const links = ready ? LAYOUT_LINKS : NO_LINKS
   const center = useMemo(() => ({ x: size.width / 2, y: size.height * 0.6 }), [size.width, size.height])
-  const bounds = useMemo(() => ({ width: size.width, height: size.height }), [size.width, size.height])
+  const bounds = useMemo(() => ({ width: size.width, height: size.height, obstacles }), [size.width, size.height, obstacles])
   const { positions, startDrag, dragTo, endDrag } = useTopicLayout(nodes, links, center, bounds)
   const [dragId, setDragId] = useState<string | null>(null)
 
@@ -110,14 +136,22 @@ export function EmptyCanvasIllustration() {
     startDrag(id)
   }
 
+  // The circle follows the pointer anywhere on the board, except over a control or the add circle.
   function moveDrag(id: string, radius: number, event: ReactPointerEvent<SVGGElement>) {
     if (dragId !== id) {
       return
     }
-    const point = localPoint(event)
+    let target = localPoint(event)
+    target = {
+      x: clamp(target.x, radius, size.width - radius),
+      y: clamp(target.y, radius, size.height - radius),
+    }
+    for (const rect of obstacles) {
+      target = pushOutOfRect(target, radius, rect, { width: size.width, height: size.height })
+    }
     dragTo(id, {
-      x: clamp(point.x, radius, size.width - radius),
-      y: clamp(point.y, radius, size.height - radius),
+      x: clamp(target.x, radius, size.width - radius),
+      y: clamp(target.y, radius, size.height - radius),
     })
   }
 
