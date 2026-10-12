@@ -18,7 +18,8 @@ Materi, Kuis, Masuk, dan Daftar adalah halaman pendukung.
 
 ## Gaya visual
 - Palet mengikuti docs/design/acuan-palet-baru.png, dicatat di docs/design/palet.md: latar abu-abu muda #F2F2F2, kartu putih, aksen hijau mint #68D69E, hijau gelap #15795A untuk teks, mint lembut #F1FBFA, teks #141414, teks sekunder #606563, border #E3E6E5.
-- Tombol utama hitam berbentuk pil. Tombol sekunder putih dengan border tipis. Navigasi utama berupa pil dengan tab hitam aktif.
+- Tombol utama hitam berbentuk pil. Tombol sekunder putih dengan border tipis. Navigasi utama berupa pil dengan tab hitam aktif. Navbar ponsel memakai pil yang sama, dengan ikon di atas label.
+- Halaman masuk dan daftar memakai biru dari docs/design/acuan-masuk-daftar.png, dicatat di docs/design/palet.md. Palet ini hanya untuk halaman masuk dan daftar.
 - Status bulat: hijau #16A34A (dikuasai), kuning #D97706 (sedang), merah #DC2626 (perlu diulang), teal #0D9488 (baru), abu #94A3B8 (belum dibuka), ungu #7C3AED (saran).
 - Ikon dari lucide-react. Tidak ada emoji. Tidak ada gradien ungu atau pelangi.
 - Font: Plus Jakarta Sans untuk judul, Inter untuk isi. Teks minimal 11px, isi pesan 14px di mobile.

@@ -19,3 +19,17 @@ Sumber: [acuan-palet-baru.png](acuan-palet-baru.png). Warna diambil dari gambar 
 | saran | #7C3AED | Status: saran berikutnya |
 
 Kartu dan panel berwarna putih (#FFFFFF). Tombol utama hitam berbentuk pil, dan tombol sekunder putih dengan garis tepi `line`.
+
+## Halaman masuk dan daftar
+
+Sumber: [acuan-masuk-daftar.png](acuan-masuk-daftar.png). Hanya halaman masuk dan daftar yang memakai palet ini. Bagian lain aplikasi tetap memakai palet di atas.
+
+| Token | Hex | Dipakai untuk |
+| --- | --- | --- |
+| masuk-biru | #2A3CE6 | Header daftar, bentuk geometris, dan garis fokus kolom |
+| masuk-biru-gelap | #1C2AA8 | Bentuk geometris kedua dan bayangan biru |
+| masuk-lembut | #EEF1FE | Latar lingkaran ilustrasi |
+| masuk-kolom | #E4E4EA | Garis tepi kolom isian dan tombol garis |
+| masuk-placeholder | #6B6B78 | Teks petunjuk di dalam kolom isian |
+
+Tombol utama tetap hitam dan berbentuk pil, sama seperti bagian lain aplikasi.

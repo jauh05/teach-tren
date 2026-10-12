@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { ArrowRight, CircleAlert, ClipboardCheck, Eye, EyeOff, LogIn, LoaderCircle, Lock, Mail, MessageSquare, Network, User, UserPlus, type LucideIcon } from 'lucide-react'
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { ArrowLeft, CircleAlert, Eye, EyeOff, LoaderCircle } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { loginAccount, registerAccount, type AuthUser } from '../../api/auth'
@@ -13,17 +13,21 @@ import { Button } from '../../components/ui/Button'
 import { safeRedirect, signInSchema, signUpSchema, type SignInValues, type SignUpValues } from '../../domain/auth'
 import { hydratePreferences } from '../../stores/preferencesStore'
 import { useSessionStore } from '../../stores/sessionStore'
+import { AuthHero, SignUpArt } from './AuthArt'
 
 interface AuthPageProps {
   kind: 'masuk' | 'daftar'
 }
 
-// Sign-in and sign-up pages. The forms call the backend, which sets the session cookie.
+// Sign-in and sign-up pages, drawn after docs/design/acuan-masuk-daftar.png. The forms call the backend, which sets the session cookie.
 export function AuthPage({ kind }: AuthPageProps) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const signIn = useSessionStore((state) => state.signIn)
   const isSignUp = kind === 'daftar'
+  // The redirect target is kept when the user switches between the two pages.
+  const redirect = params.get('redirect')
+  const suffix = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
 
   async function finish(user: AuthUser) {
     // The session cookie is already set by the server, so the carried-over history can be saved.
@@ -34,158 +38,61 @@ export function AuthPage({ kind }: AuthPageProps) {
     await importGuestQuizzes(guestId).catch(() => undefined)
     signIn({ name: user.name, email: user.email })
     void hydratePreferences()
-    navigate(safeRedirect(params.get('redirect')), { replace: true })
+    navigate(safeRedirect(redirect), { replace: true })
   }
 
   return (
-    <main className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-white md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,500px)]">
-      <AuthBackdrop />
-      <IntroPanel />
+    <main className="flex min-h-dvh justify-center bg-canvas md:px-6 md:py-10">
+      <div className="flex w-full max-w-[420px] flex-col overflow-hidden bg-white md:rounded-[32px] md:shadow-[0_30px_70px_-30px_rgba(11,11,11,0.25)]">
+        {isSignUp ? (
+          <div className="relative h-[240px] shrink-0 overflow-hidden">
+            <SignUpArt />
+            <Link
+              to={`/masuk${suffix}`}
+              aria-label="Kembali ke halaman masuk"
+              className="absolute left-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm"
+            >
+              <ArrowLeft size={18} aria-hidden="true" />
+            </Link>
+            <p className="absolute bottom-16 left-6 font-heading text-3xl font-bold text-white">Teach Tren</p>
+          </div>
+        ) : (
+          <div className="relative h-[280px] shrink-0 overflow-hidden">
+            <AuthHero />
+          </div>
+        )}
 
-      <section className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-8 md:px-10">
-        <div className="w-full max-w-[400px] md:hidden">
-          <BrandLink />
-        </div>
-
-        <div className="relative w-full max-w-[400px] overflow-hidden rounded-[22px] border border-white/80 bg-white/90 p-6 shadow-[0_30px_70px_-30px_rgba(21,121,90,0.25)] backdrop-blur-md md:p-7">
-          <div aria-hidden="true" className="absolute inset-x-8 top-0 h-1 rounded-b-full bg-brand" />
-          <div className="flex items-start gap-3.5">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
-              {isSignUp ? <UserPlus size={20} aria-hidden="true" /> : <LogIn size={20} aria-hidden="true" />}
-            </span>
-            <div className="min-w-0">
-              <h1 className="font-heading text-xl font-semibold text-ink">{isSignUp ? 'Daftar akun' : 'Masuk'}</h1>
-              <p className="mt-0.5 text-sm text-muted">
-                {isSignUp ? 'Simpan chat, kuis, dan bulat belajar kamu di satu akun.' : 'Lanjutkan belajar dari tempat terakhir kamu berhenti.'}
-              </p>
-            </div>
+        {/* On the sign-up page the white sheet overlaps the blue header. */}
+        <section className={clsx('flex flex-1 flex-col gap-5 px-6 pb-8', isSignUp ? '-mt-8 rounded-t-[32px] bg-white pt-14' : 'pt-6')}>
+          {!isSignUp && <BrandLink />}
+          <div className={clsx(isSignUp && 'text-center')}>
+            <h1 className="font-heading text-[28px] font-bold leading-tight text-ink">{isSignUp ? 'Daftar akun' : 'Masuk'}</h1>
+            <p className="mt-1 text-sm text-muted">
+              {isSignUp ? 'Simpan chat, kuis, dan bulat belajar kamu di satu akun.' : 'Lanjutkan belajar dari tempat terakhir kamu berhenti.'}
+            </p>
           </div>
 
-          <div className="mt-6">
-            <ModeSwitch kind={kind} />
-          </div>
-          <div className="mt-5">{isSignUp ? <SignUpForm onDone={finish} /> : <SignInForm onDone={finish} />}</div>
-        </div>
+          {isSignUp ? <SignUpForm onDone={finish} /> : <SignInForm onDone={finish} />}
 
-        <div className="w-full max-w-[400px]">
+          <p className="text-center text-sm text-muted">
+            {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
+            <Link to={`${isSignUp ? '/masuk' : '/daftar'}${suffix}`} className="font-semibold text-auth-accent hover:underline">
+              {isSignUp ? 'Masuk' : 'Daftar'}
+            </Link>
+          </p>
+
           <div className="flex items-center gap-3 text-xs text-muted">
-            <span className="h-px flex-1 bg-line" />
+            <span className="h-px flex-1 bg-auth-field" />
             atau
-            <span className="h-px flex-1 bg-line" />
+            <span className="h-px flex-1 bg-auth-field" />
           </div>
-          <Button variant="secondary" className="mt-4 w-full min-h-[44px] md:min-h-[40px]" onClick={() => navigate('/chat')}>
+          <Button variant="secondary" className="min-h-[48px] w-full rounded-full md:min-h-[44px]" onClick={() => navigate('/chat')}>
             Lanjut sebagai tamu
-            <ArrowRight size={16} aria-hidden="true" />
           </Button>
-          <p className="mt-2 text-center text-xs text-muted">Tamu bisa mencoba chat dan satu bulat dari AI tanpa masuk.</p>
-        </div>
-      </section>
-    </main>
-  )
-}
-
-// Line-only 3D background behind the sign-in and sign-up pages: wireframe globes that turn slowly, and a grid floor in
-// perspective. Pure CSS and decoration only. They stop moving when the user prefers reduced motion (see index.css).
-const GLOBES: { size: number; left: string; top: string; tilt: number; duration: number; delay: number }[] = [
-  { size: 260, left: '-7%', top: '2%', tilt: 16, duration: 34, delay: 0 },
-  { size: 170, left: '64%', top: '-6%', tilt: -14, duration: 26, delay: 4 },
-  { size: 120, left: '44%', top: '60%', tilt: 22, duration: 22, delay: 8 },
-  { size: 220, left: '78%', top: '54%', tilt: 6, duration: 38, delay: 2 },
-]
-
-// Each ring is one great circle of a globe, turned around a different axis.
-const RING_TRANSFORMS = ['rotateY(0deg)', 'rotateY(45deg)', 'rotateY(90deg)', 'rotateY(135deg)', 'rotateX(90deg)', 'rotateX(60deg)']
-
-function AuthBackdrop() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [perspective:1100px]">
-      <div className="auth-floor absolute inset-x-0 bottom-0 h-[52%]" />
-      {GLOBES.map((globe, index) => (
-        <div
-          key={index}
-          className="auth-globe absolute"
-          style={
-            {
-              width: globe.size,
-              height: globe.size,
-              left: globe.left,
-              top: globe.top,
-              '--tilt': `${globe.tilt}deg`,
-              animationDuration: `${globe.duration}s`,
-              animationDelay: `-${globe.delay}s`,
-            } as CSSProperties
-          }
-        >
-          {RING_TRANSFORMS.map((transform) => (
-            <span key={transform} className="auth-ring" style={{ transform }} />
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-const POINTS: { icon: LucideIcon; title: string; text: string }[] = [
-  { icon: MessageSquare, title: 'Tanya apa saja di chat', text: 'Minta penjelasan, soal latihan, atau ringkasan materi.' },
-  { icon: Network, title: 'Susun topik sebagai bulat', text: 'Setiap topik menjadi bulat yang bisa dihubungkan ke topik lain.' },
-  { icon: ClipboardCheck, title: 'Lihat kemajuan dari kuis', text: 'Skor kuis memperbarui status setiap bulat.' },
-]
-
-// Left side on desktop. It explains what the account is for. Hidden on mobile to keep the form first.
-function IntroPanel() {
-  return (
-    <aside className="hidden flex-col justify-between bg-brand-soft/70 px-12 py-12 md:flex">
-      <BrandLink />
-      <div className="max-w-[420px]">
-        <h2 className="font-heading text-3xl font-semibold leading-tight text-ink">Belajar lewat chat, lalu lihat kemajuanmu di bulat topik.</h2>
-        <ul className="mt-8 flex flex-col gap-5">
-          {POINTS.map(({ icon: Icon, title, text }) => (
-            <li key={title} className="flex gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand shadow-sm">
-                <Icon size={20} aria-hidden="true" />
-              </span>
-              <div>
-                <p className="font-semibold text-ink">{title}</p>
-                <p className="mt-0.5 text-sm text-muted">{text}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+          <p className="text-center text-xs text-muted">Tamu bisa mencoba chat dan satu bulat dari AI tanpa masuk.</p>
+        </section>
       </div>
-      <p className="text-xs text-muted">Chat dan hasil kuis disimpan di akunmu dan bisa dibuka dari perangkat lain.</p>
-    </aside>
-  )
-}
-
-// Switches between the two pages and keeps the redirect target, so the user lands where they meant to go.
-function ModeSwitch({ kind }: { kind: AuthPageProps['kind'] }) {
-  const [params] = useSearchParams()
-  const redirect = params.get('redirect')
-  const suffix = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
-  const options = [
-    { to: '/masuk', label: 'Masuk', value: 'masuk' },
-    { to: '/daftar', label: 'Daftar', value: 'daftar' },
-  ] as const
-
-  return (
-    <nav aria-label="Pilih masuk atau daftar" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
-      {options.map((option) => {
-        const active = option.value === kind
-        return (
-          <Link
-            key={option.value}
-            to={`${option.to}${suffix}`}
-            aria-current={active ? 'page' : undefined}
-            className={clsx(
-              'rounded-lg py-2 text-center text-sm font-semibold transition-colors',
-              active ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink',
-            )}
-          >
-            {option.label}
-          </Link>
-        )
-      })}
-    </nav>
+    </main>
   )
 }
 
@@ -215,8 +122,15 @@ function SignInForm({ onDone }: FormProps) {
 
   return (
     <form noValidate onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
-      <Field id="masuk-email" label="Email" type="email" autoComplete="email" icon={Mail} error={errors.email?.message} inputProps={register('email')} />
-      <PasswordField id="masuk-password" label="Kata sandi" autoComplete="current-password" error={errors.password?.message} inputProps={register('password')} />
+      <Field id="masuk-email" label="Email" placeholder="Email" type="email" autoComplete="email" error={errors.email?.message} inputProps={register('email')} />
+      <PasswordField
+        id="masuk-password"
+        label="Kata sandi"
+        placeholder="Kata sandi"
+        autoComplete="current-password"
+        error={errors.password?.message}
+        inputProps={register('password')}
+      />
       <ServerError message={serverError} />
       <SubmitButton pending={isSubmitting} label="Masuk" />
     </form>
@@ -245,25 +159,26 @@ function SignUpForm({ onDone }: FormProps) {
 
   return (
     <form noValidate onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
-      <Field id="daftar-name" label="Nama" autoComplete="name" icon={User} error={errors.name?.message} inputProps={register('name')} />
-      <Field id="daftar-email" label="Email" type="email" autoComplete="email" icon={Mail} error={errors.email?.message} inputProps={register('email')} />
+      <Field id="daftar-name" label="Nama" placeholder="Nama lengkap" autoComplete="name" error={errors.name?.message} inputProps={register('name')} />
+      <Field id="daftar-email" label="Email" placeholder="Email" type="email" autoComplete="email" error={errors.email?.message} inputProps={register('email')} />
       <PasswordField
         id="daftar-password"
         label="Kata sandi"
+        placeholder="Kata sandi"
         autoComplete="new-password"
         hint="Minimal 8 karakter."
         error={errors.password?.message}
         inputProps={register('password')}
       />
       <ServerError message={serverError} />
-      <SubmitButton pending={isSubmitting} label="Daftar" />
+      <SubmitButton pending={isSubmitting} label="Buat akun" />
     </form>
   )
 }
 
 function SubmitButton({ pending, label }: { pending: boolean; label: string }) {
   return (
-    <Button type="submit" className="mt-1 w-full min-h-[44px] md:min-h-[40px]" disabled={pending}>
+    <Button type="submit" className="mt-1 min-h-[52px] w-full rounded-full text-[15px] md:min-h-[48px]" disabled={pending}>
       {pending && <LoaderCircle size={16} className="animate-spin" aria-hidden="true" />}
       {label}
     </Button>
@@ -275,7 +190,7 @@ function ServerError({ message }: { message: string | null }) {
     return null
   }
   return (
-    <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800">
+    <div role="alert" className="flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
       <CircleAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
       <p>{message}</p>
     </div>
@@ -289,59 +204,59 @@ function errorMessage(error: unknown): string {
 interface FieldProps {
   id: string
   label: string
+  placeholder: string
   type?: string
   autoComplete?: string
-  icon: LucideIcon
   hint?: string
   error?: string
   inputProps: UseFormRegisterReturn
   trailing?: ReactNode
 }
 
-function Field({ id, label, type = 'text', autoComplete, icon: Icon, hint, error, inputProps, trailing }: FieldProps) {
+// The label is visually hidden, because the placeholder shows the same name inside the pill-shaped field.
+function Field({ id, label, placeholder, type = 'text', autoComplete, hint, error, inputProps, trailing }: FieldProps) {
   const errorId = `${id}-error`
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-semibold text-ink">
+      <label htmlFor={id} className="sr-only">
         {label}
       </label>
       <div
         className={clsx(
-          'flex items-center gap-2 rounded-lg border bg-white px-3 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20',
-          error ? 'border-red-600' : 'border-line',
+          'flex items-center gap-2 rounded-full border bg-white px-5 transition-colors focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/20',
+          error ? 'border-red-600' : 'border-auth-field',
         )}
       >
-        <Icon size={16} className="shrink-0 text-muted" aria-hidden="true" />
         <input
           id={id}
           type={type}
+          placeholder={placeholder}
           autoComplete={autoComplete}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-slate-400 md:text-sm"
+          className="min-w-0 flex-1 bg-transparent py-3.5 text-[15px] text-ink outline-none placeholder:text-auth-placeholder md:text-sm"
           {...inputProps}
         />
         {trailing}
       </div>
       {error ? (
-        <p id={errorId} role="alert" className="text-xs text-red-700">
+        <p id={errorId} role="alert" className="px-4 text-xs text-red-700">
           {error}
         </p>
       ) : (
-        hint && <p className="text-xs text-muted">{hint}</p>
+        hint && <p className="px-4 text-xs text-auth-placeholder">{hint}</p>
       )}
     </div>
   )
 }
 
 // The password can be shown while it is typed. The button label avoids the field name, so it does not match the field in tests or screen readers.
-function PasswordField({ inputProps, ...props }: Omit<FieldProps, 'type' | 'icon' | 'trailing'> & { inputProps: UseFormRegisterReturn }) {
+function PasswordField({ inputProps, ...props }: Omit<FieldProps, 'type' | 'trailing'> & { inputProps: UseFormRegisterReturn }) {
   const [visible, setVisible] = useState(false)
   return (
     <Field
       {...props}
       type={visible ? 'text' : 'password'}
-      icon={Lock}
       inputProps={inputProps}
       trailing={
         <button
@@ -349,7 +264,7 @@ function PasswordField({ inputProps, ...props }: Omit<FieldProps, 'type' | 'icon
           onClick={() => setVisible((value) => !value)}
           aria-label={visible ? 'Sembunyikan sandi' : 'Tampilkan sandi'}
           aria-pressed={visible}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-slate-100 hover:text-ink"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-slate-100 hover:text-ink"
         >
           {visible ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
         </button>

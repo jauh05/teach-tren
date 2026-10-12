@@ -1,4 +1,4 @@
-import { CalendarDays, Info, MessageSquare, Network, Settings } from 'lucide-react'
+import { CalendarDays, Info, MessageSquare, Orbit, Settings } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type TabId = 'learning' | 'jadwal' | 'chat' | 'pengaturan' | 'tentang'
@@ -12,7 +12,7 @@ export interface TabItem {
 
 // Order follows docs/role.md 3.1: Learning, Jadwal, Chat, Pengaturan, Tentang.
 export const TABS: TabItem[] = [
-  { id: 'learning', label: 'Learning', path: '/learning', icon: Network },
+  { id: 'learning', label: 'Learning', path: '/learning', icon: Orbit },
   { id: 'jadwal', label: 'Jadwal', path: '/jadwal', icon: CalendarDays },
   { id: 'chat', label: 'Chat', path: '/chat', icon: MessageSquare },
   { id: 'pengaturan', label: 'Pengaturan', path: '/pengaturan', icon: Settings },
