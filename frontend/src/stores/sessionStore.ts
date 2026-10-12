@@ -110,3 +110,12 @@ export const useSessionStore = create<SessionState>()(
     },
   ),
 )
+
+// Entering as a guest ends an account session still left on this device. Otherwise the app would open as that account
+// the next time, and a guest could be sent to the wizard.
+export async function continueAsGuest(): Promise<void> {
+  if (useSessionStore.getState().mode === 'signedIn') {
+    await useSessionStore.getState().signOut()
+  }
+}
+

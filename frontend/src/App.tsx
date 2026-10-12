@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, type ReactNode } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { ChatConversationPage } from './features/chat/ChatConversationPage'
 import { ChatHomePage } from './features/chat/ChatHomePage'
@@ -22,6 +22,8 @@ import { MateriPage } from './features/materi/MateriPage'
 import { KuisAturPage } from './features/kuis/KuisAturPage'
 import { QuizSetupDialog } from './features/kuis/QuizSetupDialog'
 import { MulaiPage } from './features/belajar/MulaiPage'
+import { WelcomeRoute } from './features/welcome/WelcomePage'
+import { TourRoute } from './features/welcome/TourPage'
 import { RequireRencana } from './components/auth/RequireRencana'
 
 // Waits for the server to say whether a session exists, so pages never flash in the wrong mode.
@@ -59,7 +61,6 @@ export default function App() {
                 </RequireRencana>
               }
             >
-              <Route index element={<Navigate to="/chat" replace />} />
               <Route path="learning" element={<LearningPage />} />
               <Route path="jadwal" element={<JadwalPage />} />
               <Route path="jadwal/ingatan" element={<MemoryPage />} />
@@ -88,6 +89,9 @@ export default function App() {
               />
               <Route path="*" element={<PlaceholderPage title="Halaman tidak ditemukan" />} />
             </Route>
+            {/* The welcome screen is the front door for guests. A signed-in account is sent to the chat from here. */}
+            <Route path="/" element={<WelcomeRoute />} />
+            <Route path="tur" element={<TourRoute />} />
             <Route path="masuk" element={<AuthPage kind="masuk" />} />
             <Route path="daftar" element={<AuthPage kind="daftar" />} />
             <Route

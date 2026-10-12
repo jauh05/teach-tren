@@ -12,7 +12,7 @@ import { BrandLink } from '../../components/layout/BrandLink'
 import { Button } from '../../components/ui/Button'
 import { safeRedirect, signInSchema, signUpSchema, type SignInValues, type SignUpValues } from '../../domain/auth'
 import { hydratePreferences } from '../../stores/preferencesStore'
-import { useSessionStore } from '../../stores/sessionStore'
+import { continueAsGuest, useSessionStore } from '../../stores/sessionStore'
 import { AuthHero, SignUpArt } from './AuthArt'
 
 interface AuthPageProps {
@@ -24,7 +24,6 @@ export function AuthPage({ kind }: AuthPageProps) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const signIn = useSessionStore((state) => state.signIn)
-  const signOut = useSessionStore((state) => state.signOut)
   const isSignUp = kind === 'daftar'
   // The redirect target is kept when the user switches between the two pages.
   const redirect = params.get('redirect')
@@ -42,12 +41,8 @@ export function AuthPage({ kind }: AuthPageProps) {
     navigate(safeRedirect(redirect), { replace: true })
   }
 
-  // Choosing the guest path ends an account session still left on this device. Otherwise the app would open
-  // as that account the next time, and a guest could be sent to the wizard.
-  async function continueAsGuest() {
-    if (useSessionStore.getState().mode === 'signedIn') {
-      await signOut()
-    }
+  async function enterAsGuest() {
+    await continueAsGuest()
     navigate('/chat', { replace: true })
   }
 
@@ -96,7 +91,7 @@ export function AuthPage({ kind }: AuthPageProps) {
             atau
             <span className="h-px flex-1 bg-line" />
           </div>
-          <Button variant="secondary" className="min-h-[48px] w-full rounded-full md:min-h-[44px]" onClick={continueAsGuest}>
+          <Button variant="secondary" className="min-h-[48px] w-full rounded-full md:min-h-[44px]" onClick={enterAsGuest}>
             Lanjut sebagai tamu
           </Button>
           <p className="text-center text-xs text-muted">Tamu bisa mencoba chat dan satu bulat dari AI tanpa masuk.</p>
