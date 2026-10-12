@@ -8,7 +8,7 @@ const SLIDES: { scene: 'memory' | 'chat' | 'roadmap' | 'progress'; title: string
   {
     scene: 'memory',
     title: 'Learning memory',
-    text: 'Learning memory mengenali pola belajarmu dan memahaminya. Pola itu digambar sebagai diagram neuron, seperti cara kerja otak.',
+    text: 'Learning memory mengingat apa yang sudah kamu pelajari. Setiap neuron adalah satu topik.',
   },
   {
     scene: 'chat',
