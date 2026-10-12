@@ -131,3 +131,25 @@ test.describe('Impor riwayat tamu', () => {
     await expect(history.getByRole('link', { name: 'Apa itu sel tumbuhan?' })).toBeVisible()
   })
 })
+
+test.describe('Lanjut sebagai tamu', () => {
+  test.use({ asGuest: true })
+
+  test('mengakhiri sesi akun di perangkat, sehingga membuka ulang tidak diarahkan ke rencana belajar', async ({ page, browser, account }) => {
+    const registered = await page.context().request.post('/api/auth/register', {
+      data: { name: 'Rafi Arkan', email: account.email, password: account.password },
+    })
+    expect(registered.ok()).toBeTruthy()
+    await page.goto('/masuk')
+    await page.getByRole('button', { name: 'Lanjut sebagai tamu' }).click()
+    await expect(page).toHaveURL(/\/chat$/)
+
+    // Reopen the app with the same browser storage, without signing in.
+    const reopened = await browser.newContext({ storageState: await page.context().storageState() })
+    const again = await reopened.newPage()
+    await again.goto('/learning')
+    await expect(again).toHaveURL(/\/learning$/)
+    await reopened.close()
+  })
+})
+
