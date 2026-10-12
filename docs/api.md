@@ -139,6 +139,7 @@ Tamu dan pengguna masuk memakai endpoint yang sama. Tamu mengirim `X-Guest-Id`, 
 | POST | `/api/kuis/:quizId/jawaban/:itemId` | `answer` (1 sampai 1000 karakter) | 200. PG dan soal cerita serta isian langsung dinilai dan memberi `kunci`. Esai hanya disimpan |
 | POST | `/api/kuis/:quizId/kumpul` | - | 200 `{ percent, benar, total, items, stimuli }`. Esai dinilai AI dalam satu panggilan |
 | POST | `/api/kuis/:quizId/ulangi-salah` | - | 201 `{ quiz }` baru berisi soal yang salah saja. Tidak mengubah skor |
+| POST | `/api/kuis/import` | `guestId` (UUID id tamu di perangkat) | 200 `{ kuis }`: jumlah hasil kuis yang pindah ke akun. Hanya untuk pengguna masuk, tamu mendapat 403 `HANYA_MASUK`. Hasil yang sudah pindah tidak pindah lagi |
 
 Aturan:
 - Tamu: tepat 5 soal. Satu kuis memakai satu aksi dari dua aksi gratis. Melewati batas: 429 `KUOTA_HABIS`.

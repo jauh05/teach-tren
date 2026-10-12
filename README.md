@@ -76,7 +76,7 @@ Semua data pengembangan ada di `backend/.dev-db`. Untuk mengosongkannya, hentika
 | Variabel | Fungsi |
 | --- | --- |
 | `JWT_SECRET` | Rahasia penanda sesi. Minimal 32 karakter dan acak. Wajib diganti |
-| `AI_MODE` | `mock` tanpa memanggil model, `live` memanggil OpenRouter |
+| `AI_MODE` | `mock` tanpa memanggil model, `live` memanggil OpenRouter. Di produksi (`NODE_ENV=production`) wajib diisi, supaya tidak menjawab dengan keluaran tiruan secara diam-diam |
 | `OPENROUTER_API_KEY` | Kunci OpenRouter. Wajib saat `AI_MODE=live` |
 | `AI_MAX_TOKENS_KUIS` | Batas token kuis. 7000 dipilih dari pengukuran, spesifikasi menulis 3000 |
 | `AUTH_ATTEMPTS_PER_15_MIN`, `AUTH_IP_PER_15_MIN`, `REGISTER_PER_HOUR` | Batas percobaan masuk dan daftar |
@@ -94,7 +94,7 @@ Semua data pengembangan ada di `backend/.dev-db`. Untuk mengosongkannya, hentika
 ## Untuk produksi
 
 - Pakai HTTPS. Cookie sesi hanya dikirim lewat HTTPS saat `NODE_ENV=production`.
-- Isi `JWT_SECRET` yang acak, `CORS_ORIGIN` dengan alamat frontend, dan `TRUST_PROXY` sesuai jumlah proxy.
+- Isi `JWT_SECRET` yang acak, `CORS_ORIGIN` dengan alamat frontend, `TRUST_PROXY` sesuai jumlah proxy, dan `AI_MODE` (`live` untuk model sungguhan).
 - Jalankan `npm run build` lalu `npm run db:deploy` dan `npm start` di backend.
 - Backup database secara berkala, dan cabut kunci OpenRouter yang pernah ditempel di chat atau tempat lain.
 - Perkiraan biaya AI sekitar Rp20 per kuis 10 soal (lihat [docs/model-eval.md](docs/model-eval.md)).
@@ -112,6 +112,8 @@ npm test            # Vitest: logika domain, token warna, dan utilitas
 npm run build       # tsc -b dan build produksi, termasuk PWA
 npm run e2e         # Playwright: desktop dan mobile. Menyalakan backend sendiri di database _test
 ```
+
+Tes yang sama dijalankan otomatis oleh GitHub Actions di setiap push ke `main` dan setiap pull request ([.github/workflows/ci.yml](.github/workflows/ci.yml)). CI memakai PostgreSQL 17 sementara dan tidak memakai kunci OpenRouter.
 
 `npm run e2e` menyalakan backend sendiri di port 3001, jadi hentikan `npm run dev` di folder backend sebelum menjalankannya. Database dari `npm run db:start` harus tetap hidup.
 
