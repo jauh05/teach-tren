@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { ArrowLeft, CircleAlert, Eye, EyeOff, LoaderCircle, Music2 } from 'lucide-react'
+import { ArrowLeft, CircleAlert, Eye, EyeOff, LoaderCircle } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -15,6 +15,7 @@ import { hydratePreferences } from '../../stores/preferencesStore'
 import { continueAsGuest, useSessionStore } from '../../stores/sessionStore'
 import { AuthHero, SignUpArt } from './AuthArt'
 import { clearPendingSocialSignIn, socialSignInMessage, startSocialSignIn, type SocialProvider } from './oauth'
+import { FacebookIcon, GoogleIcon, TikTokIcon } from './SocialIcons'
 
 interface AuthPageProps {
   kind: 'masuk' | 'daftar'
@@ -113,9 +114,9 @@ export function AuthPage({ kind }: AuthPageProps) {
 
 // Sign-in with Google, Facebook, and TikTok. Each button starts the provider's sign-in (see oauth.ts).
 const PROVIDERS: { id: SocialProvider; name: string; mark: ReactNode }[] = [
-  { id: 'google', name: 'Google', mark: <span className="text-base font-bold">G</span> },
-  { id: 'facebook', name: 'Facebook', mark: <span className="text-lg font-bold">f</span> },
-  { id: 'tiktok', name: 'TikTok', mark: <Music2 size={18} aria-hidden="true" /> },
+  { id: 'google', name: 'Google', mark: <GoogleIcon /> },
+  { id: 'facebook', name: 'Facebook', mark: <FacebookIcon /> },
+  { id: 'tiktok', name: 'TikTok', mark: <TikTokIcon /> },
 ]
 
 function SocialSignIn() {
