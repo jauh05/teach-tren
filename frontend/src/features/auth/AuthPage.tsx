@@ -7,6 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { loginAccount, registerAccount, type AuthUser } from '../../api/auth'
 import { importGuestHistory } from '../../api/conversations'
 import { importGuestTopics } from '../../api/topics'
+import { importGuestQuizzes } from '../../api/quizzes'
 import { BrandLink } from '../../components/layout/BrandLink'
 import { Button } from '../../components/ui/Button'
 import { safeRedirect, signInSchema, signUpSchema, type SignInValues, type SignUpValues } from '../../domain/auth'
@@ -26,8 +27,11 @@ export function AuthPage({ kind }: AuthPageProps) {
 
   async function finish(user: AuthUser) {
     // The session cookie is already set by the server, so the carried-over history can be saved.
+    // The device's guest id is kept at sign-in, and it finds the quiz runs made on this device.
+    const guestId = useSessionStore.getState().guestId
     await importGuestHistory().catch(() => undefined)
     await importGuestTopics().catch(() => undefined)
+    await importGuestQuizzes(guestId).catch(() => undefined)
     signIn({ name: user.name, email: user.email })
     void hydratePreferences()
     navigate(safeRedirect(params.get('redirect')), { replace: true })

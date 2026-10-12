@@ -6,7 +6,11 @@ const baseURL = `http://localhost:${PORT}`
 
 // The end-to-end tests run against a real backend on a separate test database (backend/.env, TEST_DATABASE_URL).
 // Their settings come from the backend's .env file, and the database name must end with _test.
-process.loadEnvFile('../backend/.env')
+try {
+  process.loadEnvFile('../backend/.env')
+} catch {
+  // No local file (for example in CI). The variables must then be set in the environment.
+}
 const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? ''
 if (!/_test(\?|$)/.test(testDatabaseUrl)) {
   throw new Error('TEST_DATABASE_URL di backend/.env wajib diisi dan namanya berakhiran _test.')

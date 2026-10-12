@@ -107,6 +107,11 @@ export async function submitQuiz(quizId: string): Promise<ResultView> {
   return resultViewSchema.parse(data)
 }
 
+// Moves the quiz runs made on this device to the account that is signing in. Called once, right after sign-in.
+export async function importGuestQuizzes(guestId: string): Promise<void> {
+  await apiRequest('POST', '/api/kuis/import', { guestId })
+}
+
 // A new run with the questions answered wrong. It does not change the saved score.
 export async function retryWrongQuestions(quizId: string): Promise<QuizView> {
   const data = await apiRequest('POST', `/api/kuis/${encodeURIComponent(quizId)}/ulangi-salah`, undefined, identityHeaders())
