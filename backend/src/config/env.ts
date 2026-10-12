@@ -21,7 +21,8 @@ const envSchema = z.object({
   // Quiz batches get more time. Reasoning models often need more than 45 seconds for five questions.
   AI_TIMEOUT_KUIS_MS: z.coerce.number().int().positive().default(120000),
   AI_MAX_TOKENS_CHAT: z.coerce.number().int().positive().default(1200),
-  AI_MAX_TOKENS_KUIS: z.coerce.number().int().positive().default(3000),
+  // 7000 is the approved limit for quizzes (docs/selisih.md row 96). Chat keeps its own limit.
+  AI_MAX_TOKENS_KUIS: z.coerce.number().int().positive().default(7000),
   // Reasoning effort per kind of task. Low saves tokens for chat. Quizzes need medium: low gave identical quiz options.
   AI_EFFORT_CHAT: z.enum(['low', 'medium', 'high']).default('low'),
   AI_EFFORT_KUIS: z.enum(['low', 'medium', 'high']).default('medium'),
@@ -59,6 +60,9 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(`Konfigurasi tidak valid. ${problems}`)
   }
   const config = parsed.data
+  if (config.NODE_ENV === 'production' && source.AI_MODE === undefined) {
+    throw new Error('AI_MODE wajib diisi di produksi: live untuk model sungguhan, atau mock jika memang sengaja.')
+  }
   if (config.AI_MODE === 'live') {
     const missing: string[] = []
     if (!config.OPENROUTER_API_KEY) missing.push('OPENROUTER_API_KEY')

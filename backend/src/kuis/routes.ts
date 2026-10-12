@@ -1,6 +1,8 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { resolveActor } from '../auth/actor.js'
 import { config } from '../config/index.js'
+import { prisma } from '../db.js'
 import { AppError } from '../http/errors.js'
 import { requestTimeout } from '../http/timeout.js'
 import { SlidingWindowLimiter } from '../chat/rateLimit.js'
@@ -26,6 +28,23 @@ kuisRouter.post('/generate', requestTimeout(GENERATE_TIMEOUT_MS), async (req, re
     }
   }
   res.status(201).json(await createQuiz(actor, req.body))
+})
+
+// Moves the quiz runs a guest made on this device to the account that is signing in (docs/role.md 2.2).
+// Only runs that have no account yet, and only from the device that made them (its guest id). Runs are moved once.
+const importSchema = z.object({ guestId: z.uuid() })
+
+kuisRouter.post('/import', async (req, res) => {
+  const actor = resolveActor(req)
+  if (actor.kind !== 'user') {
+    throw new AppError(403, 'Masuk dulu untuk memindahkan hasil kuis.', 'HANYA_MASUK')
+  }
+  const { guestId } = importSchema.parse(req.body)
+  const moved = await prisma.quizRun.updateMany({
+    where: { guestId, userId: null },
+    data: { userId: actor.userId, guestId: null },
+  })
+  res.json({ kuis: moved.count })
 })
 
 kuisRouter.post('/:quizId/jawaban/:itemId', async (req, res) => {
