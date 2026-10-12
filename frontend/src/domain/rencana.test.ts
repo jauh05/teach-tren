@@ -14,6 +14,10 @@ import {
   toggleSubject,
   type DraftRoadmap,
   type PlanDraft,
+  addCabang,
+  removeCabang,
+  renameCabang,
+  startManualRoadmap,
 } from './rencana'
 
 const base: PlanDraft = chooseGrade(chooseLevel(EMPTY_DRAFT, 'sd'), 4)
@@ -102,5 +106,51 @@ describe('isi yang dikirim ke server', () => {
       subjects: ['IPA', 'Matematika'],
       topics: cabang,
     })
+  })
+})
+
+describe('roadmap yang diisi sendiri', () => {
+  const withSubjects = toggleSubject(base, 'IPA')
+
+  it('dimulai kosong, lalu cabang ditambah satu per satu di bawah mapel yang dipilih', () => {
+    const started = startManualRoadmap(withSubjects)
+    expect(started.roadmap).toEqual({ sumber: 'manual', cabang: [] })
+    const added = addCabang(started, 'IPA', 'Tubuh manusia')
+    expect(added.roadmap?.cabang).toEqual([{ subject: 'IPA', name: 'Tubuh manusia' }])
+  })
+
+  it('mapel yang tidak dipilih, nama kosong, dan nama yang sudah ada tidak ditambahkan', () => {
+    const started = addCabang(startManualRoadmap(withSubjects), 'IPA', 'Tubuh manusia')
+    expect(addCabang(started, 'Matematika', 'Pecahan')).toBe(started)
+    expect(addCabang(started, 'IPA', '   ')).toBe(started)
+    expect(addCabang(started, 'IPA', 'tubuh MANUSIA')).toBe(started)
+  })
+
+  it('cabang berhenti bertambah di 12', () => {
+    let draft = startManualRoadmap(withSubjects)
+    for (let index = 0; index < MAX_CABANG + 3; index += 1) {
+      draft = addCabang(draft, 'IPA', `Cabang ${index + 1}`)
+    }
+    expect(draft.roadmap?.cabang).toHaveLength(MAX_CABANG)
+  })
+
+  it('nama bisa diubah dan cabang bisa dihapus', () => {
+    let draft = addCabang(addCabang(startManualRoadmap(withSubjects), 'IPA', 'Siklus air'), 'IPA', 'Cahaya')
+    draft = renameCabang(draft, 0, 'Siklus air hujan')
+    draft = removeCabang(draft, 1)
+    expect(draft.roadmap?.cabang).toEqual([{ subject: 'IPA', name: 'Siklus air hujan' }])
+  })
+
+  it('roadmap manual baru bisa disimpan setelah 6 cabang dengan nama berbeda', () => {
+    let draft = startManualRoadmap(withSubjects)
+    for (let index = 0; index < MIN_CABANG - 1; index += 1) {
+      draft = addCabang(draft, 'IPA', `Materi ${index + 1}`)
+    }
+    expect(canContinue('roadmap', draft)).toBe(false)
+    draft = addCabang(draft, 'IPA', 'Materi terakhir')
+    expect(canContinue('roadmap', draft)).toBe(true)
+    // An empty name in the list makes the roadmap invalid until it is filled.
+    expect(canContinue('roadmap', renameCabang(draft, 0, '  '))).toBe(false)
+    expect(canContinue('roadmap', renameCabang(draft, 0, 'Materi terakhir'))).toBe(false)
   })
 })

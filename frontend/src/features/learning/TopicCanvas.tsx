@@ -14,7 +14,7 @@ import type { Topic, TopicLink } from '../../domain/types'
 import {
   WORLD_CENTER,
   ZOOM_STEP,
-  centerView,
+  fitView,
   neighborInDirection,
   screenToWorld,
   zoomAt,
@@ -84,7 +84,9 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
   const pointersRef = useRef(new Map<number, Point>())
   const gestureRef = useRef<Gesture>({ kind: 'none' })
 
-  const view = viewState ?? centerView(size.width, size.height)
+  // Before the user moves or zooms, the view shows every topic. A big roadmap is zoomed out to fit a phone-sized canvas.
+  const seedPoints = layoutInput.nodes.map((node) => ({ x: node.x, y: node.y }))
+  const view = viewState ?? fitView(size.width, size.height, seedPoints)
   const { x: viewX, y: viewY, k: zoom } = view
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
       const anchor = { x: event.clientX - rect.left, y: event.clientY - rect.top }
       const factor = Math.exp(-event.deltaY * WHEEL_SENSITIVITY)
       setViewState((previous) => {
-        const current = previous ?? centerView(size.width, size.height)
+        const current = previous ?? fitView(size.width, size.height, seedPoints)
         return zoomAt(current, anchor, current.k * factor)
       })
     }
@@ -112,7 +114,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
 
   function zoomBy(factor: number) {
     setViewState((previous) => {
-      const current = previous ?? centerView(size.width, size.height)
+      const current = previous ?? fitView(size.width, size.height, seedPoints)
       return zoomAt(current, { x: size.width / 2, y: size.height / 2 }, current.k * factor)
     })
   }

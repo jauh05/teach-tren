@@ -71,4 +71,24 @@ test.describe('Rencana belajar', () => {
     await page.goto('/belajar/mulai')
     await expect(page).toHaveURL(/\/learning$/)
   })
+
+  test('materi bisa ditulis sendiri, lalu disimpan ke Learning', async ({ page, account }) => {
+    await registerNewAccount(page, account)
+    await page.getByRole('radio', { name: 'SD' }).click()
+    await page.getByRole('radio', { name: 'Kelas 2' }).click()
+    await page.getByRole('button', { name: 'Lanjut' }).click()
+    await page.getByRole('button', { name: 'Matematika' }).click()
+    await page.getByRole('button', { name: 'Lanjut' }).click()
+    await page.getByRole('button', { name: 'Isi materi sendiri' }).click()
+
+    for (const name of ['Penjumlahan', 'Pengurangan', 'Perkalian', 'Pembagian', 'Pecahan', 'Bangun datar']) {
+      await page.getByLabel('Nama cabang baru').fill(name)
+      await page.getByRole('button', { name: 'Tambah', exact: true }).click()
+    }
+    await expect(page.getByLabel('Nama cabang 6')).toHaveValue('Bangun datar')
+    await page.getByRole('button', { name: 'Simpan roadmap' }).click()
+
+    await expect(page).toHaveURL(/\/learning$/)
+    await expect(page.getByRole('button', { name: /^Penjumlahan/ })).toBeVisible()
+  })
 })

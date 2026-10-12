@@ -38,6 +38,24 @@ export function centerView(width: number, height: number, target: Point = WORLD_
   return { k, x: width / 2 - target.x * k, y: height / 2 - target.y * k }
 }
 
+// View that shows all the points. It zooms out only when they do not fit, and never zooms in past 100%.
+// The margin keeps the outer circles and their labels inside the canvas.
+export function fitView(width: number, height: number, points: Point[], margin = 90): View {
+  if (points.length === 0) {
+    return centerView(width, height)
+  }
+  const xs = points.map((point) => point.x)
+  const ys = points.map((point) => point.y)
+  const minX = Math.min(...xs) - margin
+  const maxX = Math.max(...xs) + margin
+  const minY = Math.min(...ys) - margin
+  // A little more room at the bottom, for the zoom controls.
+  const maxY = Math.max(...ys) + margin + 50
+  const fit = Math.min(1, width / (maxX - minX), height / (maxY - minY))
+  const target = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
+  return centerView(width, height, target, clampZoom(fit))
+}
+
 export function zoomPercent(k: number): number {
   return Math.round(k * 100)
 }

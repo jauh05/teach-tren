@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react'
 import { useState } from 'react'
 import { colors } from '../../theme/tokens'
 import { TOPIC_STATUS_LABEL, type TopicStatus } from '../../domain/topicStatus'
@@ -16,14 +17,17 @@ export function TopicLegend() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div data-canvas-obstacle className="absolute bottom-14 right-3 flex flex-col-reverse items-end gap-1.5 md:bottom-auto md:top-3 md:flex-col">
+    <div data-canvas-obstacle className="absolute bottom-3 left-3 flex flex-col-reverse items-start gap-1.5 md:bottom-auto md:left-auto md:right-3 md:top-3 md:flex-col md:items-end">
+      {/* On phones the button is only an icon, so it covers less of the small canvas. The name stays the same for screen readers. */}
       <button
         type="button"
         aria-expanded={open}
+        aria-label={open ? 'Sembunyikan keterangan' : 'Lihat keterangan'}
         onClick={() => setOpen((value) => !value)}
-        className="min-h-[36px] rounded-xl border border-line bg-white px-3 text-micro font-semibold text-ink shadow-sm hover:bg-slate-50 md:min-h-[32px]"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white text-ink shadow-sm hover:bg-slate-50 md:h-auto md:w-auto md:rounded-xl md:px-3 md:py-1.5 md:text-micro md:font-semibold"
       >
-        {open ? 'Sembunyikan keterangan' : 'Lihat keterangan'}
+        <Info size={16} aria-hidden="true" className="md:hidden" />
+        <span className="hidden md:inline">{open ? 'Sembunyikan keterangan' : 'Lihat keterangan'}</span>
       </button>
       {open && (
         <section

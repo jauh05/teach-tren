@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildRoadmap, LANE_GAP } from '../src/rencana/roadmap.js'
+import { buildRoadmap, COLUMN_GAP, COLUMNS, ROW_GAP } from '../src/rencana/roadmap.js'
 
 // Ids are numbered in the order they are made, so the tests can name them.
 function idFactory() {
@@ -7,101 +7,113 @@ function idFactory() {
   return () => `bulat-${++next}`
 }
 
-describe('buildRoadmap', () => {
-  it('membuat satu jalur per mata pelajaran dan menghubungkan materi berurutan', () => {
-    const roadmap = buildRoadmap({
-      subjects: ['Matematika', 'IPA'],
-      topics: [
-        { subject: 'Matematika', name: 'Bilangan' },
-        { subject: 'Matematika', name: 'Pecahan' },
-        { subject: 'Matematika', name: 'Bangun datar' },
-        { subject: 'IPA', name: 'Tubuh manusia' },
-      ],
-      existingNames: [],
-      startY: 110,
-      centerX: 280,
-      newId: idFactory(),
-    })
+const ANCHOR = { x: 280, y: 170 }
 
-    expect(roadmap.topics.map((topic) => topic.name)).toEqual(['Bilangan', 'Pecahan', 'Bangun datar', 'Tubuh manusia'])
-    expect(roadmap.topics.map((topic) => topic.y)).toEqual([110, 110, 110, 110 + LANE_GAP])
-    expect(roadmap.links).toEqual([
-      { sourceId: 'bulat-1', targetId: 'bulat-2' },
-      { sourceId: 'bulat-2', targetId: 'bulat-3' },
+function build(subjects: string[], topics: { subject: string; name: string }[], extra: { existingNames?: string[]; minTop?: number | null } = {}) {
+  return buildRoadmap({
+    subjects,
+    topics,
+    existingNames: extra.existingNames ?? [],
+    anchor: ANCHOR,
+    minTop: extra.minTop ?? null,
+    newId: idFactory(),
+  })
+}
+
+describe('buildRoadmap', () => {
+  it('menghubungkan cabang berurutan dalam satu mata pelajaran', () => {
+    const roadmap = build(
+      ['Matematika'],
+      ['Bilangan', 'Pecahan', 'Bangun datar', 'Pengukuran'].map((name) => ({ subject: 'Matematika', name })),
+    )
+    const path = roadmap.links.filter((link) => !link.suggested)
+    expect(path).toEqual([
+      { sourceId: 'bulat-1', targetId: 'bulat-2', suggested: false },
+      { sourceId: 'bulat-2', targetId: 'bulat-3', suggested: false },
+      { sourceId: 'bulat-3', targetId: 'bulat-4', suggested: false },
     ])
   })
 
-  it('urutan jalur mengikuti urutan mata pelajaran yang dipilih, bukan urutan katalog', () => {
-    const roadmap = buildRoadmap({
-      subjects: ['IPA', 'Matematika'],
-      topics: [
-        { subject: 'Matematika', name: 'Bilangan' },
-        { subject: 'IPA', name: 'Tubuh manusia' },
-      ],
-      existingNames: [],
-      startY: 110,
-      centerX: 280,
-      newId: idFactory(),
-    })
-
-    const byName = Object.fromEntries(roadmap.topics.map((topic) => [topic.name, topic.y]))
-    expect(byName['Tubuh manusia']).toBe(110)
-    expect(byName['Bilangan']).toBe(110 + LANE_GAP)
+  it('menyebar ke dua arah, tidak hanya satu garis', () => {
+    const roadmap = build(
+      ['Matematika'],
+      Array.from({ length: 6 }, (_, index) => ({ subject: 'Matematika', name: `Cabang ${index + 1}` })),
+    )
+    const xs = new Set(roadmap.topics.map((topic) => Math.round(topic.x)))
+    const ys = new Set(roadmap.topics.map((topic) => Math.round(topic.y)))
+    expect(xs.size).toBeGreaterThan(1)
+    expect(ys.size).toBeGreaterThan(1)
+    // Every branch has its own place on the canvas.
+    const places = new Set(roadmap.topics.map((topic) => `${Math.round(topic.x)}:${Math.round(topic.y)}`))
+    expect(places.size).toBe(roadmap.topics.length)
   })
 
-  it('materi yang namanya sudah dipakai, tanpa memperhatikan huruf besar, dilewati', () => {
-    const roadmap = buildRoadmap({
-      subjects: ['Matematika'],
-      topics: [
+  it('cabang di baris atas dan bawah yang berada di kolom sama dihubungkan dengan tautan putus-putus', () => {
+    const roadmap = build(
+      ['Matematika'],
+      Array.from({ length: 6 }, (_, index) => ({ subject: 'Matematika', name: `Cabang ${index + 1}` })),
+    )
+    const suggested = roadmap.links.filter((link) => link.suggested)
+    // Two rows of three. The row turns at the last column, where the path already links the two items, so that column is not repeated.
+    expect(suggested).toHaveLength(COLUMNS - 1)
+  })
+
+  it('lebar roadmap muat di kanvas ponsel, dan tetap berada di tengah', () => {
+    const roadmap = build(
+      ['Matematika'],
+      Array.from({ length: 6 }, (_, index) => ({ subject: 'Matematika', name: `Cabang ${index + 1}` })),
+    )
+    const xs = roadmap.topics.map((topic) => topic.x)
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThanOrEqual((COLUMNS - 1) * COLUMN_GAP)
+    expect((Math.min(...xs) + Math.max(...xs)) / 2).toBe(ANCHOR.x)
+  })
+
+  it('setiap mata pelajaran mulai di baris baru, dan jalurnya lanjut ke mata pelajaran berikutnya', () => {
+    const roadmap = build(
+      ['Matematika', 'IPA'],
+      [
+        { subject: 'Matematika', name: 'Bilangan' },
+        { subject: 'Matematika', name: 'Pecahan' },
+        { subject: 'IPA', name: 'Tubuh manusia' },
+      ],
+    )
+    const math = roadmap.topics.filter((topic) => topic.subject === 'Matematika')
+    const science = roadmap.topics.find((topic) => topic.subject === 'IPA')
+    expect(science?.y).toBeGreaterThan(Math.max(...math.map((topic) => topic.y)))
+    expect(roadmap.links).toContainEqual({ sourceId: math[1].id, targetId: science?.id, suggested: false })
+  })
+
+  it('nama yang sudah dipakai, tanpa memperhatikan huruf besar, dilewati', () => {
+    const roadmap = build(
+      ['Matematika'],
+      [
         { subject: 'Matematika', name: 'Bilangan' },
         { subject: 'Matematika', name: 'Pecahan' },
       ],
-      existingNames: ['  bilangan '],
-      startY: 110,
-      centerX: 280,
-      newId: idFactory(),
-    })
-
+      { existingNames: ['  bilangan '] },
+    )
     expect(roadmap.topics.map((topic) => topic.name)).toEqual(['Pecahan'])
     expect(roadmap.links).toEqual([])
   })
 
   it('nama yang sama dua kali dalam satu rencana hanya dibuat sekali', () => {
-    const roadmap = buildRoadmap({
-      subjects: ['Matematika'],
-      topics: [
+    const roadmap = build(
+      ['Matematika'],
+      [
         { subject: 'Matematika', name: 'Bilangan' },
         { subject: 'Matematika', name: 'BILANGAN' },
       ],
-      existingNames: [],
-      startY: 110,
-      centerX: 280,
-      newId: idFactory(),
-    })
-
+    )
     expect(roadmap.topics).toHaveLength(1)
   })
 
-  it('setiap jalur dipusatkan di sekitar titik tengah kanvas', () => {
-    const roadmap = buildRoadmap({
-      subjects: ['Matematika'],
-      topics: [
-        { subject: 'Matematika', name: 'Bilangan' },
-        { subject: 'Matematika', name: 'Pecahan' },
-        { subject: 'Matematika', name: 'Bangun datar' },
-      ],
-      existingNames: [],
-      startY: 110,
-      centerX: 280,
-      newId: idFactory(),
-    })
-
-    const xs = roadmap.topics.map((topic) => topic.x)
-    expect((Math.min(...xs) + Math.max(...xs)) / 2).toBe(280)
+  it('roadmap tidak naik ke atas bulat yang sudah ada', () => {
+    const roadmap = build(['Matematika'], [{ subject: 'Matematika', name: 'Bilangan' }], { minTop: 400 })
+    expect(Math.min(...roadmap.topics.map((topic) => topic.y))).toBeGreaterThanOrEqual(400)
+    expect(ROW_GAP).toBeGreaterThan(0)
   })
 
   it('tanpa materi, tidak ada bulat dan tidak ada tautan', () => {
-    const roadmap = buildRoadmap({ subjects: ['Matematika'], topics: [], existingNames: [], startY: 110, centerX: 280, newId: idFactory() })
-    expect(roadmap).toEqual({ topics: [], links: [] })
+    expect(build(['Matematika'], [])).toEqual({ topics: [], links: [] })
   })
 })

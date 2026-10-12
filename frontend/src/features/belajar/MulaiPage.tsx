@@ -1,16 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowLeft, Check, CircleAlert, LoaderCircle } from 'lucide-react'
+import { ArrowLeft, Check, CircleAlert, LoaderCircle, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { generateRoadmap, getKurikulum, getRencana, RENCANA_QUERY_KEY, saveRencana } from '../../api/rencana'
 import { PersonFigure } from '../../components/illustrations/PersonFigure'
 import { Button } from '../../components/ui/Button'
+import { colors } from '../../theme/tokens'
 import {
   buildPayload,
   canContinue,
   chooseGrade,
   chooseLevel,
+  addCabang,
   EMPTY_DRAFT,
   hasValidRoadmap,
   MAX_CABANG,
@@ -18,7 +20,10 @@ import {
   MIN_CABANG,
   nextStep,
   previousStep,
+  removeCabang,
+  renameCabang,
   setRoadmap,
+  startManualRoadmap,
   toggleSubject,
   WIZARD_STEPS,
   type CurriculumLevel,
@@ -109,6 +114,10 @@ export function MulaiPage() {
       <div className="flex w-full max-w-[420px] flex-col overflow-hidden bg-white md:rounded-[32px] md:shadow-[0_30px_70px_-30px_rgba(20,20,20,0.25)]">
         <header className="relative h-[200px] shrink-0 overflow-hidden bg-brand">
           <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden="true" focusable="false">
+            <path d="M-10 190 Q 110 150 220 184 T 410 168" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeDasharray="2 9" strokeLinecap="round" opacity="0.85" />
+            <circle cx="40" cy="186" r="7" fill="#FFFFFF" />
+            <circle cx="150" cy="168" r="5" fill={colors.brand.dark} />
+            <circle cx="232" cy="184" r="7" fill="#FFFFFF" />
             <circle cx="300" cy="120" r="66" fill="#FFFFFF" />
             <g transform="translate(246 62) scale(0.5)">
               <PersonFigure />
@@ -137,7 +146,17 @@ export function MulaiPage() {
             <KelasStep levels={levels} draft={draft} onLevel={(id) => setDraft(chooseLevel(draft, id))} onGrade={(grade) => setDraft(chooseGrade(draft, grade))} />
           )}
           {step === 'mapel' && level && <MapelStep level={level} draft={draft} onToggle={(name) => setDraft(toggleSubject(draft, name))} />}
-          {step === 'roadmap' && <RoadmapStep draft={draft} pending={roadmapMutation.isPending} onGenerate={requestRoadmap} />}
+          {step === 'roadmap' && (
+            <RoadmapStep
+              draft={draft}
+              pending={roadmapMutation.isPending}
+              onGenerate={requestRoadmap}
+              onStartManual={() => setDraft(startManualRoadmap(draft))}
+              onRename={(index, name) => setDraft(renameCabang(draft, index, name))}
+              onRemove={(index) => setDraft(removeCabang(draft, index))}
+              onAdd={(subject, name) => setDraft(addCabang(draft, subject, name))}
+            />
+          )}
 
           <ProgressDots index={stepNumber - 1} />
 
@@ -277,47 +296,135 @@ function MapelStep({ level, draft, onToggle }: { level: CurriculumLevel; draft: 
   )
 }
 
-// Asks the AI for the roadmap, then shows its branches. The user can ask again before saving.
-function RoadmapStep({ draft, pending, onGenerate }: { draft: PlanDraft; pending: boolean; onGenerate: () => void }) {
+interface RoadmapStepProps {
+  draft: PlanDraft
+  pending: boolean
+  onGenerate: () => void
+  onStartManual: () => void
+  onRename: (index: number, name: string) => void
+  onRemove: (index: number) => void
+  onAdd: (subject: string, name: string) => void
+}
+
+const SOURCE_TEXT: Record<'ai' | 'katalog' | 'manual', string> = {
+  ai: 'Disusun AI sesuai kelas dan mata pelajaranmu. Kamu bisa mengubah nama, menghapus, atau menambah cabang.',
+  katalog: 'Disusun dari daftar kurikulum untuk kelas dan mata pelajaranmu. Kamu bisa mengubah nama, menghapus, atau menambah cabang.',
+  manual: 'Tulis materimu sendiri. Tambah 6 sampai 12 cabang.',
+}
+
+// Either the AI writes the roadmap, or the user writes it. Either way, the branches can be renamed, removed, and added to.
+function RoadmapStep({ draft, pending, onGenerate, onStartManual, onRename, onRemove, onAdd }: RoadmapStepProps) {
+  const [newName, setNewName] = useState('')
+  const [newSubject, setNewSubject] = useState(draft.subjects[0] ?? '')
+
   if (!draft.roadmap) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted">Roadmap dibuat dari kelas dan mata pelajaran yang kamu pilih.</p>
+        <p className="text-sm text-muted">Buat roadmap otomatis, atau tulis materimu sendiri.</p>
         <Button className="min-h-[48px] w-full rounded-full" disabled={pending} onClick={onGenerate}>
           {pending && <LoaderCircle size={16} className="animate-spin" aria-hidden="true" />}
-          {pending ? 'Menyusun roadmap...' : 'Buat roadmap'}
+          {pending ? 'Menyusun roadmap...' : 'Buat roadmap otomatis'}
         </Button>
+        <button
+          type="button"
+          onClick={onStartManual}
+          disabled={pending}
+          className="min-h-[48px] w-full rounded-full border border-line bg-white text-sm font-semibold text-ink hover:border-brand-dark disabled:opacity-50"
+        >
+          Isi materi sendiri
+        </button>
       </div>
     )
   }
 
   const { cabang, sumber } = draft.roadmap
+  const full = cabang.length >= MAX_CABANG
+  const subject = draft.subjects.includes(newSubject) ? newSubject : (draft.subjects[0] ?? '')
+
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-muted">
-        {sumber === 'ai' ? 'Disusun AI sesuai kelas dan mata pelajaranmu.' : 'Disusun dari daftar kurikulum untuk kelas dan mata pelajaranmu.'}
-      </p>
+      <p className="text-xs text-muted">{SOURCE_TEXT[sumber]}</p>
+
       <ol className="flex flex-col gap-2.5" aria-label="Cabang roadmap">
         {cabang.map((item, index) => (
-          <li key={`${item.subject}-${item.name}-${index}`} className="flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3">
+          <li key={index} className="flex items-center gap-3 rounded-2xl border border-line bg-white px-3 py-2.5">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand-dark">
               {index + 1}
             </span>
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-ink">{item.name}</p>
+            <div className="min-w-0 flex-1">
+              <input
+                aria-label={`Nama cabang ${index + 1}`}
+                value={item.name}
+                maxLength={60}
+                onChange={(event) => onRename(index, event.target.value)}
+                className="w-full bg-transparent font-semibold text-ink outline-none"
+              />
               <p className="text-xs text-muted">{item.subject}</p>
             </div>
+            <button
+              type="button"
+              aria-label={`Hapus cabang ${index + 1}`}
+              onClick={() => onRemove(index)}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-slate-100 hover:text-ink"
+            >
+              <Trash2 size={16} aria-hidden="true" />
+            </button>
           </li>
         ))}
       </ol>
-      {!hasValidRoadmap(draft) && (
-        <p className="text-xs text-red-700">
-          Roadmap harus punya {MIN_CABANG} sampai {MAX_CABANG} cabang.
-        </p>
+
+      {!full && draft.subjects.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-line p-3">
+          <div className="flex items-center gap-2">
+            <select
+              aria-label="Mata pelajaran cabang baru"
+              value={subject}
+              onChange={(event) => setNewSubject(event.target.value)}
+              className="rounded-full border border-line bg-white px-3 py-2 text-sm text-ink"
+            >
+              {draft.subjects.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              aria-label="Nama cabang baru"
+              placeholder="Nama cabang baru"
+              value={newName}
+              maxLength={60}
+              onChange={(event) => setNewName(event.target.value)}
+              className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-muted focus:border-brand-dark"
+            />
+            <Button
+              className="min-h-[40px] shrink-0 rounded-full px-4"
+              disabled={newName.trim() === ''}
+              onClick={() => {
+                onAdd(subject, newName)
+                setNewName('')
+              }}
+            >
+              <Plus size={16} aria-hidden="true" />
+              Tambah
+            </Button>
+          </div>
+        </div>
       )}
-      <button type="button" disabled={pending} onClick={onGenerate} className="text-center text-sm font-semibold text-brand-dark hover:underline disabled:opacity-50">
-        {pending ? 'Menyusun ulang...' : 'Buat ulang roadmap'}
-      </button>
+
+      <div className="flex flex-col gap-1">
+        <p className="text-xs text-muted">
+          {cabang.length} dari {MIN_CABANG} sampai {MAX_CABANG} cabang
+        </p>
+        {!hasValidRoadmap(draft) && <p className="text-xs text-red-700">Setiap cabang perlu nama yang berbeda, dan jumlahnya 6 sampai 12.</p>}
+      </div>
+
+      {sumber !== 'manual' && (
+        <button type="button" disabled={pending} onClick={onGenerate} className="text-center text-sm font-semibold text-brand-dark hover:underline disabled:opacity-50">
+          {pending ? 'Menyusun ulang...' : 'Buat ulang roadmap otomatis'}
+        </button>
+      )}
     </div>
   )
 }

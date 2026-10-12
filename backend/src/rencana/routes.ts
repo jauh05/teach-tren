@@ -8,7 +8,7 @@ import { SlidingWindowLimiter } from '../chat/rateLimit.js'
 import { pilihanSchema, planSchema } from './plan.js'
 import { generateRoadmap } from './roadmapAi.js'
 import { CENTER } from '../topics/placement.js'
-import { buildRoadmap, LANE_GAP } from './roadmap.js'
+import { buildRoadmap, ROW_GAP } from './roadmap.js'
 
 // The curriculum choices. Public, so the wizard can load them before sign-in.
 export const kurikulumRouter = Router()
@@ -56,16 +56,14 @@ rencanaRouter.post('/', async (req, res) => {
     throw new AppError(409, 'Rencana belajar sudah dibuat.', 'SUDAH_ADA')
   }
 
-  // On an empty canvas the first lane starts at the canvas center and the rest go down, so the top controls stay clear.
-  // Otherwise the lanes start below the account's topics.
+  // On an empty canvas the roadmap is centered on the canvas center. Otherwise it starts below the account's topics.
   const placed = await prisma.topic.findMany({ where: { userId }, select: { name: true, y: true } })
-  const startY = placed.length > 0 ? Math.max(...placed.map((topic) => topic.y)) + LANE_GAP : CENTER.y
   const roadmap = buildRoadmap({
     subjects: input.subjects,
     topics: input.topics,
     existingNames: placed.map((topic) => topic.name),
-    startY,
-    centerX: CENTER.x,
+    anchor: CENTER,
+    minTop: placed.length > 0 ? Math.max(...placed.map((topic) => topic.y)) + ROW_GAP : null,
     newId: () => crypto.randomUUID(),
   })
 
@@ -82,7 +80,7 @@ rencanaRouter.post('/', async (req, res) => {
       }
       if (roadmap.links.length > 0) {
         await tx.topicLink.createMany({
-          data: roadmap.links.map((link) => ({ userId, sourceId: link.sourceId, targetId: link.targetId, suggested: false })),
+          data: roadmap.links.map((link) => ({ userId, sourceId: link.sourceId, targetId: link.targetId, suggested: link.suggested })),
         })
       }
       return created

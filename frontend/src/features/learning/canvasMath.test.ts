@@ -3,6 +3,7 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
   centerView,
+  fitView,
   clampZoom,
   neighborInDirection,
   screenToWorld,
@@ -76,3 +77,19 @@ describe('neighborInDirection', () => {
     expect(neighborInDirection('a', 'left', positions)).toBeNull()
   })
 })
+
+describe('fitView', () => {
+  it('tidak memperbesar lebih dari 100 persen, dan tidak memperkecil kalau sudah muat', () => {
+    const view = fitView(800, 600, [{ x: 100, y: 100 }, { x: 200, y: 150 }])
+    expect(view.k).toBe(1)
+  })
+
+  it('memperkecil zoom kalau bulat tidak muat di kanvas ponsel, dan tidak di bawah batas minimum', () => {
+    const wide = fitView(330, 300, [{ x: 0, y: 0 }, { x: 900, y: 0 }])
+    expect(wide.k).toBeLessThan(1)
+    expect(wide.k).toBeGreaterThanOrEqual(0.4)
+    const huge = fitView(330, 300, [{ x: 0, y: 0 }, { x: 9000, y: 0 }])
+    expect(huge.k).toBe(0.4)
+  })
+})
+

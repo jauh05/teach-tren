@@ -60,17 +60,20 @@ describe('rencana belajar', () => {
     expect(saved.body.rencana.subjects).toEqual(['Matematika', 'IPA'])
 
     const user = await prisma.user.findUniqueOrThrow({ where: { email: 'siswa@contoh.id' } })
-    const topics = await prisma.topic.findMany({ where: { userId: user.id }, orderBy: { x: 'asc' } })
+    const topics = await prisma.topic.findMany({ where: { userId: user.id } })
+    const byName = Object.fromEntries(topics.map((topic) => [topic.name, topic]))
     const matematika = topics.filter((topic) => topic.subject === 'Matematika')
     const ipa = topics.filter((topic) => topic.subject === 'IPA')
-    expect(matematika.map((topic) => topic.name)).toEqual(['Bilangan cacah', 'Pecahan sederhana', 'Bangun datar', 'Pengukuran'])
-    expect(matematika[0].y).toBe(matematika[1].y)
-    expect(ipa[0].y).toBeGreaterThan(matematika[0].y)
+    expect(matematika.map((topic) => topic.name).sort()).toEqual(['Bangun datar', 'Bilangan cacah', 'Pecahan sederhana', 'Pengukuran'])
+    // The second subject starts below the first one.
+    expect(Math.min(...ipa.map((topic) => topic.y))).toBeGreaterThan(Math.max(...matematika.map((topic) => topic.y)))
 
-    // Each branch links to the next one of its lane, and lanes are not linked to each other: 3 + 1 links.
+    // The path links the branches one after another, through both subjects. Neighbors are also linked, but dashed.
     const links = await prisma.topicLink.findMany({ where: { userId: user.id } })
-    expect(links).toHaveLength(4)
-    expect(links).toContainEqual(expect.objectContaining({ sourceId: matematika[0].id, targetId: matematika[1].id }))
+    const path = links.filter((link) => !link.suggested)
+    expect(path).toContainEqual(expect.objectContaining({ sourceId: byName['Bilangan cacah'].id, targetId: byName['Pecahan sederhana'].id }))
+    expect(path).toContainEqual(expect.objectContaining({ sourceId: byName['Pengukuran'].id, targetId: byName['Tubuh manusia'].id }))
+    expect(path).toHaveLength(5)
   })
 
   it('rencana yang sudah dibuat tidak bisa dibuat ulang', async () => {

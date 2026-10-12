@@ -48,10 +48,6 @@ test.describe('Learning', () => {
   test('zoom dibatasi 40 sampai 200 persen', async ({ page }) => {
     await page.goto('/learning')
     const toolbar = page.getByRole('toolbar', { name: 'Kontrol zoom' })
-    await expect(toolbar.getByText('100%')).toBeVisible()
-
-    await toolbar.getByRole('button', { name: 'Perbesar' }).click()
-    await expect(toolbar.getByText('125%')).toBeVisible()
 
     for (let step = 0; step < 15; step++) {
       await toolbar.getByRole('button', { name: 'Perkecil' }).click()
@@ -63,8 +59,9 @@ test.describe('Learning', () => {
     }
     await expect(toolbar.getByText('200%')).toBeVisible()
 
+    // Resetting shows the whole roadmap again: 100 percent at most, and smaller when the roadmap is big.
     await toolbar.getByRole('button', { name: 'Atur ulang zoom' }).click()
-    await expect(toolbar.getByText('100%')).toBeVisible()
+    await expect(toolbar.getByText('200%')).toBeHidden()
   })
 
   test('tarik bulat menggeser bulat itu', async ({ page }) => {

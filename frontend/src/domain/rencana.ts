@@ -24,7 +24,8 @@ export interface PlanTopic {
 
 // The roadmap made for the current choices. Each change to the choices makes it out of date.
 export interface DraftRoadmap {
-  sumber: 'ai' | 'katalog'
+  // "manual" when the user wrote the branches. The others come from the server.
+  sumber: 'ai' | 'katalog' | 'manual'
   cabang: PlanTopic[]
 }
 
@@ -83,9 +84,56 @@ export function setRoadmap(draft: PlanDraft, roadmap: DraftRoadmap): PlanDraft {
   return { ...draft, roadmap }
 }
 
+// Between 6 and 12 branches, each with a name, and no two with the same name (without case).
 export function hasValidRoadmap(draft: PlanDraft): boolean {
-  const count = draft.roadmap?.cabang.length ?? 0
-  return count >= MIN_CABANG && count <= MAX_CABANG
+  const cabang = draft.roadmap?.cabang ?? []
+  if (cabang.length < MIN_CABANG || cabang.length > MAX_CABANG) {
+    return false
+  }
+  const names = new Set<string>()
+  for (const item of cabang) {
+    const key = item.name.trim().toLocaleLowerCase('id-ID')
+    if (key === '' || names.has(key)) {
+      return false
+    }
+    names.add(key)
+  }
+  return true
+}
+
+// A roadmap the user writes without the AI. It starts empty, and the user adds the branches.
+export function startManualRoadmap(draft: PlanDraft): PlanDraft {
+  return setRoadmap(draft, { sumber: 'manual', cabang: [] })
+}
+
+function editCabang(draft: PlanDraft, change: (cabang: PlanTopic[]) => PlanTopic[]): PlanDraft {
+  if (!draft.roadmap) {
+    return draft
+  }
+  return { ...draft, roadmap: { ...draft.roadmap, cabang: change(draft.roadmap.cabang) } }
+}
+
+export function renameCabang(draft: PlanDraft, index: number, name: string): PlanDraft {
+  return editCabang(draft, (cabang) => cabang.map((item, position) => (position === index ? { ...item, name } : item)))
+}
+
+export function removeCabang(draft: PlanDraft, index: number): PlanDraft {
+  return editCabang(draft, (cabang) => cabang.filter((_, position) => position !== index))
+}
+
+// Adds a branch under one of the chosen subjects. Nothing changes when the subject is not chosen, the name is empty,
+// the name is already used, or the roadmap is full.
+export function addCabang(draft: PlanDraft, subject: string, name: string): PlanDraft {
+  const trimmed = name.trim()
+  const cabang = draft.roadmap?.cabang ?? []
+  if (!draft.subjects.includes(subject) || trimmed === '' || cabang.length >= MAX_CABANG) {
+    return draft
+  }
+  const key = trimmed.toLocaleLowerCase('id-ID')
+  if (cabang.some((item) => item.name.trim().toLocaleLowerCase('id-ID') === key)) {
+    return draft
+  }
+  return editCabang(draft, (current) => [...current, { subject, name: trimmed.slice(0, 60) }])
 }
 
 export function canContinue(step: WizardStep, draft: PlanDraft): boolean {
