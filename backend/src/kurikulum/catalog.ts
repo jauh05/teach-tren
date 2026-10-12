@@ -56,7 +56,7 @@ export const CURRICULUM: CurriculumLevel[] = [
       {
         name: 'Matematika',
         topics: [
-          'Bilangan bulat',
+          'Bilangan neuron',
           'Pecahan dan desimal',
           'Aljabar dasar',
           'Persamaan linear satu variabel',

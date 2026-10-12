@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeTopicName, topicNameSchema } from '../src/topics/names.js'
 
-describe('nama bulat', () => {
+describe('nama neuron', () => {
   it('menganggap nama sama jika beda huruf besar dan spasi di tepi', () => {
     expect(normalizeTopicName('  Persamaan Linear ')).toBe(normalizeTopicName('persamaan linear'))
   })

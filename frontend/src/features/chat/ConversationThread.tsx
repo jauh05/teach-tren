@@ -210,15 +210,15 @@ export function ConversationThread({
   async function makeTopic(question: string) {
     const name = topicNameFromQuestion(question)
     if (name === '') {
-      setTopicNotice({ tone: 'error', text: 'Pertanyaan ini terlalu pendek untuk dijadikan nama bulat.' })
+      setTopicNotice({ tone: 'error', text: 'Pertanyaan ini terlalu pendek untuk dijadikan nama neuron.' })
       return
     }
     try {
       await createTopic(name)
       await queryClient.invalidateQueries({ queryKey: ['topics'] })
-      setTopicNotice({ tone: 'ok', text: `Bulat “${name}” dibuat. Lihat di Learning.` })
+      setTopicNotice({ tone: 'ok', text: `Neuron “${name}” dibuat. Lihat di Learning.` })
     } catch (error) {
-      setTopicNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Bulat belum bisa dibuat. Coba lagi.' })
+      setTopicNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Neuron belum bisa dibuat. Coba lagi.' })
     }
   }
 

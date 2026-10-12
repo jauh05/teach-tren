@@ -7,7 +7,7 @@ const app = createTestApp()
 describe('akun', () => {
   beforeEach(resetDatabase)
 
-  it('daftar membuat sesi tanpa bulat', async () => {
+  it('daftar membuat sesi tanpa neuron', async () => {
     const agent = await registerAgent(app)
     const topics = await agent.get('/api/topics')
     expect(topics.status).toBe(200)

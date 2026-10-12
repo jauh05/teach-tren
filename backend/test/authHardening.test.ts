@@ -80,7 +80,7 @@ describe('ganti kata sandi dan pembersihan token', () => {
 describe('akun baru', () => {
   beforeEach(resetDatabase)
 
-  it('belum punya bulat, tanpa contoh jadwal, memori, atau percakapan', async () => {
+  it('belum punya neuron, tanpa contoh jadwal, memori, atau percakapan', async () => {
     const app = createTestApp()
     const agent = request.agent(app)
     await agent.post('/api/auth/register').send({ name: 'Siswa Baru', email: 'baru@contoh.id', password: TEST_PASSWORD }).expect(201)
@@ -94,7 +94,7 @@ describe('akun baru', () => {
     expect((await agent.get('/api/materi').expect(200)).body.materials).toEqual([])
   })
 
-  it('bulat pertama dibuat dengan tambah bulat, lalu bisa diganti namanya', async () => {
+  it('neuron pertama dibuat dengan tambah neuron, lalu bisa diganti namanya', async () => {
     const agent = request.agent(createTestApp())
     await agent.post('/api/auth/register').send({ name: 'Siswa Baru', email: 'ganti@contoh.id', password: TEST_PASSWORD }).expect(201)
     const created = await agent.post('/api/topics').send({ name: 'Pecahan' }).expect(201)

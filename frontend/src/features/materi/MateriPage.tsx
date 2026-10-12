@@ -70,7 +70,7 @@ export function MateriPage() {
 
         {isGuest && (
           <p className="rounded-xl border border-line bg-slate-50 px-3 py-2 text-sm text-ink">
-            Materi hanya untuk akun. Setelah masuk, kamu bisa mengunggah modul atau catatan, lalu mengaitkannya ke bulat.
+            Materi hanya untuk akun. Setelah masuk, kamu bisa mengunggah modul atau catatan, lalu mengaitkannya ke neuron.
           </p>
         )}
 
@@ -127,7 +127,7 @@ function MaterialCard({ material, topics }: MaterialCardProps) {
           <h2 className="truncate font-heading text-base font-semibold text-ink">{material.title}</h2>
           <p className="mt-0.5 text-xs text-muted">
             {material.type} · {(material.sizeBytes / (1024 * 1024)).toFixed(1)} MB
-            {linkedName && ` · Terkait bulat ${linkedName}`}
+            {linkedName && ` · Terkait neuron ${linkedName}`}
           </p>
         </div>
         <span className={clsx('shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold', STATUS_CLASS[material.status])}>
@@ -160,14 +160,14 @@ function MaterialCard({ material, topics }: MaterialCardProps) {
                       onClick={() => create.mutate(name)}
                     >
                       <Plus size={14} aria-hidden="true" />
-                      {created ? 'Sudah dibuat' : 'Buat bulat'}
+                      {created ? 'Sudah dibuat' : 'Buat neuron'}
                     </Button>
                   </li>
                 )
               })}
             </ul>
             <label className="mt-3 flex flex-col gap-1 text-xs font-semibold text-muted">
-              Kaitkan ke bulat
+              Kaitkan ke neuron
               <select
                 value={material.linkedTopicId ?? ''}
                 onChange={(event) => {
@@ -177,7 +177,7 @@ function MaterialCard({ material, topics }: MaterialCardProps) {
                 }}
                 className="rounded-lg border border-line bg-white px-2.5 py-2 text-sm font-normal text-ink"
               >
-                <option value="">Pilih bulat</option>
+                <option value="">Pilih neuron</option>
                 {topics.map((topic) => (
                   <option key={topic.id} value={topic.id}>
                     {topic.name}

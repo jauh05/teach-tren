@@ -9,7 +9,7 @@ const app = createTestApp()
 describe('jadwal', () => {
   beforeEach(resetDatabase)
 
-  it('saran dari skor dan tautan bulat muncul di minggu ini', async () => {
+  it('saran dari skor dan tautan neuron muncul di minggu ini', async () => {
     const agent = await registerWithExampleGraph(app)
     const response = await agent.get('/api/jadwal')
     expect(response.status).toBe(200)

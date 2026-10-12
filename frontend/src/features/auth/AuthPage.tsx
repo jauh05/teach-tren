@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { ArrowLeft, CircleAlert, Eye, EyeOff, LoaderCircle } from 'lucide-react'
+import { ArrowLeft, CircleAlert, Eye, EyeOff, LoaderCircle, Music2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -73,11 +73,12 @@ export function AuthPage({ kind }: AuthPageProps) {
           <div className={clsx(isSignUp && 'text-center')}>
             <h1 className="font-heading text-[28px] font-bold leading-tight text-ink">{isSignUp ? 'Daftar akun' : 'Masuk'}</h1>
             <p className="mt-1 text-sm text-muted">
-              {isSignUp ? 'Simpan chat, kuis, dan bulat belajar kamu di satu akun.' : 'Lanjutkan belajar dari tempat terakhir kamu berhenti.'}
+              {isSignUp ? 'Simpan chat, kuis, dan neuron belajar kamu di satu akun.' : 'Lanjutkan belajar dari tempat terakhir kamu berhenti.'}
             </p>
           </div>
 
           {isSignUp ? <SignUpForm onDone={finish} /> : <SignInForm onDone={finish} />}
+          <SocialSignIn />
 
           <p className="text-center text-sm text-muted">
             {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
@@ -94,10 +95,40 @@ export function AuthPage({ kind }: AuthPageProps) {
           <Button variant="secondary" className="min-h-[48px] w-full rounded-full md:min-h-[44px]" onClick={enterAsGuest}>
             Lanjut sebagai tamu
           </Button>
-          <p className="text-center text-xs text-muted">Tamu bisa mencoba chat dan satu bulat dari AI tanpa masuk.</p>
+          <p className="text-center text-xs text-muted">Tamu bisa mencoba chat dan satu neuron dari AI tanpa masuk.</p>
         </section>
       </div>
     </main>
+  )
+}
+
+// Sign-in with Google, Facebook, and TikTok. For now these are decoration only: they have no links yet,
+// and they are switched on when the providers are set up.
+const PROVIDERS: { name: string; mark: ReactNode }[] = [
+  { name: 'Google', mark: <span className="text-base font-bold">G</span> },
+  { name: 'Facebook', mark: <span className="text-lg font-bold">f</span> },
+  { name: 'TikTok', mark: <Music2 size={18} aria-hidden="true" /> },
+]
+
+function SocialSignIn() {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <p className="text-xs text-muted">Atau masuk dengan</p>
+      <div className="flex gap-3">
+        {PROVIDERS.map((provider) => (
+          <button
+            key={provider.name}
+            type="button"
+            disabled
+            aria-label={`Masuk dengan ${provider.name}, segera hadir`}
+            title="Segera hadir"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-line bg-white text-ink opacity-60"
+          >
+            {provider.mark}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 

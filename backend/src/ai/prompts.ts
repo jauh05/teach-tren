@@ -106,7 +106,7 @@ export function materiBulatSystemPrompt(contextJson: string): string {
     'KONTEKS (alias, ringkas)',
     contextJson,
     'ATURAN',
-    '1. Tulis tepat satu bagian materi tentang bulat itu. Bagian ini melanjutkan bagian sebelumnya dan tidak mengulang judul yang sudah ada.',
+    '1. Tulis tepat satu bagian materi tentang neuron itu. Bagian ini melanjutkan bagian sebelumnya dan tidak mengulang judul yang sudah ada.',
     '2. Isi 150 sampai 350 kata. Jelaskan konsep dengan contoh singkat.',
     '3. Rumus ditulis dengan LaTeX di antara tanda dolar, misalnya $x = 2$.',
     '4. Jangan mengarang fakta. Jika tidak yakin, tulis bagian yang lebih umum.',

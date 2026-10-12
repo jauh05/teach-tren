@@ -27,7 +27,7 @@ function WelcomePage() {
           <div className="h-[340px] w-full">
             <WelcomeHero />
           </div>
-          <h1 className="mt-2 font-heading text-[30px] font-bold leading-tight text-ink">Belajar lebih terarah, satu bulat satu langkah</h1>
+          <h1 className="mt-2 font-heading text-[30px] font-bold leading-tight text-ink">Belajar lebih terarah, satu neuron satu langkah</h1>
           <p className="mt-3 text-sm text-muted">Chat, kuis, dan roadmap belajarmu dalam satu tempat.</p>
         </section>
 

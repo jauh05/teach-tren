@@ -52,7 +52,7 @@ describe('rencana belajar', () => {
     expect(response.body.rencana).toBeNull()
   })
 
-  it('rencana membuat satu bulat per cabang, dengan satu jalur per mata pelajaran', async () => {
+  it('rencana membuat satu neuron per cabang, dengan satu jalur per mata pelajaran', async () => {
     const agent = await registerAgent(app)
     const saved = await agent.post('/api/rencana').send(PLAN)
     expect(saved.status).toBe(201)
@@ -112,7 +112,7 @@ describe('rencana belajar', () => {
     expect(saved.body.bulat).toBe(6)
   })
 
-  it('cabang yang namanya sudah dipakai bulat lain dilewati', async () => {
+  it('cabang yang namanya sudah dipakai neuron lain dilewati', async () => {
     const agent = await registerAgent(app)
     await agent.post('/api/topics').send({ name: 'pecahan sederhana' }).expect(201)
     const saved = await agent.post('/api/rencana').send(PLAN)
@@ -120,9 +120,9 @@ describe('rencana belajar', () => {
     expect(saved.body.bulat).toBe(5)
   })
 
-  it('roadmap diletakkan di bawah bulat yang sudah ada', async () => {
+  it('roadmap diletakkan di bawah neuron yang sudah ada', async () => {
     const agent = await registerAgent(app)
-    await agent.post('/api/topics').send({ name: 'Bulat lama' }).expect(201)
+    await agent.post('/api/topics').send({ name: 'Neuron lama' }).expect(201)
     const user = await prisma.user.findUniqueOrThrow({ where: { email: 'siswa@contoh.id' } })
     const existing = await prisma.topic.findMany({ where: { userId: user.id } })
     const existingIds = new Set(existing.map((topic) => topic.id))

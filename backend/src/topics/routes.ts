@@ -65,7 +65,7 @@ topicsRouter.post('/saran', async (req, res) => {
   if (input.polaId !== undefined) {
     const topic = await findOwnTopic(actor.userId, input.polaId)
     if (!topic) {
-      throw new AppError(404, 'Bulat tidak ditemukan.')
+      throw new AppError(404, 'Neuron tidak ditemukan.')
     }
     name = topic.name
   }
@@ -116,10 +116,10 @@ topicsRouter.post('/', async (req, res) => {
   const input = createSchema.parse(req.body ?? {})
   const userId = userIdOf(req)
   if (input.dariId && !(await findOwnTopic(userId, input.dariId))) {
-    throw new AppError(404, 'Bulat asal tidak ditemukan.')
+    throw new AppError(404, 'Neuron asal tidak ditemukan.')
   }
   if (await isNameTaken(userId, input.name, null)) {
-    throw new AppError(409, 'Nama bulat sudah dipakai.')
+    throw new AppError(409, 'Nama neuron sudah dipakai.')
   }
   const placed = await prisma.topic.findMany({ where: { userId }, select: { x: true, y: true } })
   const spot = freePosition(placed)
@@ -138,16 +138,16 @@ topicsRouter.post('/tautan', async (req, res) => {
   const input = linkSchema.parse(req.body ?? {})
   const userId = userIdOf(req)
   if (input.dariId === input.keId) {
-    throw new AppError(400, 'Bulat tidak bisa dihubungkan ke dirinya sendiri.')
+    throw new AppError(400, 'Neuron tidak bisa dihubungkan ke dirinya sendiri.')
   }
   if (!(await findOwnTopic(userId, input.dariId)) || !(await findOwnTopic(userId, input.keId))) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
+    throw new AppError(404, 'Neuron tidak ditemukan.')
   }
   const existing = await prisma.topicLink.findUnique({
     where: { userId_sourceId_targetId: { userId, sourceId: input.dariId, targetId: input.keId } },
   })
   if (existing) {
-    throw new AppError(409, 'Kedua bulat sudah terhubung.')
+    throw new AppError(409, 'Kedua neuron sudah terhubung.')
   }
   await prisma.topicLink.create({ data: { userId, sourceId: input.dariId, targetId: input.keId, suggested: false } })
   res.status(201).json({ link: { source: input.dariId, target: input.keId, suggested: false } })
@@ -162,10 +162,10 @@ topicsRouter.patch('/:id', async (req, res) => {
   const id = String(req.params.id)
   const topic = await prisma.topic.findUnique({ where: { userId_id: { userId: userIdOf(req), id } } })
   if (!topic) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
+    throw new AppError(404, 'Neuron tidak ditemukan.')
   }
   if (await isNameTaken(userIdOf(req), name, id)) {
-    throw new AppError(409, 'Nama bulat sudah dipakai.')
+    throw new AppError(409, 'Nama neuron sudah dipakai.')
   }
   const updated = await prisma.topic.update({
     where: { userId_id: { userId: userIdOf(req), id } },
@@ -181,7 +181,7 @@ topicsRouter.post('/:id/scores', async (req, res) => {
   const id = String(req.params.id)
   const topic = await prisma.topic.findUnique({ where: { userId_id: { userId, id } } })
   if (!topic) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
+    throw new AppError(404, 'Neuron tidak ditemukan.')
   }
   const [, updated] = await prisma.$transaction([
     prisma.quizAttempt.create({ data: { userId, topicId: id, percent } }),
@@ -195,7 +195,7 @@ topicsRouter.get('/:id/materi-ai', async (req, res) => {
   const userId = userIdOf(req)
   const id = String(req.params.id)
   if (!(await findOwnTopic(userId, id))) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
+    throw new AppError(404, 'Neuron tidak ditemukan.')
   }
   const parts = await prisma.generatedMaterial.findMany({ where: { userId, topicId: id }, orderBy: { position: 'asc' } })
   res.json({ materi: parts.map(toMateriView) })
@@ -207,7 +207,7 @@ topicsRouter.post('/:id/materi-ai', async (req, res) => {
   const id = String(req.params.id)
   const topic = await findOwnTopic(userId, id)
   if (!topic) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
+    throw new AppError(404, 'Neuron tidak ditemukan.')
   }
   if (!materiLimiter.take(userId)) {
     throw new AppError(429, 'Terlalu sering membuat materi. Coba lagi nanti.', 'TERLALU_CEPAT')
@@ -218,7 +218,7 @@ topicsRouter.post('/:id/materi-ai', async (req, res) => {
     select: { title: true, position: true },
   })
   if (existing.length >= MAX_MATERI_PER_TOPIC) {
-    throw new AppError(409, `Batas ${MAX_MATERI_PER_TOPIC} bagian materi untuk bulat ini sudah tercapai.`)
+    throw new AppError(409, `Batas ${MAX_MATERI_PER_TOPIC} bagian materi untuk neuron ini sudah tercapai.`)
   }
   const position = (existing[existing.length - 1]?.position ?? 0) + 1
   const part = await generateMateriBulat({
@@ -236,13 +236,13 @@ function toMateriView(part: { id: string; position: number; title: string; conte
   return { id: part.id, position: part.position, judul: part.title, isi: part.content }
 }
 
-// A guest may make one bulat with AI on the device. The chat quota is counted separately.
+// A guest may make one neuron with AI on the device. The chat quota is counted separately.
 const GUEST_GENERATE_LIMIT = 1
 
 async function checkGuestGenerate(guestId: string): Promise<void> {
   const usage = await prisma.guestUsage.findUnique({ where: { guestId } })
   if ((usage?.generated ?? 0) >= GUEST_GENERATE_LIMIT) {
-    throw new AppError(429, 'Generate AI gratis sudah dipakai di perangkat ini. Masuk untuk membuat bulat lagi.', 'KUOTA_HABIS')
+    throw new AppError(429, 'Generate AI gratis sudah dipakai di perangkat ini. Masuk untuk membuat neuron lagi.', 'KUOTA_HABIS')
   }
 }
 

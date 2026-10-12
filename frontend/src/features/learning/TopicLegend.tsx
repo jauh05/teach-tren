@@ -31,7 +31,7 @@ export function TopicLegend() {
       </button>
       {open && (
         <section
-          aria-label="Keterangan status bulat"
+          aria-label="Keterangan status neuron"
           className="w-legend rounded-xl border border-line bg-white p-2.5 shadow-lg"
         >
           <ul className="flex flex-col gap-1.5">

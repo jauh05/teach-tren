@@ -49,7 +49,7 @@ describe('centerView', () => {
 })
 
 describe('zoomPercent', () => {
-  it('menampilkan persentase bulat', () => {
+  it('menampilkan persentase neuron', () => {
     expect(zoomPercent(0.4)).toBe(40)
     expect(zoomPercent(1)).toBe(100)
     expect(zoomPercent(1.25)).toBe(125)
@@ -64,15 +64,15 @@ describe('neighborInDirection', () => {
     d: { x: 300, y: 300 },
   }
 
-  it('memilih bulat terdekat di arah kanan', () => {
+  it('memilih neuron terdekat di arah kanan', () => {
     expect(neighborInDirection('a', 'right', positions)).toBe('b')
   })
 
-  it('memilih bulat di bawah untuk arah bawah', () => {
+  it('memilih neuron di bawah untuk arah bawah', () => {
     expect(neighborInDirection('a', 'down', positions)).toBe('c')
   })
 
-  it('mengembalikan null jika tidak ada bulat di arah itu', () => {
+  it('mengembalikan null jika tidak ada neuron di arah itu', () => {
     expect(neighborInDirection('d', 'right', positions)).toBeNull()
     expect(neighborInDirection('a', 'left', positions)).toBeNull()
   })
@@ -84,7 +84,7 @@ describe('fitView', () => {
     expect(view.k).toBe(1)
   })
 
-  it('memperkecil zoom kalau bulat tidak muat di kanvas ponsel, dan tidak di bawah batas minimum', () => {
+  it('memperkecil zoom kalau neuron tidak muat di kanvas ponsel, dan tidak di bawah batas minimum', () => {
     const wide = fitView(330, 300, [{ x: 0, y: 0 }, { x: 900, y: 0 }])
     expect(wide.k).toBeLessThan(1)
     expect(wide.k).toBeGreaterThanOrEqual(0.4)

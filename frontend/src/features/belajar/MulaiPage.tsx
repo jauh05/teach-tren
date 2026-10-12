@@ -38,7 +38,7 @@ const STEP_TEXT: Record<WizardStep, { title: string; subtitle: string }> = {
   mapel: { title: 'Mata pelajaran apa?', subtitle: 'Pilih satu atau lebih mata pelajaran. Roadmap dibuat dari pilihan ini.' },
   roadmap: {
     title: 'Roadmap belajarmu',
-    subtitle: `Roadmap berisi ${MIN_CABANG} sampai ${MAX_CABANG} cabang. Setiap cabang menjadi bulat di Learning.`,
+    subtitle: `Roadmap berisi ${MIN_CABANG} sampai ${MAX_CABANG} cabang. Setiap cabang menjadi neuron di Learning.`,
   },
 }
 

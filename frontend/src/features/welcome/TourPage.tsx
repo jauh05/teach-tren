@@ -4,7 +4,12 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { TourArt } from '../../components/illustrations/WelcomeArt'
 import { continueAsGuest, useSessionStore } from '../../stores/sessionStore'
 
-const SLIDES: { scene: 'chat' | 'roadmap' | 'progress'; title: string; text: string }[] = [
+const SLIDES: { scene: 'memory' | 'chat' | 'roadmap' | 'progress'; title: string; text: string }[] = [
+  {
+    scene: 'memory',
+    title: 'Learning memory',
+    text: 'Learning memory mengenali pola belajarmu dan memahaminya. Pola itu digambar sebagai diagram neuron, seperti cara kerja otak.',
+  },
   {
     scene: 'chat',
     title: 'Tanya apa saja di chat',
@@ -13,16 +18,16 @@ const SLIDES: { scene: 'chat' | 'roadmap' | 'progress'; title: string; text: str
   {
     scene: 'roadmap',
     title: 'Susun roadmap belajarmu',
-    text: 'AI membuat cabang belajar sesuai kelas dan mata pelajaranmu. Kamu bisa mengubahnya sebelum mulai.',
+    text: 'AI menyusun cabang belajar sesuai kelas dan mata pelajaranmu. Setiap cabang menjadi neuron yang saling terhubung.',
   },
   {
     scene: 'progress',
     title: 'Lihat kemajuanmu',
-    text: 'Skor kuis mewarnai setiap bulat, dari sudah dikuasai sampai perlu diulang.',
+    text: 'Skor kuis mewarnai setiap neuron, dari sudah dikuasai sampai perlu diulang.',
   },
 ]
 
-// Three short slides after "Mulai". The last slide leads to sign-up or to the guest mode.
+// Short slides after "Mulai", a tutorial before sign-up or sign-in. The last slide leads to sign-up or to the guest mode.
 export function TourRoute() {
   const mode = useSessionStore((state) => state.mode)
   if (mode === 'signedIn') {

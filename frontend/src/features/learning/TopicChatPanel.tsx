@@ -73,7 +73,7 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
         ) : (
           <div className="min-w-0">
             <h2 className="truncate font-heading text-base font-semibold text-ink">{GENERAL_LEARNING_TITLE}</h2>
-            <p className="mt-0.5 text-xs text-muted">Pilih bulat di kanvas untuk chat tentang topik itu.</p>
+            <p className="mt-0.5 text-xs text-muted">Pilih neuron di kanvas untuk chat tentang topik itu.</p>
           </div>
         )}
 
@@ -122,8 +122,8 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
       )}
 
       {topic && (
-        <section aria-label="Materi bulat" className="max-h-[220px] overflow-y-auto border-b border-line px-4 py-3">
-          {isGuest && <p className="text-xs text-muted">Materi bulat tersedia setelah masuk.</p>}
+        <section aria-label="Materi neuron" className="max-h-[220px] overflow-y-auto border-b border-line px-4 py-3">
+          {isGuest && <p className="text-xs text-muted">Materi neuron tersedia setelah masuk.</p>}
           {!isGuest && generatePart.isError && (
             <p role="alert" className="mb-2 text-xs text-red-700">
               {generatePart.error.message}
@@ -159,7 +159,7 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
             emptyText={
               topic
                 ? `Belum ada percakapan tentang ${topic.name}. Tulis pertanyaan di bawah.`
-                : 'Tulis pertanyaan belajar di bawah. Pilih bulat untuk chat tentang topik tertentu.'
+                : 'Tulis pertanyaan belajar di bawah. Pilih neuron untuk chat tentang topik tertentu.'
             }
             compact
           />
@@ -209,7 +209,7 @@ function RenameForm({ topicId, currentName, onDone }: RenameFormProps) {
       className="flex flex-col gap-2 rounded-xl border border-line bg-slate-50 p-3"
     >
       <label htmlFor={inputId} className="text-xs font-semibold text-ink">
-        Nama bulat
+        Nama neuron
       </label>
       <input
         id={inputId}

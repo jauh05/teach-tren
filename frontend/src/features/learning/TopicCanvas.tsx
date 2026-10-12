@@ -296,7 +296,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
         width={size.width}
         height={size.height}
         role="group"
-        aria-label="Kanvas bulat belajar"
+        aria-label="Kanvas neuron belajar"
         className="block"
       >
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
@@ -357,7 +357,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
       </div>
 
       <p data-canvas-obstacle className="pointer-events-none absolute bottom-3 left-3 hidden rounded-lg border border-line bg-white px-2.5 py-1.5 text-micro text-muted md:block">
-        Geser bulat · ketuk + untuk mulai chat
+        Geser neuron · ketuk + untuk mulai chat
       </p>
     </div>
   )

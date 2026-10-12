@@ -106,7 +106,7 @@ describe('alur kuis', () => {
     expect(blocked.body.kode).toBe('KUOTA_HABIS')
   })
 
-  it('pengguna masuk: nilai disimpan ke bulat, pembahasan tampil, dan ulangi soal salah tidak mengubah skor', async () => {
+  it('pengguna masuk: nilai disimpan ke neuron, pembahasan tampil, dan ulangi soal salah tidak mengubah skor', async () => {
     const agent = await registerWithExampleGraph(app)
     const created = await agent.post('/api/kuis/generate').send({ sumberId: 'persamaan-linear', count: 5, level: 'Sedang', style: 'Campuran' })
     const quiz = created.body.quiz

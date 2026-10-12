@@ -4,12 +4,12 @@ import { createTestApp, registerAgent, resetDatabase } from './helpers.js'
 
 const app = createTestApp()
 
-describe('posisi bulat baru', () => {
-  it('tanpa bulat lain, bulat baru berada di tengah kanvas', () => {
+describe('posisi neuron baru', () => {
+  it('tanpa neuron lain, neuron baru berada di tengah kanvas', () => {
     expect(freePosition([])).toEqual({ x: 280, y: 170 })
   })
 
-  it('tidak pernah berdekatan dengan bulat yang sudah ada', () => {
+  it('tidak pernah berdekatan dengan neuron yang sudah ada', () => {
     const existing = [{ x: 280, y: 170 }, { x: 330, y: 170 }, { x: 280, y: 220 }]
     const spot = freePosition(existing)
     for (const point of existing) {
@@ -20,7 +20,7 @@ describe('posisi bulat baru', () => {
   describe('lewat API', () => {
     beforeEach(resetDatabase)
 
-    it('tiga bulat baru tidak menumpuk dan tidak disimpan di (0, 0)', async () => {
+    it('tiga neuron baru tidak menumpuk dan tidak disimpan di (0, 0)', async () => {
       const agent = await registerAgent(app)
       for (const name of ['Pecahan', 'Desimal', 'Persen']) {
         await agent.post('/api/topics').send({ name }).expect(201)

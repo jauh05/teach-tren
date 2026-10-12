@@ -71,13 +71,13 @@ export function LearningPage() {
   })
 
   if (isPending) {
-    return <p className="p-6 text-sm text-muted">Memuat bulat...</p>
+    return <p className="p-6 text-sm text-muted">Memuat neuron...</p>
   }
 
   if (isError) {
     return (
       <p role="alert" className="p-6 text-sm text-red-700">
-        Bulat belum bisa dimuat. Coba muat ulang halaman.
+        Neuron belum bisa dimuat. Coba muat ulang halaman.
       </p>
     )
   }

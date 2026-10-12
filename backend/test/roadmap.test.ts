@@ -107,13 +107,13 @@ describe('buildRoadmap', () => {
     expect(roadmap.topics).toHaveLength(1)
   })
 
-  it('roadmap tidak naik ke atas bulat yang sudah ada', () => {
+  it('roadmap tidak naik ke atas neuron yang sudah ada', () => {
     const roadmap = build(['Matematika'], [{ subject: 'Matematika', name: 'Bilangan' }], { minTop: 400 })
     expect(Math.min(...roadmap.topics.map((topic) => topic.y))).toBeGreaterThanOrEqual(400)
     expect(ROW_GAP).toBeGreaterThan(0)
   })
 
-  it('tanpa materi, tidak ada bulat dan tidak ada tautan', () => {
+  it('tanpa materi, tidak ada neuron dan tidak ada tautan', () => {
     expect(build(['Matematika'], [])).toEqual({ topics: [], links: [] })
   })
 })

@@ -45,10 +45,10 @@ export function AddTopicDialog({ open, locked, onClose, onCreated }: AddTopicDia
 
   if (locked && !created) {
     return (
-      <Dialog open={open} title="Tambah belajar" description="Bulat dari perangkat ini sudah dibuat." onClose={close}>
+      <Dialog open={open} title="Tambah belajar" description="Neuron dari perangkat ini sudah dibuat." onClose={close}>
         <div className="flex flex-col gap-3">
           <p className="text-sm text-muted">
-            Masuk untuk membuat bulat lagi. Bulat dari perangkat ini ikut pindah ke akunmu.
+            Masuk untuk membuat neuron lagi. Neuron dari perangkat ini ikut pindah ke akunmu.
           </p>
           <Link
             to="/masuk?redirect=%2Flearning"
@@ -138,7 +138,7 @@ function GoalPanel({ onAdded }: GoalPanelProps) {
       <SuggestionState query={suggestions} />
       {quotaUsed && (
         <Link to="/masuk?redirect=%2Flearning" className="text-sm font-semibold text-brand-dark underline">
-          Masuk untuk membuat bulat lagi
+          Masuk untuk membuat neuron lagi
         </Link>
       )}
       {suggestions.data && <SuggestionList items={suggestions.data} onAdd={(name, id) => onAdded(id, name)} />}
@@ -253,7 +253,7 @@ interface NextMenuProps {
   onDone: () => void
 }
 
-// Guests have used their one AI bulat, so both options ask for an account.
+// Guests have used their one AI neuron, so both options ask for an account.
 function NextMenu({ onChoose, onDone }: NextMenuProps) {
   const isGuest = useSessionStore((state) => state.mode !== 'signedIn')
   return (

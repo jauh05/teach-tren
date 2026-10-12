@@ -77,7 +77,7 @@ describe('materi', () => {
     expect(response.body.pesan).toBe('Batas 50 materi sudah tercapai.')
   })
 
-  it('materi dikaitkan ke bulat dan tampil di daftar bulat', async () => {
+  it('materi dikaitkan ke neuron dan tampil di daftar neuron', async () => {
     const agent = await registerWithExampleGraph(app)
     const uploaded = await agent.post('/api/materi').attach('berkas', await makeDocx(['Fungsi kuadrat adalah fungsi berderajat dua.']), 'catatan-fungsi.docx')
     const id = uploaded.body.material.id
@@ -92,7 +92,7 @@ describe('materi', () => {
     expect(topic.materials).toEqual(['catatan-fungsi'])
   })
 
-  it('bulat milik orang lain tidak bisa dipakai untuk mengaitkan materi', async () => {
+  it('neuron milik orang lain tidak bisa dipakai untuk mengaitkan materi', async () => {
     const owner = await registerAgent(app, 'pemilik@contoh.id')
     const created = await owner.post('/api/topics').send({ name: 'Rahasia' })
     const other = await registerAgent(app, 'lain@contoh.id')
@@ -100,7 +100,7 @@ describe('materi', () => {
 
     const response = await other.post(`/api/materi/${uploaded.body.material.id}/link`).send({ topicId: created.body.topic.id })
     expect(response.status).toBe(404)
-    expect(response.body.pesan).toBe('Bulat tidak ditemukan.')
+    expect(response.body.pesan).toBe('Neuron tidak ditemukan.')
   })
 
   it('materi milik orang lain tidak bisa dilihat atau dikaitkan', async () => {

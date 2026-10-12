@@ -10,7 +10,7 @@ function usesServer(): boolean {
   return useSessionStore.getState().mode === 'signedIn'
 }
 
-const SIGN_IN_TO_ADD_MORE = 'Masuk untuk membuat bulat lagi.'
+const SIGN_IN_TO_ADD_MORE = 'Masuk untuk membuat neuron lagi.'
 const SIGN_IN_TO_USE = 'Masuk untuk memakai fitur ini.'
 const GUEST_TOPIC_KEY = 'teach-tren-pola-tamu'
 // Topics a guest may hold on the device: one, made with AI. After that, signing in is needed.
@@ -131,7 +131,7 @@ export async function renameTopic(topicId: string, name: string): Promise<void> 
   }
   const topics = readGuestTopics()
   if (topics.some((topic) => topic.id !== topicId && sameName(topic.name, trimmed))) {
-    throw new Error('Nama bulat sudah dipakai.')
+    throw new Error('Nama neuron sudah dipakai.')
   }
   writeGuestTopics(topics.map((topic) => (topic.id === topicId ? { ...topic, name: trimmed } : topic)))
 }
@@ -151,7 +151,7 @@ export async function createTopic(name: string, dariId?: string): Promise<string
     throw new Error(SIGN_IN_TO_ADD_MORE)
   }
   if (topics.some((topic) => sameName(topic.name, trimmed))) {
-    throw new Error('Nama bulat sudah dipakai.')
+    throw new Error('Nama neuron sudah dipakai.')
   }
   const id = crypto.randomUUID()
   writeGuestTopics([...topics, { id, name: trimmed, ...GUEST_TOPIC_POSITION }])

@@ -8,5 +8,5 @@ export function normalizeTopicName(name: string): string {
 export const topicNameSchema = z
   .string()
   .trim()
-  .min(1, 'Nama bulat tidak boleh kosong.')
-  .max(60, 'Nama bulat maksimal 60 karakter.')
+  .min(1, 'Nama neuron tidak boleh kosong.')
+  .max(60, 'Nama neuron maksimal 60 karakter.')

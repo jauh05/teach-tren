@@ -1,4 +1,4 @@
-// Topic (bulat) status rules from docs/role.md section 4.1 and CC-04.
+// Topic (neuron) status rules from docs/role.md section 4.1 and CC-04.
 // Names are the status codes used by the planned API.
 
 export type TopicStatus = 'DIKUASAI' | 'SEDANG' | 'PERLU_DIULANG' | 'BARU' | 'BELUM_DIBUKA' | 'SARAN'

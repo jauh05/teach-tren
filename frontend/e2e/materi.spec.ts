@@ -55,13 +55,13 @@ test.describe('Materi', () => {
     await expect(page.getByRole('dialog')).toBeHidden()
   })
 
-  test('usulan topik membuat bulat baru di Learning', async ({ page }, testInfo) => {
+  test('usulan topik membuat neuron baru di Learning', async ({ page }, testInfo) => {
     await page.goto('/materi')
     await unggah(page, { name: 'modul-persamaan.pdf', mimeType: 'application/pdf', buffer: PDF_BYTES })
     const card = page.getByRole('article').filter({ hasText: 'modul-persamaan' })
     await expect(card.getByText('Siap', { exact: true })).toBeVisible({ timeout: 5000 })
 
-    await card.getByRole('button', { name: 'Buat bulat' }).first().click()
+    await card.getByRole('button', { name: 'Buat neuron' }).first().click()
     await expect(card.getByRole('button', { name: 'Sudah dibuat' }).first()).toBeVisible()
 
     // Client-side navigation keeps the in-memory topic graph.
@@ -77,13 +77,13 @@ test.describe('Materi', () => {
     // Topics drift slowly, so click the center of the element instead of waiting for it to stop moving.
     const box = await page.locator(`[data-topic-action="chat"][data-topic-id="${id}"]`).boundingBox()
     if (!box) {
-      throw new Error('Tombol chat bulat tidak terlihat')
+      throw new Error('Tombol chat neuron tidak terlihat')
     }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
     await expect(page.getByRole('complementary', { name: 'Chat topik' }).getByRole('heading', { name: /Pengantar materi/ })).toBeVisible()
   })
 
-  test('materi dikaitkan ke bulat dan tampil di topiknya', async ({ page }) => {
+  test('materi dikaitkan ke neuron dan tampil di topiknya', async ({ page }) => {
     await page.goto('/materi')
     await unggah(page, {
       name: 'catatan-fungsi.docx',
@@ -93,7 +93,7 @@ test.describe('Materi', () => {
     const card = page.getByRole('article').filter({ hasText: 'catatan-fungsi' })
     await expect(card.getByText('Siap', { exact: true })).toBeVisible({ timeout: 5000 })
 
-    await card.getByRole('combobox', { name: /Kaitkan ke bulat/ }).selectOption('fungsi-kuadrat')
-    await expect(card.getByText('Terkait bulat Fungsi kuadrat')).toBeVisible()
+    await card.getByRole('combobox', { name: /Kaitkan ke neuron/ }).selectOption('fungsi-kuadrat')
+    await expect(card.getByText('Terkait neuron Fungsi kuadrat')).toBeVisible()
   })
 })

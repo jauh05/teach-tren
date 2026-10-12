@@ -17,7 +17,7 @@ export function MessageBubble({ message, onCopy, onRegenerate, onCreateQuiz, onM
     return (
       <div className="flex max-w-[70%] flex-col items-end gap-1 self-end">
         <div className="whitespace-pre-wrap rounded-2xl border border-line bg-white px-4 py-2.5 text-[14px] text-ink shadow-sm">{message.content}</div>
-        {onMakeTopic && <ActionButton icon={Plus} label="Jadikan bulat" onClick={onMakeTopic} />}
+        {onMakeTopic && <ActionButton icon={Plus} label="Jadikan neuron" onClick={onMakeTopic} />}
       </div>
     )
   }

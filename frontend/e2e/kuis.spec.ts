@@ -55,7 +55,7 @@ test.describe('Kuis', () => {
     await expect(page.getByRole('button', { name: 'Ditandai ragu' })).toBeVisible()
   })
 
-  test('menyelesaikan kuis memperbarui status bulat di Learning', async ({ page }) => {
+  test('menyelesaikan kuis memperbarui status neuron di Learning', async ({ page }) => {
     await page.goto('/kuis/persamaan-linear')
     for (let index = 0; index < CORRECT.length; index++) {
       await answer(page, CORRECT[index])

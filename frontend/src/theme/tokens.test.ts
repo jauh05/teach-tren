@@ -39,7 +39,7 @@ describe('token warna sama dengan docs/design/palet.md', () => {
     expect(colors.canvas).toBe(documented('canvas'))
   })
 
-  it('warna status bulat', () => {
+  it('warna status neuron', () => {
     expect(colors.status.kuasai).toBe(documented('kuasai'))
     expect(colors.status.sedang).toBe(documented('sedang'))
     expect(colors.status.ulang).toBe(documented('ulang'))

@@ -31,7 +31,7 @@ export interface MemoryEntry {
   date: string
 }
 
-// A learning topic (bulat). Status is derived from these fields with topicStatusOf.
+// A learning topic (neuron). Status is derived from these fields with topicStatusOf.
 export interface Topic {
   id: string
   name: string

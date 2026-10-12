@@ -22,7 +22,7 @@ export function NextStepsCard({ conversationId }: NextStepsCardProps) {
   const steps = [
     { label: 'Kerjakan kuis', action: 'Mulai', run: () => openQuizSetup(conversationId) },
     { label: 'Jadwalkan belajar', action: 'Atur', run: () => navigate('/jadwal') },
-    { label: 'Buat materi lanjutan (tambah bulat)', action: 'Buat', run: () => navigate('/learning') },
+    { label: 'Buat materi lanjutan (tambah neuron)', action: 'Buat', run: () => navigate('/learning') },
   ]
 
   return (

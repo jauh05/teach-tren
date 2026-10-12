@@ -37,7 +37,7 @@ export function QuizResult({ quiz, result, isGuest, onRestart, onRetryWrong, onE
             ? 'Hasil hanya tersimpan di perangkat ini. Masuk untuk menyimpan skor dan melihat pembahasan.'
             : result.retry
               ? 'Hasil ulang tidak mengubah skor yang tersimpan.'
-              : `Skor masuk riwayat dan memperbarui status bulat ${quiz.topicName}.`}
+              : `Skor masuk riwayat dan memperbarui status neuron ${quiz.topicName}.`}
         </p>
       </div>
 

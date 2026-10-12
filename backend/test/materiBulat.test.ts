@@ -42,7 +42,7 @@ describe('saran pola untuk tamu', () => {
   })
 })
 
-describe('materi per bagian untuk bulat', () => {
+describe('materi per bagian untuk neuron', () => {
   beforeEach(resetDatabase)
 
   it('setiap klik membuat satu bagian berurutan, dan daftar menampilkannya', async () => {
@@ -57,7 +57,7 @@ describe('materi per bagian untuk bulat', () => {
     expect(list.body.materi.map((part: { position: number }) => part.position)).toEqual([1, 2])
   })
 
-  it('bagian materi dibatasi dua puluh per bulat', async () => {
+  it('bagian materi dibatasi dua puluh per neuron', async () => {
     const agent = await registerWithExampleGraph(app)
     for (let index = 0; index < 20; index++) {
       await agent.post('/api/topics/bilangan/materi-ai').expect(201)

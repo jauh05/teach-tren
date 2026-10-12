@@ -15,7 +15,7 @@ materiRouter.use(requireUser)
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_MATERIAL_BYTES, files: 1 } })
 
 const linkSchema = z.object({
-  topicId: z.string().min(1, 'Pilih bulat terlebih dahulu.'),
+  topicId: z.string().min(1, 'Pilih neuron terlebih dahulu.'),
 })
 
 // Reads one uploaded file. Size and form errors become readable messages.
@@ -107,7 +107,7 @@ materiRouter.post('/:id/link', async (req, res) => {
   }
   const topic = await prisma.topic.findUnique({ where: { userId_id: { userId, id: topicId } } })
   if (!topic) {
-    throw new AppError(404, 'Bulat tidak ditemukan.')
+    throw new AppError(404, 'Neuron tidak ditemukan.')
   }
   const updated = await prisma.material.update({ where: { id }, data: { topicId } })
   res.json({ material: toMaterial(updated) })

@@ -3,24 +3,24 @@ import { createTestApp, registerAgent, registerWithExampleGraph, resetDatabase }
 
 const app = createTestApp()
 
-describe('bulat', () => {
+describe('neuron', () => {
   beforeEach(resetDatabase)
 
-  it('nama bulat yang sama walau beda huruf besar ditolak', async () => {
+  it('nama neuron yang sama walau beda huruf besar ditolak', async () => {
     const agent = await registerAgent(app)
     await agent.post('/api/topics').send({ name: 'Geometri' }).expect(201)
     const response = await agent.post('/api/topics').send({ name: '  geometri ' })
     expect(response.status).toBe(409)
-    expect(response.body.pesan).toBe('Nama bulat sudah dipakai.')
+    expect(response.body.pesan).toBe('Nama neuron sudah dipakai.')
   })
 
-  it('ganti nama ke nama bulat sendiri tetap boleh', async () => {
+  it('ganti nama ke nama neuron sendiri tetap boleh', async () => {
     const agent = await registerAgent(app)
     const created = await agent.post('/api/topics').send({ name: 'Geometri' })
     await agent.patch(`/api/topics/${created.body.topic.id}`).send({ name: 'geometri' }).expect(200)
   })
 
-  it('bulat orang lain tidak bisa diganti namanya', async () => {
+  it('neuron orang lain tidak bisa diganti namanya', async () => {
     const owner = await registerAgent(app, 'pemilik@contoh.id')
     const created = await owner.post('/api/topics').send({ name: 'Rahasia' })
     const other = await registerAgent(app, 'lain@contoh.id')
@@ -36,7 +36,7 @@ describe('bulat', () => {
     expect(high.status).toBe(400)
   })
 
-  it('skor tersimpan sebagai skor terbaru bulat', async () => {
+  it('skor tersimpan sebagai skor terbaru neuron', async () => {
     const agent = await registerWithExampleGraph(app)
     await agent.post('/api/topics/fungsi-kuadrat/scores').send({ percent: 60 }).expect(201)
     const response = await agent.post('/api/topics/fungsi-kuadrat/scores').send({ percent: 80 })
@@ -47,18 +47,18 @@ describe('bulat', () => {
     expect(topic.lastScore).toBe(80)
   })
 
-  it('skor untuk bulat yang tidak ada ditolak', async () => {
+  it('skor untuk neuron yang tidak ada ditolak', async () => {
     const agent = await registerAgent(app)
     const response = await agent.post('/api/topics/tidak-ada/scores').send({ percent: 50 })
     expect(response.status).toBe(404)
-    expect(response.body.pesan).toBe('Bulat tidak ditemukan.')
+    expect(response.body.pesan).toBe('Neuron tidak ditemukan.')
   })
 })
 
 describe('pola berikutnya', () => {
   beforeEach(resetDatabase)
 
-  it('bulat yang dibuat dari bulat lain terhubung dari bulat asal', async () => {
+  it('neuron yang dibuat dari neuron lain terhubung dari neuron asal', async () => {
     const agent = await registerWithExampleGraph(app)
     const created = await agent.post('/api/topics').send({ name: 'Pecahan campuran', dariId: 'bilangan' }).expect(201)
 
@@ -66,13 +66,13 @@ describe('pola berikutnya', () => {
     expect(graph.links).toContainEqual({ source: 'bilangan', target: created.body.topic.id, suggested: false })
   })
 
-  it('bulat asal yang tidak dimiliki akun ditolak', async () => {
+  it('neuron asal yang tidak dimiliki akun ditolak', async () => {
     const agent = await registerWithExampleGraph(app)
     const response = await agent.post('/api/topics').send({ name: 'Pecahan campuran', dariId: 'tidak-ada' })
     expect(response.status).toBe(404)
   })
 
-  it('tautan antar bulat dibuat sekali, dan tautan ke diri sendiri atau ke bulat asing ditolak', async () => {
+  it('tautan antar neuron dibuat sekali, dan tautan ke diri sendiri atau ke neuron asing ditolak', async () => {
     const agent = await registerWithExampleGraph(app)
     await agent.post('/api/topics/tautan').send({ dariId: 'sel-tumbuhan', keId: 'bilangan' }).expect(201)
 
@@ -85,7 +85,7 @@ describe('pola berikutnya', () => {
     expect((await agent.post('/api/topics/tautan').send({ dariId: 'bilangan', keId: foreign.body.topic.id })).status).toBe(404)
   })
 
-  it('saran pola dari AI memakai nama yang belum ada, dan bulat yang tidak dimiliki akun ditolak', async () => {
+  it('saran pola dari AI memakai nama yang belum ada, dan neuron yang tidak dimiliki akun ditolak', async () => {
     const agent = await registerWithExampleGraph(app)
     const response = await agent.post('/api/topics/saran').send({ polaId: 'persamaan-linear' })
     expect(response.status).toBe(200)
@@ -95,7 +95,7 @@ describe('pola berikutnya', () => {
     expect((await agent.post('/api/topics/saran').send({ polaId: 'tidak-ada' })).status).toBe(404)
   })
 
-  it('saran yang namanya sudah dipakai bulat lain tidak diulang', async () => {
+  it('saran yang namanya sudah dipakai neuron lain tidak diulang', async () => {
     const agent = await registerWithExampleGraph(app)
     await agent.post('/api/topics').send({ name: 'Latihan Persamaan linear' }).expect(201)
     const response = await agent.post('/api/topics/saran').send({ polaId: 'persamaan-linear' }).expect(200)

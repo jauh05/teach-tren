@@ -7,7 +7,7 @@ import { findSubject, type CurriculumLevel } from '../kurikulum/catalog.js'
 import { logger } from '../logger.js'
 import { normalizeTopicName } from '../topics/names.js'
 
-// A roadmap has between 6 and 12 branches (cabang). One branch becomes one topic (bulat) on the canvas.
+// A roadmap has between 6 and 12 branches (cabang). One branch becomes one topic (neuron) on the canvas.
 export const MIN_CABANG = 6
 export const MAX_CABANG = 12
 

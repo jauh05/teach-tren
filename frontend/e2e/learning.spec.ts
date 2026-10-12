@@ -24,7 +24,7 @@ async function clickCenter(page: Page, locator: Locator) {
 async function dragTopic(page: Page, id: string, dx: number, dy: number) {
   const box = await topic(page, id).boundingBox()
   if (!box) {
-    throw new Error(`Bulat ${id} tidak ditemukan`)
+    throw new Error(`Neuron ${id} tidak ditemukan`)
   }
   const startX = box.x + box.width / 2
   const startY = box.y + box.height / 2
@@ -39,7 +39,7 @@ async function dragTopic(page: Page, id: string, dx: number, dy: number) {
 test.describe('Learning', () => {
   test('kanvas dan kontrol zoom tampil tanpa scroll horizontal', async ({ page }) => {
     await page.goto('/learning')
-    await expect(page.getByRole('group', { name: 'Kanvas bulat belajar' })).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Kanvas neuron belajar' })).toBeVisible()
     await expect(page.getByRole('toolbar', { name: 'Kontrol zoom' })).toBeVisible()
     await expect(topic(page, 'persamaan-linear')).toBeVisible()
     await expectNoHorizontalScroll(page)
@@ -64,12 +64,12 @@ test.describe('Learning', () => {
     await expect(toolbar.getByText('200%')).toBeHidden()
   })
 
-  test('tarik bulat menggeser bulat itu', async ({ page }) => {
+  test('tarik neuron menggeser neuron itu', async ({ page }) => {
     await page.goto('/learning')
     await page.waitForTimeout(500)
     const before = await topic(page, 'persamaan-linear').boundingBox()
     if (!before) {
-      throw new Error('Bulat persamaan-linear tidak ditemukan')
+      throw new Error('Neuron persamaan-linear tidak ditemukan')
     }
 
     await dragTopic(page, 'persamaan-linear', -90, 30)
@@ -93,7 +93,7 @@ test.describe('Learning', () => {
     expect(Math.abs((reloaded?.y ?? 0) - (initial?.y ?? 0))).toBeLessThan(2)
   })
 
-  test('nama bulat tidak saling menabrak', async ({ page }) => {
+  test('nama neuron tidak saling menabrak', async ({ page }) => {
     await page.goto('/learning')
     await page.waitForTimeout(800)
 
@@ -125,7 +125,7 @@ test.describe('Learning', () => {
     expect(overlaps).toEqual([])
   })
 
-  test('ketuk bulat membuka chat topik', async ({ page }) => {
+  test('ketuk neuron membuka chat topik', async ({ page }) => {
     await page.goto('/learning')
     await clickCenter(page, topic(page, 'persamaan-linear'))
 
@@ -164,7 +164,7 @@ test.describe('Learning', () => {
     await expect(topicChat(page).getByRole('heading', { name: 'Bilangan' })).toBeVisible()
   })
 
-  test('panah berpindah antar bulat dan Enter membuka chat topik', async ({ page }) => {
+  test('panah berpindah antar neuron dan Enter membuka chat topik', async ({ page }) => {
     await page.goto('/learning')
     await topic(page, 'persamaan-linear').focus()
     await page.keyboard.press('ArrowLeft')
@@ -174,7 +174,7 @@ test.describe('Learning', () => {
     await expect(topicChat(page).getByRole('heading', { name: 'Bilangan' })).toBeVisible()
   })
 
-  test('chat belajar selalu terlihat tanpa bulat dipilih', async ({ page }) => {
+  test('chat belajar selalu terlihat tanpa neuron dipilih', async ({ page }) => {
     await page.goto('/learning')
     await expect(topicChat(page).getByRole('heading', { name: 'Chat belajar umum' })).toBeVisible()
     await expect(topicChat(page).getByRole('textbox', { name: 'Tulis pertanyaan' })).toBeVisible()
@@ -213,13 +213,13 @@ test.describe('Learning tamu', () => {
     await expectNoHorizontalScroll(page)
   })
 
-  test('zoom bekerja di kanvas kosong, dan bulat contoh ikut membesar dan kembali', async ({ page }) => {
+  test('zoom bekerja di kanvas kosong, dan neuron contoh ikut membesar dan kembali', async ({ page }) => {
     await page.goto('/learning')
     const toolbar = page.getByRole('toolbar', { name: 'Kontrol zoom' })
     const sample = page.locator('[data-sample="DIKUASAI"] circle')
     const before = await sample.boundingBox()
     if (!before) {
-      throw new Error('Bulat contoh tidak terlihat')
+      throw new Error('Neuron contoh tidak terlihat')
     }
 
     await toolbar.getByRole('button', { name: 'Perbesar' }).click()
@@ -243,14 +243,14 @@ test.describe('Learning tamu', () => {
     expect(Math.abs(slot.y + slot.height / 2 - (board.y + board.height / 2))).toBeLessThan(6)
   })
 
-  test('bulat contoh tidak menimpa tombol papan saat ditarik ke sana', async ({ page }) => {
+  test('neuron contoh tidak menimpa tombol papan saat ditarik ke sana', async ({ page }) => {
     await page.goto('/learning')
     const sample = page.locator('[data-sample="DIKUASAI"] circle')
     const control = page.getByRole('button', { name: 'Perbesar papan' })
     const from = await sample.boundingBox()
     const target = await control.boundingBox()
     if (!from || !target) {
-      throw new Error('Bulat contoh atau tombol papan tidak terlihat')
+      throw new Error('Neuron contoh atau tombol papan tidak terlihat')
     }
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
     await page.mouse.down()
@@ -262,19 +262,19 @@ test.describe('Learning tamu', () => {
     const circle = await sample.boundingBox()
     const after = await control.boundingBox()
     if (!circle || !after) {
-      throw new Error('Bulat contoh atau tombol papan tidak terlihat')
+      throw new Error('Neuron contoh atau tombol papan tidak terlihat')
     }
     const overlaps =
       circle.x < after.x + after.width && circle.x + circle.width > after.x && circle.y < after.y + after.height && circle.y + circle.height > after.y
     expect(overlaps).toBe(false)
   })
 
-  test('bulat contoh di kanvas kosong bisa digeser', async ({ page }) => {
+  test('neuron contoh di kanvas kosong bisa digeser', async ({ page }) => {
     await page.goto('/learning')
     const sample = page.locator('[data-sample="PERLU_DIULANG"] circle')
     const before = await sample.boundingBox()
     if (!before) {
-      throw new Error('Bulat contoh tidak terlihat')
+      throw new Error('Neuron contoh tidak terlihat')
     }
     const startX = before.x + before.width / 2
     const startY = before.y + before.height / 2
@@ -286,14 +286,14 @@ test.describe('Learning tamu', () => {
     await expect.poll(async () => before.x - ((await sample.boundingBox())?.x ?? 0)).toBeGreaterThan(4)
   })
 
-  test('bulat contoh yang terhubung ikut bergerak saat satu bulat ditarik', async ({ page }) => {
+  test('neuron contoh yang terhubung ikut bergerak saat satu neuron ditarik', async ({ page }) => {
     await page.goto('/learning')
     const dragged = page.locator('[data-sample="BARU"] circle')
     const linked = page.locator('[data-sample="PERLU_DIULANG"] circle')
     const draggedBox = await dragged.boundingBox()
     const linkedBefore = await linked.boundingBox()
     if (!draggedBox || !linkedBefore) {
-      throw new Error('Bulat contoh tidak terlihat')
+      throw new Error('Neuron contoh tidak terlihat')
     }
     // Pulled a little to the left. The circle linked to it follows, as on the real canvas.
     const startX = draggedBox.x + draggedBox.width / 2
@@ -320,16 +320,16 @@ test.describe('Learning tamu', () => {
     await dialog.getByRole('button', { name: 'Generate', exact: true }).click()
     await dialog.getByRole('button', { name: 'Tambah', exact: true }).first().click()
 
-    // The next step: the guest's AI bulat is on the device, so the options ask for an account.
+    // The next step: the guest's AI neuron is on the device, so the options ask for an account.
     await expect(page.getByRole('dialog', { name: 'Pola berikutnya' })).toBeVisible()
     await expect(page.getByText('Masuk untuk memakai pilihan ini.').first()).toBeVisible()
     await page.getByRole('button', { name: 'Selesai', exact: true }).click()
     await expect(page.getByRole('dialog')).toBeHidden()
     await expect(page.locator('[data-topic-id][role="button"][aria-label^="Penerapan Aljabar linier SMA"]')).toBeVisible()
 
-    // A second bulat needs an account.
+    // A second neuron needs an account.
     await page.getByRole('button', { name: 'Tambah belajar', exact: true }).click()
-    await expect(page.getByRole('dialog').getByText('Masuk untuk membuat bulat lagi.')).toBeVisible()
+    await expect(page.getByRole('dialog').getByText('Masuk untuk membuat neuron lagi.')).toBeVisible()
     await expect(page.getByRole('dialog').getByLabel('Mau belajar apa?')).toHaveCount(0)
   })
 })
@@ -341,19 +341,19 @@ test.describe('Materi dan ganti nama', () => {
     await page.keyboard.press('Enter')
 
     const panel = topicChat(page)
-    const materi = page.getByRole('region', { name: 'Materi bulat' })
+    const materi = page.getByRole('region', { name: 'Materi neuron' })
     await panel.getByRole('button', { name: 'Generate materi' }).click()
     await expect(materi.getByRole('heading', { name: 'Bagian 1: Persamaan linear' })).toBeVisible()
     await panel.getByRole('button', { name: 'Generate materi' }).click()
     await expect(materi.getByRole('heading', { name: 'Bagian 2: Persamaan linear' })).toBeVisible()
 
     await panel.getByRole('heading', { name: 'Persamaan linear', level: 2 }).click({ clickCount: 3 })
-    await expect(panel.getByLabel('Nama bulat')).toBeVisible()
+    await expect(panel.getByLabel('Nama neuron')).toBeVisible()
   })
 })
 
 test.describe('Tambah belajar', () => {
-  test('kanvas kosong menampilkan lingkaran tambah, dan bulat dari tujuan lanjut ke langkah berikutnya', async ({ page }) => {
+  test('kanvas kosong menampilkan lingkaran tambah, dan neuron dari tujuan lanjut ke langkah berikutnya', async ({ page }) => {
     // The example topics of the account are hidden for the first list answer, so the canvas is empty.
     let answered = false
     await page.route('**/api/topics', async (route) => {
@@ -386,7 +386,7 @@ test.describe('Tambah belajar', () => {
     await dialog.getByLabel('Mau belajar apa?').fill('   ')
     await expect(dialog.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled()
   })
-  test('tamu melihat tombol tambah bulat yang sama dengan akun', async ({ page }) => {
+  test('tamu melihat tombol tambah neuron yang sama dengan akun', async ({ page }) => {
     await page.goto('/chat')
     await signOutFromMenu(page)
     await page.goto('/learning')

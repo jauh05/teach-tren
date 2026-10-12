@@ -53,7 +53,7 @@ export const QUICK_START: GuideStep[] = [
   },
   {
     title: 'Buat topik',
-    text: 'Di Learning, setiap bulat adalah topik. Ketuk bulat untuk membuka chat tentang topik itu.',
+    text: 'Di Learning, setiap neuron adalah topik. Ketuk neuron untuk membuka chat tentang topik itu.',
     icon: 'network',
     link: '/learning',
     linkLabel: 'Buka Learning',
@@ -80,8 +80,8 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     title: 'Learning',
     icon: 'network',
     body: `- Geser area kosong untuk menggeser papan. Gunakan dua jari atau roda mouse untuk zoom antara 40 dan 200 persen.
-- Tarik bulat untuk memindahkannya. Bulat lain menyingkir. Posisi tidak disimpan, jadi refresh kembali ke tata letak awal.
-- Warna bulat menunjukkan status: hijau sudah dikuasai (skor 80 ke atas), kuning sedang dipelajari (50 sampai 79), merah perlu diulang (di bawah 50), teal baru, abu belum dibuka, dan ungu saran berikutnya.
+- Tarik neuron untuk memindahkannya. Neuron lain menyingkir. Posisi tidak disimpan, jadi refresh kembali ke tata letak awal.
+- Warna neuron menunjukkan status: hijau sudah dikuasai (skor 80 ke atas), kuning sedang dipelajari (50 sampai 79), merah perlu diulang (di bawah 50), teal baru, abu belum dibuka, dan ungu saran berikutnya.
 - Tekan **Perbesar papan** untuk memperluas kanvas. Tekan **Lihat keterangan** untuk melihat arti warna.`,
   },
   {
@@ -107,7 +107,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     icon: 'quiz',
     body: `- Kuis berisi 5 sampai 20 soal: pilihan ganda, soal cerita, isian, dan esai.
 - Teks bacaan bisa dilipat. Rumus ditulis dengan LaTeX, jadi tetap rapi di layar kecil.
-- **Pembahasan** hanya tersedia untuk pengguna yang sudah masuk. Skor kuis memperbarui status bulat.`,
+- **Pembahasan** hanya tersedia untuk pengguna yang sudah masuk. Skor kuis memperbarui status neuron.`,
   },
   {
     id: 'batas-penggunaan',
