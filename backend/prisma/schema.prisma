@@ -98,6 +98,7 @@ model User {
   scheduleRuns ScheduleRun[]
   bankSeen     BankSeen[]
   preferences  UserPreference?
+  learningPlan LearningPlan?
   refreshTokens RefreshToken[]
   generatedMaterials GeneratedMaterial[]
 }
@@ -196,6 +197,17 @@ model UserPreference {
   reminderEnabled          Boolean @default(true)
   reminderTime             String  @default("16:00")
   user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// The learning plan of a signed-in user, chosen before the first visit to Learning: level, grade, and subjects.
+// The materials the user picked became topics of the roadmap. One plan per account.
+model LearningPlan {
+  userId    String   @id
+  levelId   String
+  grade     Int
+  subjects  String[] @default([])
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Study material written by the AI for one topic. It is made one part at a time, so each part has a position.

@@ -17,6 +17,7 @@ import { config } from './config/index.js'
 import { logger } from './logger.js'
 import { materiRouter } from './materi/routes.js'
 import { topicsRouter } from './topics/routes.js'
+import { kurikulumRouter, rencanaRouter } from './rencana/routes.js'
 
 export interface AppOptions {
   corsOrigin: string
@@ -45,6 +46,8 @@ export function createApp(options: AppOptions) {
   app.use('/api/conversations', chatRouter)
   app.use('/api/conversations', conversationsRouter)
   app.use('/api/topics', topicsRouter)
+  app.use('/api/kurikulum', kurikulumRouter)
+  app.use('/api/rencana', rencanaRouter)
   app.use('/api/materi', materiRouter)
   app.use('/api/jadwal', jadwalRouter)
   app.use('/api/memori', memoriRouter)

@@ -1,5 +1,5 @@
 // Where a new topic appears on the Learning canvas. Coordinates use the same space as the default graph (defaultGraph.ts).
-const CENTER = { x: 280, y: 170 }
+export const CENTER = { x: 280, y: 170 }
 // Two topics closer than this would overlap, since a circle is about 60 units across.
 const MIN_DISTANCE = 60
 const RING_STEP = 50

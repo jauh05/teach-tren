@@ -21,6 +21,8 @@ import { TentangPage } from './features/tentang/TentangPage'
 import { MateriPage } from './features/materi/MateriPage'
 import { KuisAturPage } from './features/kuis/KuisAturPage'
 import { QuizSetupDialog } from './features/kuis/QuizSetupDialog'
+import { MulaiPage } from './features/belajar/MulaiPage'
+import { RequireRencana } from './components/auth/RequireRencana'
 
 // Waits for the server to say whether a session exists, so pages never flash in the wrong mode.
 function SessionGate({ children }: { children: ReactNode }) {
@@ -51,7 +53,14 @@ export default function App() {
           <Routes>
             <Route element={<AppShell />}>
               <Route index element={<Navigate to="/chat" replace />} />
-              <Route path="learning" element={<LearningPage />} />
+              <Route
+                path="learning"
+                element={
+                  <RequireRencana>
+                    <LearningPage />
+                  </RequireRencana>
+                }
+              />
               <Route path="jadwal" element={<JadwalPage />} />
               <Route path="jadwal/ingatan" element={<MemoryPage />} />
               <Route element={<ChatLayout />}>
@@ -81,6 +90,14 @@ export default function App() {
             </Route>
             <Route path="masuk" element={<AuthPage kind="masuk" />} />
             <Route path="daftar" element={<AuthPage kind="daftar" />} />
+            <Route
+              path="belajar/mulai"
+              element={
+                <RequireSignedIn>
+                  <MulaiPage />
+                </RequireSignedIn>
+              }
+            />
           </Routes>
         </BrowserRouter>
       </SessionGate>

@@ -33,6 +33,16 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 
 Aplikasi meminta `guestId` sekali per perangkat, lalu mengirimnya di header `X-Guest-Id`. Keluar dari akun juga membuat `guestId` baru.
 
+## Rencana belajar
+
+Sebelum pertama kali membuka Learning, akun memilih jenjang, kelas, mata pelajaran, dan materi. Materi yang dipilih menjadi bulat roadmap, satu jalur per mata pelajaran. Rencana hanya bisa dibuat sekali.
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| GET | `/api/kurikulum` | - | 200 `{ jenjang: [{ id, label, gradeUnit, grades, subjects: [{ name, topics }] }] }`. Publik, tanpa masuk. `id` berupa `sd`, `smp`, `sma`, atau `kuliah` |
+| GET | `/api/rencana` | - | 200 `{ rencana }`, atau `{ rencana: null }` kalau belum dibuat. `rencana`: `levelId`, `grade`, `subjects`, `dibuatPada`. Tamu: 403 `HANYA_MASUK` |
+| POST | `/api/rencana` | `levelId`, `grade` (kelas atau semester sesuai jenjang), `subjects` (1 sampai 6 nama mata pelajaran), `topics` (opsional, `{ subject, name }`, sampai 60) | 201 `{ rencana, bulat }`: jumlah bulat yang dibuat. Setiap pilihan harus ada di katalog (`GET /api/kurikulum`) dan sesuai jenjangnya, kalau tidak: 400 dengan pesan per field di `rincian`. Nama materi yang sudah dipakai bulat lain dilewati. Rencana sudah ada: 409 `SUDAH_ADA`. Tamu: 403 `HANYA_MASUK` |
+
 ## Bulat
 
 | Metode | Alamat | Isi permintaan | Hasil |

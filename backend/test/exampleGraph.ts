@@ -26,6 +26,12 @@ const LINKS = [
 
 // Replaces the starter topic of an account with the example graph, so the ids above exist for that account.
 export async function seedExampleGraph(db: PrismaClient, userId: string): Promise<void> {
+  // The learning plan is part of the example account, so Learning opens without the onboarding wizard.
+  await db.learningPlan.upsert({
+    where: { userId },
+    create: { userId, levelId: 'sma', grade: 10, subjects: ['Matematika', 'IPA'] },
+    update: {},
+  })
   await db.topic.deleteMany({ where: { userId } })
   await db.topic.createMany({ data: TOPICS.map((topic) => ({ ...topic, userId })) })
   await db.topicLink.createMany({ data: LINKS.map((link) => ({ ...link, userId })) })
