@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
 import { ArrowLeft, CircleAlert, Eye, EyeOff, LoaderCircle, Music2 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useForm, type UseFormRegisterReturn } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { loginAccount, registerAccount, type AuthUser } from '../../api/auth'
@@ -14,6 +14,7 @@ import { safeRedirect, signInSchema, signUpSchema, type SignInValues, type SignU
 import { hydratePreferences } from '../../stores/preferencesStore'
 import { continueAsGuest, useSessionStore } from '../../stores/sessionStore'
 import { AuthHero, SignUpArt } from './AuthArt'
+import { clearPendingSocialSignIn, socialSignInMessage, startSocialSignIn, type SocialProvider } from './oauth'
 
 interface AuthPageProps {
   kind: 'masuk' | 'daftar'
@@ -28,6 +29,13 @@ export function AuthPage({ kind }: AuthPageProps) {
   // The redirect target is kept when the user switches between the two pages.
   const redirect = params.get('redirect')
   const suffix = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
+  // The provider sign-in can come back with a reason (see the server's oauth routes). It is shown above the form.
+  const socialMessage = socialSignInMessage(params.get('oauth'), params.get('provider'))
+  useEffect(() => {
+    if (params.get('oauth')) {
+      clearPendingSocialSignIn()
+    }
+  }, [params])
 
   async function finish(user: AuthUser) {
     // The session cookie is already set by the server, so the carried-over history can be saved.
@@ -77,6 +85,7 @@ export function AuthPage({ kind }: AuthPageProps) {
             </p>
           </div>
 
+          <ServerError message={socialMessage} />
           {isSignUp ? <SignUpForm onDone={finish} /> : <SignInForm onDone={finish} />}
           <SocialSignIn />
 
@@ -102,12 +111,11 @@ export function AuthPage({ kind }: AuthPageProps) {
   )
 }
 
-// Sign-in with Google, Facebook, and TikTok. For now these are decoration only: they have no links yet,
-// and they are switched on when the providers are set up.
-const PROVIDERS: { name: string; mark: ReactNode }[] = [
-  { name: 'Google', mark: <span className="text-base font-bold">G</span> },
-  { name: 'Facebook', mark: <span className="text-lg font-bold">f</span> },
-  { name: 'TikTok', mark: <Music2 size={18} aria-hidden="true" /> },
+// Sign-in with Google, Facebook, and TikTok. Each button starts the provider's sign-in (see oauth.ts).
+const PROVIDERS: { id: SocialProvider; name: string; mark: ReactNode }[] = [
+  { id: 'google', name: 'Google', mark: <span className="text-base font-bold">G</span> },
+  { id: 'facebook', name: 'Facebook', mark: <span className="text-lg font-bold">f</span> },
+  { id: 'tiktok', name: 'TikTok', mark: <Music2 size={18} aria-hidden="true" /> },
 ]
 
 function SocialSignIn() {
@@ -117,12 +125,11 @@ function SocialSignIn() {
       <div className="flex gap-3">
         {PROVIDERS.map((provider) => (
           <button
-            key={provider.name}
+            key={provider.id}
             type="button"
-            disabled
-            aria-label={`Masuk dengan ${provider.name}, segera hadir`}
-            title="Segera hadir"
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-line bg-white text-ink opacity-60"
+            aria-label={`Masuk dengan ${provider.name}`}
+            onClick={() => startSocialSignIn(provider.id)}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-line bg-white text-ink hover:border-brand-dark"
           >
             {provider.mark}
           </button>

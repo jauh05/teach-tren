@@ -83,6 +83,22 @@ Semua data pengembangan ada di `backend/.dev-db`. Untuk mengosongkannya, hentika
 | `TRUST_PROXY` | Jumlah proxy di depan server. Isi 1 di belakang reverse proxy |
 | `CORS_ORIGIN` | Alamat frontend yang boleh memanggil API |
 
+## Masuk dengan Google, Facebook, dan TikTok
+
+Tombol Google, Facebook, dan TikTok di halaman masuk aktif setelah kunci penyedianya diisi di `backend/.env`. Sebelum itu, tombol menampilkan pesan bahwa masuk dengan penyedia tersebut belum tersedia.
+
+1. Isi `OAUTH_BASE_URL` dengan alamat aplikasi yang dibuka browser. Saat pengembangan: `http://localhost:5173`.
+2. Buat aplikasi di konsol setiap penyedia, lalu isi kuncinya di `.env`: `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET`, `FACEBOOK_APP_ID` dan `FACEBOOK_APP_SECRET`, `TIKTOK_CLIENT_KEY` dan `TIKTOK_CLIENT_SECRET`.
+3. Daftarkan alamat balik berikut di konsol penyedia (ganti `http://localhost:5173` dengan alamat produksi saat sudah online):
+   - Google: `http://localhost:5173/api/auth/oauth/google/callback`
+   - Facebook: `http://localhost:5173/api/auth/oauth/facebook/callback`
+   - TikTok: `http://localhost:5173/api/auth/oauth/tiktok/callback`
+
+Catatan:
+- TikTok tidak membagikan email. Akun dari TikTok dibuat dengan alamat sementara `tiktok-<id>@oauth.teachtren.local`.
+- Google dan Facebook hanya menautkan ke akun yang sudah ada jika emailnya sudah diverifikasi. Jika tidak, masuk ditolak demi keamanan akun itu.
+- Sebelum dipakai pengguna umum, Facebook dan TikTok biasanya meminta peninjauan aplikasi. Selama itu, hanya akun uji yang bisa masuk.
+
 ## Keamanan
 
 - Kata sandi disimpan dengan bcrypt. Sesi memakai cookie `httpOnly` dan token penyegaran yang berotasi. Token yang dipakai dua kali mengakhiri semua sesi akun itu.

@@ -45,6 +45,17 @@ const envSchema = z.object({
   AUTH_IP_PER_15_MIN: z.coerce.number().int().positive().default(100),
   // Accounts one IP address may register per hour.
   REGISTER_PER_HOUR: z.coerce.number().int().positive().default(30),
+  // Sign-in with Google, Facebook, and TikTok. A provider stays off until its id and secret are set.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  FACEBOOK_APP_ID: z.string().optional(),
+  FACEBOOK_APP_SECRET: z.string().optional(),
+  TIKTOK_CLIENT_KEY: z.string().optional(),
+  TIKTOK_CLIENT_SECRET: z.string().optional(),
+  // Address of the frontend, as the browser sees it. The providers send the user back to
+  // <OAUTH_BASE_URL>/api/auth/oauth/<provider>/callback, so that address must be registered in each provider's console.
+  // An empty value (as in .env.example) means not set.
+  OAUTH_BASE_URL: z.union([z.string().url(), z.literal('')]).optional(),
   // Number of proxies in front of the server. Set it behind a reverse proxy, so the real client IP address is used.
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
   // Seconds an answer may take before the server gives up (docs/role.md CC-10).

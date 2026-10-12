@@ -33,6 +33,15 @@ Basis URL: `/api`. Semua data bersifat pribadi dan diambil dari sesi yang sedang
 
 Aplikasi meminta `guestId` sekali per perangkat, lalu mengirimnya di header `X-Guest-Id`. Keluar dari akun juga membuat `guestId` baru.
 
+## Masuk dengan Google, Facebook, dan TikTok
+
+Alur kode otorisasi. Browser membuka alamat `start`, lalu penyedia mengirim pengguna kembali ke `callback`. Penyedia yang belum punya kunci di `.env` tidak aktif.
+
+| Metode | Alamat | Isi permintaan | Hasil |
+| --- | --- | --- | --- |
+| GET | `/api/auth/oauth/:provider/start` | `:provider` berupa `google`, `facebook`, atau `tiktok` | 302 ke halaman masuk penyedia. Menyimpan cookie `tt_oauth_state` selama 10 menit. Jika penyedia belum dikonfigurasi: 302 ke `/masuk?oauth=belum-tersedia&provider=...`. Penyedia tidak dikenal: 404 |
+| GET | `/api/auth/oauth/:provider/callback` | `code` dan `state` dari penyedia | 302 ke `/chat` dengan sesi baru (cookie yang sama seperti login biasa). Gagal: 302 ke `/masuk?oauth=gagal&provider=...`. Dibatalkan: `oauth=dibatalkan`. Email yang belum diverifikasi milik akun lain: `oauth=email-dipakai`. `state` tidak cocok dengan cookie ditolak sebagai gagal |
+
 ## Rencana belajar
 
 Sebelum pertama kali membuka Learning, akun memilih jenjang, kelas, dan mata pelajaran. AI lalu menyusun roadmap berisi 6 sampai 12 cabang. Pengguna melihat cabang-cabang itu, dan menyimpannya sebagai rencana. Setiap cabang menjadi bulat di Learning, dengan satu jalur per mata pelajaran. Rencana hanya bisa dibuat sekali.

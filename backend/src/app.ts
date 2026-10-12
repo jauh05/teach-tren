@@ -4,6 +4,7 @@ import express from 'express'
 import helmet from 'helmet'
 import { pinoHttp } from 'pino-http'
 import { authRouter } from './auth/routes.js'
+import { oauthRouter } from './auth/oauthRoutes.js'
 import { chatRouter } from './chat/routes.js'
 import { jadwalRouter, memoriRouter } from './jadwal/routes.js'
 import { kuisRouter } from './kuis/routes.js'
@@ -42,6 +43,7 @@ export function createApp(options: AppOptions) {
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' })
   })
+  app.use('/api/auth/oauth', oauthRouter)
   app.use('/api/auth', authRouter)
   app.use('/api/conversations', chatRouter)
   app.use('/api/conversations', conversationsRouter)

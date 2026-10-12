@@ -100,6 +100,7 @@ model User {
   preferences  UserPreference?
   learningPlan LearningPlan?
   refreshTokens RefreshToken[]
+  oauthAccounts OAuthAccount[]
   generatedMaterials GeneratedMaterial[]
 }
 
@@ -170,6 +171,18 @@ model Message {
 
   @@id([userId, conversationId, id])
   @@index([userId, conversationId, position])
+}
+
+// A sign-in with Google, Facebook, or TikTok linked to an account. One provider user is linked to one account.
+model OAuthAccount {
+  provider       String
+  providerUserId String
+  userId         String
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerUserId])
+  @@index([userId])
 }
 
 // Refresh token of a session. Only a hash is stored. A token is used once: each refresh replaces it.

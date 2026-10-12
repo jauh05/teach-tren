@@ -21,6 +21,7 @@ import { TentangPage } from './features/tentang/TentangPage'
 import { MateriPage } from './features/materi/MateriPage'
 import { KuisAturPage } from './features/kuis/KuisAturPage'
 import { QuizSetupDialog } from './features/kuis/QuizSetupDialog'
+import { finishSocialSignIn } from './features/auth/oauth'
 import { MulaiPage } from './features/belajar/MulaiPage'
 import { WelcomeRoute } from './features/welcome/WelcomePage'
 import { TourRoute } from './features/welcome/TourPage'
@@ -32,7 +33,9 @@ function SessionGate({ children }: { children: ReactNode }) {
   const loadSession = useSessionStore((state) => state.loadSession)
 
   useEffect(() => {
-    void loadSession().then(() => hydratePreferences())
+    void loadSession()
+      .then(() => finishSocialSignIn())
+      .then(() => hydratePreferences())
   }, [loadSession])
 
   if (!ready) {

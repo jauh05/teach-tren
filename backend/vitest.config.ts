@@ -24,6 +24,14 @@ export default defineConfig({
       REGISTER_PER_HOUR: '100000',
       POLA_SARAN_PER_HOUR: '100000',
       MATERI_BULAT_PER_HOUR: '100000',
+      // Sign-in providers are off in tests. Empty values also stop a developer's real keys from turning them on.
+      OAUTH_BASE_URL: '',
+      GOOGLE_CLIENT_ID: '',
+      GOOGLE_CLIENT_SECRET: '',
+      FACEBOOK_APP_ID: '',
+      FACEBOOK_APP_SECRET: '',
+      TIKTOK_CLIENT_KEY: '',
+      TIKTOK_CLIENT_SECRET: '',
     },
   },
 })

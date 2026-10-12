@@ -46,10 +46,19 @@ test.describe('Selamat datang', () => {
     await expect(page).toHaveURL(/\/belajar\/mulai$/)
   })
 
-  test('halaman masuk menampilkan Google, Facebook, dan TikTok sebagai tombol segera hadir', async ({ page }) => {
+  test('Masuk dengan Google belum tersedia di perangkat ini, dan halaman masuk menjelaskannya', async ({ page }) => {
     await page.goto('/masuk')
-    for (const name of ['Google', 'Facebook', 'TikTok']) {
-      await expect(page.getByRole('button', { name: `Masuk dengan ${name}, segera hadir` })).toBeDisabled()
+    await page.getByRole('button', { name: 'Masuk dengan Google' }).click()
+    // The end-to-end server has no keys, so the provider is off and the page says so.
+    await expect(page).toHaveURL(/\/masuk\?oauth=belum-tersedia&provider=google/)
+    await expect(page.getByRole('alert').filter({ hasText: 'Masuk dengan Google belum tersedia.' })).toBeVisible()
+  })
+
+  test('tombol Facebook dan TikTok ada di halaman masuk dan halaman daftar', async ({ page }) => {
+    for (const path of ['/masuk', '/daftar']) {
+      await page.goto(path)
+      await expect(page.getByRole('button', { name: 'Masuk dengan Facebook' })).toBeEnabled()
+      await expect(page.getByRole('button', { name: 'Masuk dengan TikTok' })).toBeEnabled()
     }
   })
 })
