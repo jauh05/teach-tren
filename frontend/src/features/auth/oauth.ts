@@ -4,7 +4,7 @@ import { importGuestTopics } from '../../api/topics'
 import { importGuestQuizzes } from '../../api/quizzes'
 import { useSessionStore } from '../../stores/sessionStore'
 
-// Sign-in with Google, Facebook, and TikTok. The server starts the flow and returns the user to /masuk or /chat.
+// Sign-in with Google, Facebook, and TikTok. The server starts the flow and returns the user to /masuk or /learning.
 export type SocialProvider = 'google' | 'facebook' | 'tiktok'
 
 export const SOCIAL_PROVIDER_NAMES: Record<SocialProvider, string> = { google: 'Google', facebook: 'Facebook', tiktok: 'TikTok' }

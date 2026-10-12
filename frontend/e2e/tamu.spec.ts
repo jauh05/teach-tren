@@ -72,12 +72,14 @@ test.describe('Tamu', () => {
 
   test('masuk dari halaman masuk kembali ke status akun', async ({ page, account }, testInfo) => {
     await signOut(page)
+    // The account has a learning plan, so signing in opens Learning rather than the wizard.
+    await seedLearningPlan(account.email)
     await page.goto('/masuk')
     await page.getByLabel('Email').fill(account.email)
     await page.getByLabel('Kata sandi').fill(account.password)
     await page.getByRole('button', { name: 'Masuk', exact: true }).click()
 
-    await expect(page).toHaveURL(/\/chat$/)
+    await expect(page).toHaveURL(/\/learning$/)
     const header = page.locator('header:visible')
     if (testInfo.project.name === 'desktop') {
       await expect(header.getByText('Rafi', { exact: true })).toBeVisible()
@@ -125,8 +127,10 @@ test.describe('Impor riwayat tamu', () => {
     await page.getByLabel('Email').fill(account.email)
     await page.getByLabel('Kata sandi').fill(account.password)
     await page.getByRole('button', { name: 'Masuk', exact: true }).click()
-    await expect(page).toHaveURL(/\/chat$/)
+    await expect(page).toHaveURL(/\/learning$/)
 
+    // The chat history is shown on /chat, so open it after the sign-in lands on Learning.
+    await page.goto('/chat')
     const history = page.getByRole('navigation', { name: 'Riwayat percakapan' })
     await expect(history.getByRole('link', { name: 'Apa itu sel tumbuhan?' })).toBeVisible()
   })

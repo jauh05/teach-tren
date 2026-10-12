@@ -14,9 +14,10 @@ export type SignInValues = z.infer<typeof signInSchema>
 export type SignUpValues = z.infer<typeof signUpSchema>
 
 // Only in-app paths are allowed, so the redirect parameter cannot send users to another site.
+// Without a valid redirect, a signed-in user lands on Learning.
 export function safeRedirect(value: string | null): string {
   if (value && value.startsWith('/') && !value.startsWith('//')) {
     return value
   }
-  return '/chat'
+  return '/learning'
 }

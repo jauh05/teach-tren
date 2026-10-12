@@ -77,7 +77,7 @@ oauthRouter.get('/:provider/callback', async (req, res) => {
       fetchImpl: fetch,
     })
     await issueSession(res, userId)
-    res.redirect(`${appUrl()}/chat`)
+    res.redirect(`${appUrl()}/learning`)
   } catch (error) {
     const reason = error instanceof OAuthError ? error.reason : 'gagal'
     res.redirect(backToSignIn(provider, reason))

@@ -23,7 +23,7 @@ describe('safeRedirect', () => {
     expect(safeRedirect('/jadwal')).toBe('/jadwal')
   })
 
-  it.each([null, '', 'https://contoh.id', '//contoh.id', 'jadwal'])('menolak %j dan kembali ke /chat', (value) => {
-    expect(safeRedirect(value)).toBe('/chat')
+  it.each([null, '', 'https://contoh.id', '//contoh.id', 'jadwal'])('menolak %j dan kembali ke /learning', (value) => {
+    expect(safeRedirect(value)).toBe('/learning')
   })
 })
