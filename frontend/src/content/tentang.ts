@@ -73,7 +73,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     title: 'Tamu dan masuk',
     icon: 'user',
     body: `- **Tamu** mendapat dua aksi AI di perangkat ini. Satu aksi adalah satu pesan chat atau satu kuis lima soal. Setelah itu kamu diminta daftar atau masuk.
-- **Masuk** memberi fitur lengkap: riwayat tersimpan di akun, pembahasan kuis, jadwal, Ingatan AI, dan pengaturan.`,
+- **Masuk** memberi fitur lengkap: riwayat tersimpan di akun, pembahasan kuis, jadwal, Learning memory, dan pengaturan.`,
   },
   {
     id: 'learning',
@@ -90,7 +90,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     icon: 'calendar',
     body: `- Kalender menampilkan rencana belajar. Pilih **Minggu** atau **Bulan** di pojok kanan atas.
 - Saran AI berwarna ungu dengan garis putus-putus. Terima saran dengan tombol Terima, atau seret ke hari lain di desktop.
-- **Ingatan AI** menampilkan topik yang sudah kamu pelajari beserta skornya.`,
+- **Learning memory** menampilkan topik yang sudah kamu pelajari beserta skornya.`,
   },
   {
     id: 'chat',

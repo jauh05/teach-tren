@@ -1,4 +1,5 @@
 import { colors } from '../../theme/tokens'
+import { MemoryDiagram, SAMPLE_MEMORY_NODES } from './MemoryDiagram'
 import { PersonFigure } from './PersonFigure'
 
 // Illustrations for the welcome page and the tour, in the same line-art style as the person.
@@ -32,29 +33,7 @@ export function WelcomeHero() {
 // Tour scenes. One per slide, in the same order as the slides.
 export function TourArt({ scene }: { scene: 'memory' | 'chat' | 'roadmap' | 'progress' }) {
   if (scene === 'memory') {
-    // A neuron: the cell body, dendrites reaching out to other neurons, and an axon to a second cell.
-    const dendrites: [number, number, number, number][] = [
-      [142, 108, 100, 84],
-      [172, 87, 164, 39],
-      [218, 108, 260, 84],
-      [221, 145, 266, 162],
-      [165, 171, 149, 217],
-      [139, 145, 94, 162],
-    ]
-    return (
-      <svg viewBox="0 0 360 260" className="h-full w-full" aria-hidden="true" focusable="false">
-        {dendrites.map(([x1, y1, x2, y2]) => (
-          <g key={`${x2}-${y2}`}>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors.ink} strokeWidth="3" strokeLinecap="round" />
-            <circle cx={x2} cy={y2} r="9" fill="#FFFFFF" stroke={colors.ink} strokeWidth="2.5" />
-          </g>
-        ))}
-        <path d="M224 150 C262 172 280 200 326 200" fill="none" stroke={colors.ink} strokeWidth="3" strokeLinecap="round" strokeDasharray="2 8" />
-        <circle cx="326" cy="200" r="16" fill={colors.brand.dark} stroke={colors.ink} strokeWidth="3" />
-        <circle cx="180" cy="130" r="44" fill={colors.brand.DEFAULT} stroke={colors.ink} strokeWidth="3" />
-        <circle cx="180" cy="130" r="14" fill="#FFFFFF" stroke={colors.ink} strokeWidth="2.5" />
-      </svg>
-    )
+    return <MemoryDiagram nodes={SAMPLE_MEMORY_NODES} />
   }
   if (scene === 'chat') {
     return (

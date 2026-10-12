@@ -2,17 +2,17 @@ import { expect, test } from './fixtures'
 import { expectNoHorizontalScroll, signOutFromMenu, visibleOnly } from './helpers'
 
 test.describe('Jadwal', () => {
-  test('menampilkan jadwal minggu ini dan Ingatan AI sesuai layar', async ({ page }, testInfo) => {
+  test('menampilkan jadwal minggu ini dan Learning memory sesuai layar', async ({ page }, testInfo) => {
     await page.goto('/jadwal')
     await expect(page.getByRole('button', { name: 'Hari ini' })).toBeVisible()
     await expect(visibleOnly(page.getByText('Ulangi Sel tumbuhan'))).toBeVisible()
     await expect(visibleOnly(page.getByText('Karena skor 38 pada Sel tumbuhan'))).toBeVisible()
 
     if (testInfo.project.name === 'desktop') {
-      await page.getByRole('button', { name: 'Ingatan AI' }).click()
-      await expect(page.getByRole('complementary', { name: 'Ingatan AI' })).toBeVisible()
+      await page.getByRole('button', { name: 'Learning memory' }).click()
+      await expect(page.getByRole('complementary', { name: 'Learning memory' })).toBeVisible()
     } else {
-      await expect(page.getByRole('link', { name: 'Ingatan AI' })).toBeVisible()
+      await expect(page.getByRole('link', { name: 'Learning memory' })).toBeVisible()
     }
     await expectNoHorizontalScroll(page)
   })
@@ -56,13 +56,14 @@ test.describe('Jadwal', () => {
     await expect(header).toHaveText(before ?? '')
   })
 
-  test('halaman Ingatan AI di mobile menampilkan topik yang sudah dipelajari', async ({ page }, testInfo) => {
+  test('halaman Learning memory di mobile menampilkan topik yang sudah dipelajari', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'halaman Ingatan terpisah dipakai di layar kecil')
     await page.goto('/jadwal')
-    await page.getByRole('link', { name: 'Ingatan AI' }).click()
+    await page.getByRole('link', { name: 'Learning memory' }).click()
 
     await expect(page).toHaveURL(/\/jadwal\/ingatan$/)
-    await expect(page.getByText('Bilangan')).toBeVisible()
+    // The topic is in the list. The same name is also a label on the diagram, so the check is limited to the list.
+    await expect(page.getByRole('list', { name: 'Topik yang sudah dipelajari' }).getByText('Bilangan')).toBeVisible()
     await expect(page.getByText('skor 38')).toBeVisible()
   })
 
@@ -75,11 +76,11 @@ test.describe('Jadwal', () => {
     await expect(page.getByRole('button', { name: /Terima saran/ })).toHaveCount(0)
 
     if (testInfo.project.name === 'desktop') {
-      await page.getByRole('button', { name: 'Ingatan AI' }).click()
-      await expect(page.getByText('Ingatan AI tersedia setelah masuk.')).toBeVisible()
+      await page.getByRole('button', { name: 'Learning memory' }).click()
+      await expect(page.getByText('Learning memory tersedia setelah masuk.')).toBeVisible()
     } else {
       await page.goto('/jadwal/ingatan')
-      await expect(page.getByText('Ingatan AI tersedia setelah masuk.')).toBeVisible()
+      await expect(page.getByText('Learning memory tersedia setelah masuk.')).toBeVisible()
     }
   })
 })

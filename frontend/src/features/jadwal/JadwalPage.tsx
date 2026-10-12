@@ -130,13 +130,13 @@ export function JadwalPage() {
               onClick={() => setMemoryOpen((value) => !value)}
               className="hidden min-h-[32px] items-center rounded-[10px] border border-line bg-white px-3 text-xs font-semibold text-ink hover:bg-slate-50 md:inline-flex"
             >
-              {memoryOpen ? 'Sembunyikan Ingatan AI' : 'Ingatan AI'}
+              {memoryOpen ? 'Sembunyikan Learning memory' : 'Learning memory'}
             </button>
             <Link
               to="/jadwal/ingatan"
               className="inline-flex min-h-[36px] items-center rounded-[10px] border border-line bg-white px-3 text-xs font-semibold text-ink md:hidden"
             >
-              Ingatan AI
+              Learning memory
             </Link>
             </div>
             <div className="flex items-center gap-1.5">

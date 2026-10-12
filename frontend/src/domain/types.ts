@@ -21,7 +21,7 @@ export interface ChatMessage {
   status: MessageStatus
 }
 
-// Ingatan AI: topics the user has already studied, with their latest score.
+// Learning memory: topics the user has already studied, with their latest score.
 export interface MemoryEntry {
   id: string
   topicName: string

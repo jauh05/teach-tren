@@ -36,6 +36,7 @@ export function TourRoute() {
   return <TourPage />
 }
 
+// Phones: the picture above the text. Desktop: the text and buttons on the left, the big picture on the right.
 function TourPage() {
   const navigate = useNavigate()
   const [index, setIndex] = useState(0)
@@ -43,20 +44,21 @@ function TourPage() {
   const last = index === SLIDES.length - 1
 
   return (
-    <main className="flex min-h-dvh justify-center bg-brand-soft md:px-6 md:py-10">
-      <div className="flex w-full max-w-[420px] flex-col overflow-hidden bg-brand-soft md:rounded-[32px] md:shadow-[0_30px_70px_-30px_rgba(20,20,20,0.2)]">
-        <header className="flex justify-end px-6 pt-6">
+    <main className="min-h-dvh bg-brand-soft">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col md:grid md:min-h-dvh md:max-w-6xl md:grid-cols-2 md:items-center md:gap-x-16 md:px-12 md:py-12">
+        <header className="flex justify-end px-6 pt-6 md:col-start-1 md:row-start-1 md:justify-start md:px-0 md:pt-0">
           <button type="button" onClick={() => navigate('/masuk')} className="text-sm font-semibold text-muted hover:text-ink">
             Lewati
           </button>
         </header>
 
-        <section className="flex flex-1 flex-col items-center px-6 pt-4 text-center">
-          <div className="h-[340px] w-full rounded-[32px] bg-white">
-            <TourArt scene={slide.scene} />
-          </div>
-          <h1 className="mt-7 font-heading text-[26px] font-bold leading-tight text-ink">{slide.title}</h1>
-          <p className="mt-3 text-sm text-muted">{slide.text}</p>
+        <div className="mt-4 h-[340px] w-full rounded-[32px] bg-white px-4 py-3 md:col-start-2 md:row-span-3 md:row-start-1 md:mt-0 md:h-[600px] md:px-10 md:py-8">
+          <TourArt scene={slide.scene} />
+        </div>
+
+        <section className="flex flex-1 flex-col items-center px-6 pt-7 text-center md:col-start-1 md:row-start-2 md:items-start md:px-0 md:pt-0 md:text-left">
+          <h1 className="font-heading text-[26px] font-bold leading-tight text-ink md:text-[44px]">{slide.title}</h1>
+          <p className="mt-3 text-sm text-muted md:mt-4 md:max-w-md md:text-base md:leading-7">{slide.text}</p>
 
           <div className="mt-6 flex items-center gap-2" role="group" aria-label="Halaman tur">
             {SLIDES.map((item, position) => (
@@ -69,7 +71,7 @@ function TourPage() {
           </div>
         </section>
 
-        <div className="flex flex-col gap-3 px-6 pb-8 pt-8">
+        <div className="flex flex-col gap-3 px-6 pb-8 pt-8 md:col-start-1 md:row-start-3 md:w-[420px] md:px-0 md:pb-0 md:pt-0">
           {last ? (
             <>
               <button
