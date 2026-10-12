@@ -13,14 +13,6 @@ export const colors = {
   line: '#E3E6E5',
   // Page background behind the cards. Cards are white.
   canvas: '#F2F2F2',
-  // Sign-in and sign-up pages follow docs/design/acuan-masuk-daftar.png: royal blue, black, and white.
-  auth: {
-    accent: '#2A3CE6',
-    accentDark: '#1C2AA8',
-    soft: '#EEF1FE',
-    field: '#E4E4EA',
-    placeholder: '#6B6B78',
-  },
   // Topic status colors (docs/role.md 4.1). Names follow the domain, not the color.
   status: {
     kuasai: '#16A34A',

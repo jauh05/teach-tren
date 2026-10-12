@@ -47,14 +47,6 @@ describe('token warna sama dengan docs/design/palet.md', () => {
     expect(colors.status.belum).toBe(documented('belum'))
     expect(colors.status.saran).toBe(documented('saran'))
   })
-
-  it('warna halaman masuk dan daftar', () => {
-    expect(colors.auth.accent).toBe(documented('masuk-biru'))
-    expect(colors.auth.accentDark).toBe(documented('masuk-biru-gelap'))
-    expect(colors.auth.soft).toBe(documented('masuk-lembut'))
-    expect(colors.auth.field).toBe(documented('masuk-kolom'))
-    expect(colors.auth.placeholder).toBe(documented('masuk-placeholder'))
-  })
 })
 
 describe('kontras teks memenuhi WCAG AA (minimal 4,5)', () => {
@@ -67,9 +59,7 @@ describe('kontras teks memenuhi WCAG AA (minimal 4,5)', () => {
     ['teks hijau di atas mint', colors.brand.dark, colors.brand.soft],
     ['teks putih di atas tombol hitam', white, colors.ink],
     ['teks sekunder di atas latar halaman', colors.muted, colors.canvas],
-    ['teks putih di atas tombol biru masuk', white, colors.auth.accent],
-    ['teks putih di atas biru gelap masuk', white, colors.auth.accentDark],
-    ['teks petunjuk kolom masuk di atas putih', colors.auth.placeholder, white],
+    ['teks utama di atas hijau mint', colors.ink, colors.brand.DEFAULT],
   ])('%s', (_name, foreground, background) => {
     expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5)
   })

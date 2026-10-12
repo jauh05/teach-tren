@@ -54,7 +54,7 @@ export function AuthPage({ kind }: AuthPageProps) {
             >
               <ArrowLeft size={18} aria-hidden="true" />
             </Link>
-            <p className="absolute bottom-16 left-6 font-heading text-3xl font-bold text-white">Teach Tren</p>
+            <p className="absolute bottom-16 left-6 font-heading text-3xl font-bold text-ink">Teach Tren</p>
           </div>
         ) : (
           <div className="relative h-[280px] shrink-0 overflow-hidden">
@@ -76,15 +76,15 @@ export function AuthPage({ kind }: AuthPageProps) {
 
           <p className="text-center text-sm text-muted">
             {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
-            <Link to={`${isSignUp ? '/masuk' : '/daftar'}${suffix}`} className="font-semibold text-auth-accent hover:underline">
+            <Link to={`${isSignUp ? '/masuk' : '/daftar'}${suffix}`} className="font-semibold text-brand-dark hover:underline">
               {isSignUp ? 'Masuk' : 'Daftar'}
             </Link>
           </p>
 
           <div className="flex items-center gap-3 text-xs text-muted">
-            <span className="h-px flex-1 bg-auth-field" />
+            <span className="h-px flex-1 bg-line" />
             atau
-            <span className="h-px flex-1 bg-auth-field" />
+            <span className="h-px flex-1 bg-line" />
           </div>
           <Button variant="secondary" className="min-h-[48px] w-full rounded-full md:min-h-[44px]" onClick={() => navigate('/chat')}>
             Lanjut sebagai tamu
@@ -223,8 +223,8 @@ function Field({ id, label, placeholder, type = 'text', autoComplete, hint, erro
       </label>
       <div
         className={clsx(
-          'flex items-center gap-2 rounded-full border bg-white px-5 transition-colors focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/20',
-          error ? 'border-red-600' : 'border-auth-field',
+          'flex items-center gap-2 rounded-full border bg-white px-5 transition-colors focus-within:border-brand-dark focus-within:ring-2 focus-within:ring-brand/20',
+          error ? 'border-red-600' : 'border-line',
         )}
       >
         <input
@@ -234,7 +234,7 @@ function Field({ id, label, placeholder, type = 'text', autoComplete, hint, erro
           autoComplete={autoComplete}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="min-w-0 flex-1 bg-transparent py-3.5 text-[15px] text-ink outline-none placeholder:text-auth-placeholder md:text-sm"
+          className="min-w-0 flex-1 bg-transparent py-3.5 text-[15px] text-ink outline-none placeholder:text-muted md:text-sm"
           {...inputProps}
         />
         {trailing}
@@ -244,7 +244,7 @@ function Field({ id, label, placeholder, type = 'text', autoComplete, hint, erro
           {error}
         </p>
       ) : (
-        hint && <p className="px-4 text-xs text-auth-placeholder">{hint}</p>
+        hint && <p className="px-4 text-xs text-muted">{hint}</p>
       )}
     </div>
   )
