@@ -17,11 +17,12 @@ Teach Tren adalah aplikasi belajar berbasis chat untuk pelajar dan pengajar di I
 Materi, Kuis, Masuk, dan Daftar adalah halaman pendukung.
 
 ## Gaya visual
-- Latar putih, aksen biru #2563EB, biru gelap #1E40AF, biru muda #EFF6FF, teks #0F172A, teks sekunder #64748B, border #E2E8F0.
+- Palet mengikuti docs/design/acuan-palet-baru.png, dicatat di docs/design/palet.md: latar abu-abu muda #F2F2F2, kartu putih, aksen hijau mint #68D69E, hijau gelap #15795A untuk teks, mint lembut #F1FBFA, teks #141414, teks sekunder #606563, border #E3E6E5.
+- Tombol utama hitam berbentuk pil. Tombol sekunder putih dengan border tipis. Navigasi utama berupa pil dengan tab hitam aktif.
 - Status bulat: hijau #16A34A (dikuasai), kuning #D97706 (sedang), merah #DC2626 (perlu diulang), teal #0D9488 (baru), abu #94A3B8 (belum dibuka), ungu #7C3AED (saran).
 - Ikon dari lucide-react. Tidak ada emoji. Tidak ada gradien ungu atau pelangi.
 - Font: Plus Jakarta Sans untuk judul, Inter untuk isi. Teks minimal 11px, isi pesan 14px di mobile.
-- Gambar acuan desain ada di docs/design/. Saat mengerjakan tampilan, bandingkan dengan gambar yang sesuai sebelum selesai.
+- Gambar acuan desain ada di docs/design/ (palet terbaru: acuan-palet-baru.png). Saat mengerjakan tampilan, bandingkan dengan gambar yang sesuai sebelum selesai.
 
 ## Teknologi
 - Frontend: React, Vite, TypeScript, Tailwind CSS, React Router, Zustand, TanStack Query, Zod, React Hook Form, d3-force, KaTeX (rehype-katex, remark-math), react-markdown, remark-gfm, vite-plugin-pwa.

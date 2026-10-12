@@ -127,7 +127,7 @@ function GoalPanel({ onAdded }: GoalPanelProps) {
           placeholder="Contoh: Aljabar linier SMA"
           value={goal}
           onChange={(event) => setGoal(event.target.value)}
-          className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+          className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-brand"
         />
         <div className="flex justify-end">
           <Button type="submit" disabled={goal.trim() === '' || suggestions.isFetching || quotaUsed}>

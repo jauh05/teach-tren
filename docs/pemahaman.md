@@ -53,7 +53,9 @@ Halaman tanpa mockup di zip: Tentang, Materi, Masuk, Daftar. Lihat bagian 6.
 
 ## 4. Token warna
 
-Diambil dari `docs/design/html/styles.css` dan CLAUDE.md. Dipindahkan ke `tailwind.config` pada Tahap 1.
+Catatan: tabel di bawah adalah palet awal dari mockup dan sudah diganti. Palet yang berlaku ada di [docs/design/palet.md](design/palet.md), diambil dari `docs/design/acuan-palet-baru.png`.
+
+Palet awal diambil dari `docs/design/html/styles.css` dan CLAUDE.md. Dipindahkan ke `tailwind.config` pada Tahap 1.
 
 | Token | Nilai | Pemakaian |
 | --- | --- | --- |

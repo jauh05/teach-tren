@@ -78,7 +78,7 @@ export function DisplaySection() {
               }}
               className={clsx(
                 'min-h-[44px] rounded-full border px-3.5 text-[13px] disabled:cursor-not-allowed disabled:text-slate-400 md:min-h-[36px]',
-                selected ? 'border-[#93C5FD] bg-brand-soft font-semibold text-brand-dark' : 'border-line bg-white text-ink',
+                selected ? 'border-brand bg-brand-soft font-semibold text-brand-dark' : 'border-line bg-white text-ink',
               )}
             >
               {item.label}
@@ -140,7 +140,7 @@ function ChoiceGroup<T extends string | number>({ label, options, value, onChang
               onClick={() => onChange(option)}
               className={clsx(
                 'min-h-[44px] rounded-full border px-3.5 text-[13px] md:min-h-[36px]',
-                selected ? 'border-[#93C5FD] bg-brand-soft font-semibold text-brand-dark' : 'border-line bg-white text-ink',
+                selected ? 'border-brand bg-brand-soft font-semibold text-brand-dark' : 'border-line bg-white text-ink',
               )}
             >
               {String(option)}

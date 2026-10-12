@@ -1,16 +1,18 @@
 // Single source of design tokens. Used by tailwind.config.ts and by tests.
-// Values mirror docs/design/html/styles.css and docs/role.md sections 3, 4, and 5.
+// The palette follows the reference image docs/design/acuan-palet-baru.png (documented in docs/design/palet.md).
 
 export const colors = {
+  // Mint green is the accent. Dark green is for text on white. Black is for the main buttons.
   brand: {
-    DEFAULT: '#2563EB',
-    dark: '#1E40AF',
-    soft: '#EFF6FF',
+    DEFAULT: '#68D69E',
+    dark: '#15795A',
+    soft: '#F1FBFA',
   },
-  ink: '#0F172A',
-  muted: '#64748B',
-  line: '#E2E8F0',
-  canvas: '#FAFBFD',
+  ink: '#141414',
+  muted: '#606563',
+  line: '#E3E6E5',
+  // Page background behind the cards. Cards are white.
+  canvas: '#F2F2F2',
   // Topic status colors (docs/role.md 4.1). Names follow the domain, not the color.
   status: {
     kuasai: '#16A34A',

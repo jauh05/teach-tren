@@ -51,8 +51,8 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
           aria-label={ariaLabel}
           aria-pressed={selected}
         >
-          {selected && <circle r={radius + 7} fill="none" stroke="#2563EB" strokeWidth={1.5} />}
-          <circle className="topic-ring" r={radius + 6} fill="none" stroke="#2563EB" strokeWidth={2.5} />
+          {selected && <circle r={radius + 7} fill="none" stroke="#15795A" strokeWidth={1.5} />}
+          <circle className="topic-ring" r={radius + 6} fill="none" stroke="#15795A" strokeWidth={2.5} />
           <circle
             r={radius}
             fill={visual.fill}
@@ -75,7 +75,7 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
             ))}
           </text>
           {showScoreBelow && score !== null && (
-            <text textAnchor="middle" fontSize={11} fill="#64748B" y={labelY + lines.length * 13}>
+            <text textAnchor="middle" fontSize={11} fill="#606563" y={labelY + lines.length * 13}>
               skor {score}
             </text>
           )}
@@ -88,8 +88,8 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
           aria-hidden="true"
           transform={`translate(${radius * 0.72} ${-radius * 0.72})`}
         >
-          <circle r={9} fill="#FFFFFF" stroke="#CBD5E1" strokeWidth={1} />
-          <path d="M-4 0H4M0 -4V4" stroke="#2563EB" strokeWidth={1.8} strokeLinecap="round" />
+          <circle r={9} fill="#FFFFFF" stroke="#D3D8D6" strokeWidth={1} />
+          <path d="M-4 0H4M0 -4V4" stroke="#15795A" strokeWidth={1.8} strokeLinecap="round" />
         </g>
       </g>
     </g>

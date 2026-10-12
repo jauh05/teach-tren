@@ -15,9 +15,9 @@ export function TopNav() {
   const activeTab = tabForPath(pathname)
 
   return (
-    <header className="relative z-20 hidden h-nav shrink-0 items-center justify-between gap-3 border-b border-line px-4 md:flex">
+    <header className="relative z-20 hidden h-nav shrink-0 items-center justify-between gap-3 px-4 md:flex">
       <BrandLink />
-      <nav aria-label="Navigasi utama" className="flex gap-0.5 rounded-[10px] bg-slate-50 p-[3px]">
+      <nav aria-label="Navigasi utama" className="flex gap-1 rounded-full bg-white p-1 shadow-sm">
         {TOP_TABS.map((tab) => {
           const active = tab.id === activeTab
           return (
@@ -26,8 +26,8 @@ export function TopNav() {
               to={tab.path}
               aria-current={active ? 'page' : undefined}
               className={clsx(
-                'whitespace-nowrap rounded-lg px-3 py-[7px] text-[13px]',
-                active ? 'bg-brand-soft font-semibold text-brand-dark' : 'text-muted hover:text-ink',
+                'whitespace-nowrap rounded-full px-4 py-1.5 text-[13px]',
+                active ? 'bg-ink font-semibold text-white' : 'text-muted hover:text-ink',
               )}
             >
               {tab.label}

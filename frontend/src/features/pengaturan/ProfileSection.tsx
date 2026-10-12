@@ -33,7 +33,7 @@ export function ProfileSection() {
       <div className="flex items-center gap-3">
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#DBEAFE] text-sm font-semibold text-[#1E40AF]"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-[#1E40AF]"
         >
           {initialsOf(account.name)}
         </span>

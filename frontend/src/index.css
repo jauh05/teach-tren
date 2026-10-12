@@ -13,7 +13,7 @@ body,
 }
 
 body {
-  @apply bg-white font-sans text-[14px] leading-normal text-ink antialiased;
+  @apply bg-canvas font-sans text-[14px] leading-normal text-ink antialiased;
   overflow-x: hidden;
 }
 
@@ -45,7 +45,7 @@ h3 {
   font-family: var(--font-heading, "Plus Jakarta Sans", sans-serif);
   font-size: 17px;
   font-weight: 600;
-  color: #0f172a;
+  color: #141414;
 }
 
 .tentang-body {
@@ -69,14 +69,14 @@ h3 {
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E3E6E5;
   border-radius: 12px;
   font-size: 13px;
 }
 
 .tentang-body th,
 .tentang-body td {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #E3E6E5;
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
@@ -85,7 +85,7 @@ h3 {
 .tentang-body th {
   background: #f8fafc;
   font-weight: 600;
-  color: #0f172a;
+  color: #141414;
 }
 
 .tentang-body tr:last-child td {
@@ -107,7 +107,7 @@ h3 {
 .katex-error {
   border-radius: 4px;
   background-color: #f1f5f9;
-  color: #64748b;
+  color: #606563;
   padding: 0 2px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.9em;
@@ -172,7 +172,7 @@ h3 {
 .auth-ring {
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(37, 99, 235, 0.3);
+  border: 1px solid rgba(21, 121, 90, 0.3);
   border-radius: 9999px;
 }
 
@@ -187,8 +187,8 @@ h3 {
 
 .auth-floor {
   background-image:
-    linear-gradient(to right, rgba(37, 99, 235, 0.2) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(37, 99, 235, 0.2) 1px, transparent 1px);
+    linear-gradient(to right, rgba(21, 121, 90, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(21, 121, 90, 0.2) 1px, transparent 1px);
   background-size: 48px 48px;
   transform: rotateX(70deg);
   transform-origin: 50% 100%;

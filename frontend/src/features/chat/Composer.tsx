@@ -74,7 +74,7 @@ export function Composer({
   }
 
   return (
-    <div className="w-full rounded-[20px] border border-[#CBD5E1] bg-white px-4 pb-2.5 pt-3.5 shadow-sm">
+    <div className="w-full rounded-[20px] border border-line bg-white px-4 pb-2.5 pt-3.5 shadow-sm">
       <textarea
         aria-label="Tulis pertanyaan"
         rows={2}
@@ -131,7 +131,7 @@ export function Composer({
             aria-label="Kirim pesan"
             disabled={!canSend}
             onClick={onSubmit}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             <ArrowUp size={18} aria-hidden="true" />
           </button>

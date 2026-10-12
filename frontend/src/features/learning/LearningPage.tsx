@@ -13,11 +13,12 @@ import { TopicCanvas } from './TopicCanvas'
 
 // Learning (/learning). Desktop: the topic canvas on the left and the chat on the right, with a divider that can be dragged.
 // Mobile: the canvas on top and the chat below. The chat is always visible.
-const SPLIT_KEY = 'teach-tren-learning-split'
+// The key changed with the new default width, so widths saved before it do not override the new default.
+const SPLIT_KEY = 'teach-tren-learning-split-v2'
 const MIN_RATIO = 0.3
 const MAX_RATIO = 0.8
-const DEFAULT_RATIO = 0.6
-const EXPANDED_RATIO = 0.78
+const DEFAULT_RATIO = 0.72
+const EXPANDED_RATIO = 0.82
 const KEY_STEP = 0.02
 const DESKTOP_QUERY = '(min-width: 768px)'
 
@@ -117,10 +118,10 @@ export function LearningPage() {
   }
 
   return (
-    <section ref={sectionRef} className="flex min-h-0 flex-1 flex-col md:flex-row">
+    <section ref={sectionRef} className="flex min-h-0 flex-1 flex-col gap-3 p-3 md:flex-row md:gap-0 md:p-4">
       <div
         data-canvas-board
-        className="relative flex min-h-[180px] min-w-0 flex-col md:min-h-0"
+        className="relative flex min-h-[180px] min-w-0 flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-sm md:min-h-0"
         style={{ flex: isDesktop ? `0 0 ${boardShare * 100}%` : boardExpanded ? 3 : 1 }}
       >
         <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} onViewChange={setCanvasView} />
@@ -176,7 +177,7 @@ export function LearningPage() {
       </div>
 
       <div
-        className="flex min-h-[240px] min-w-0 flex-col border-t border-line md:min-h-0 md:border-l md:border-t-0"
+        className="flex min-h-[240px] min-w-0 flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-sm md:min-h-0"
         style={{ flex: isDesktop ? 1 : boardExpanded ? 1 : 1.2 }}
       >
         {/* Desktop: the chat keeps side margins. Mobile uses the full width. */}

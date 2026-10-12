@@ -126,12 +126,23 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
       const height = boundsHeight
       simulation = simulation.force('bounds', () => {
         for (const node of simNodes) {
-          let point: Point = { x: node.x ?? 0, y: node.y ?? 0 }
+          const start: Point = { x: node.x ?? 0, y: node.y ?? 0 }
+          let point = start
           for (const rect of obstaclesRef.current) {
             point = pushOutOfRect(point, node.radius, rect, { width, height })
           }
-          node.x = Math.min(width - node.radius, Math.max(node.radius, point.x))
-          node.y = Math.min(height - node.radius, Math.max(node.radius, point.y))
+          point = {
+            x: Math.min(width - node.radius, Math.max(node.radius, point.x)),
+            y: Math.min(height - node.radius, Math.max(node.radius, point.y)),
+          }
+          node.x = point.x
+          node.y = point.y
+          // Forces run before the position update, so a velocity left from them would move the circle back into a
+          // control. A circle that was pushed out loses that velocity.
+          if (point.x !== start.x || point.y !== start.y) {
+            node.vx = 0
+            node.vy = 0
+          }
         }
       })
     }

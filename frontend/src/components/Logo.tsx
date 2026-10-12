@@ -14,11 +14,11 @@ export function Logo({ size = 20, className }: LogoProps) {
       aria-hidden="true"
       focusable="false"
     >
-      <circle cx="60" cy="60" r="60" fill="#2563EB" />
+      <circle cx="60" cy="60" r="60" fill="#68D69E" />
       <polyline
         points="30,78 50,62 64,68 90,44"
         fill="none"
-        stroke="#fff"
+        stroke="#141414"
         strokeWidth="10"
         strokeLinecap="round"
         strokeLinejoin="round"

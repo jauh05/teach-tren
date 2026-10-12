@@ -109,7 +109,7 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
           placeholder="Cari judul"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-[13px] text-ink outline-none focus:border-brand"
+          className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-[13px] text-ink outline-none focus:border-brand"
         />
       )}
 
@@ -141,7 +141,7 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
                                 setEditingId(null)
                               }
                             }}
-                            className="w-full rounded-md border border-[#CBD5E1] bg-white px-2 py-1 text-[13px] text-ink outline-none focus:border-brand"
+                            className="w-full rounded-md border border-line bg-white px-2 py-1 text-[13px] text-ink outline-none focus:border-brand"
                           />
                         </form>
                       </li>
@@ -162,7 +162,7 @@ export function ChatSidebar({ collapsed = false, onToggle, onNavigate }: ChatSid
                           <button
                             type="button"
                             onClick={() => setConfirmId(null)}
-                            className="rounded-md border border-[#CBD5E1] px-2 py-0.5 font-semibold"
+                            className="rounded-md border border-line px-2 py-0.5 font-semibold"
                           >
                             Batal
                           </button>

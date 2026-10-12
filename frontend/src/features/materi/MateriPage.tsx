@@ -175,7 +175,7 @@ function MaterialCard({ material, topics }: MaterialCardProps) {
                     link.mutate(event.target.value)
                   }
                 }}
-                className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-2 text-sm font-normal text-ink"
+                className="rounded-lg border border-line bg-white px-2.5 py-2 text-sm font-normal text-ink"
               >
                 <option value="">Pilih bulat</option>
                 {topics.map((topic) => (

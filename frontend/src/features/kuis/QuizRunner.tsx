@@ -251,7 +251,7 @@ export function QuizRunner({ quiz, onExit, onNewRun, onRepeat }: QuizRunnerProps
                 disabled={revealed || busy}
                 onChange={(event) => setDrafts((previous) => ({ ...previous, [question.id]: event.target.value }))}
                 placeholder="Tulis jawaban"
-                className="min-h-[48px] flex-1 rounded-xl border border-[#CBD5E1] bg-white px-3.5 text-sm text-ink outline-none focus:border-brand disabled:bg-slate-50"
+                className="min-h-[48px] flex-1 rounded-xl border border-line bg-white px-3.5 text-sm text-ink outline-none focus:border-brand disabled:bg-slate-50"
               />
               {!revealed && (
                 <Button type="submit" disabled={busy || (drafts[question.id] ?? '').trim() === ''}>
@@ -275,7 +275,7 @@ export function QuizRunner({ quiz, onExit, onNewRun, onRepeat }: QuizRunnerProps
                 disabled={revealed || busy}
                 onChange={(event) => setDrafts((previous) => ({ ...previous, [question.id]: event.target.value }))}
                 placeholder="Tulis jawaban dalam 3 sampai 6 kalimat"
-                className="rounded-xl border border-[#CBD5E1] bg-white p-3 text-sm leading-relaxed text-ink outline-none focus:border-brand disabled:bg-slate-50"
+                className="rounded-xl border border-line bg-white p-3 text-sm leading-relaxed text-ink outline-none focus:border-brand disabled:bg-slate-50"
               />
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-muted">{wordCount(revealed ? (answer ?? '') : (drafts[question.id] ?? ''))} kata</span>

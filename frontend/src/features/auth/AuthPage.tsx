@@ -47,7 +47,7 @@ export function AuthPage({ kind }: AuthPageProps) {
           <BrandLink />
         </div>
 
-        <div className="relative w-full max-w-[400px] overflow-hidden rounded-[22px] border border-white/80 bg-white/90 p-6 shadow-[0_30px_70px_-30px_rgba(30,64,175,0.35)] backdrop-blur-md md:p-7">
+        <div className="relative w-full max-w-[400px] overflow-hidden rounded-[22px] border border-white/80 bg-white/90 p-6 shadow-[0_30px_70px_-30px_rgba(21,121,90,0.25)] backdrop-blur-md md:p-7">
           <div aria-hidden="true" className="absolute inset-x-8 top-0 h-1 rounded-b-full bg-brand" />
           <div className="flex items-start gap-3.5">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
@@ -308,7 +308,7 @@ function Field({ id, label, type = 'text', autoComplete, icon: Icon, hint, error
       <div
         className={clsx(
           'flex items-center gap-2 rounded-lg border bg-white px-3 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20',
-          error ? 'border-red-600' : 'border-[#CBD5E1]',
+          error ? 'border-red-600' : 'border-line',
         )}
       >
         <Icon size={16} className="shrink-0 text-muted" aria-hidden="true" />

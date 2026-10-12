@@ -16,7 +16,7 @@ export function TopicLegend() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div data-canvas-obstacle className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
+    <div data-canvas-obstacle className="absolute right-3 top-[52px] flex flex-col items-end gap-1.5 md:top-3">
       <button
         type="button"
         aria-expanded={open}

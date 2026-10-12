@@ -282,7 +282,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
   return (
     <div
       ref={containerRef}
-      className="relative min-h-0 flex-1 touch-none select-none overflow-hidden bg-canvas"
+      className="relative min-h-0 flex-1 touch-none select-none overflow-hidden bg-white"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={(event) => handlePointerEnd(event, false)}
@@ -308,7 +308,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
                 y1={from.y}
                 x2={to.x}
                 y2={to.y}
-                stroke={link.suggested ? '#C4B5FD' : '#CBD5E1'}
+                stroke={link.suggested ? '#C4B5FD' : '#D3D8D6'}
                 strokeWidth={link.suggested ? 1.2 : 1.5}
                 strokeDasharray={link.suggested ? '4 4' : undefined}
               />

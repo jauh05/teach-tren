@@ -220,7 +220,7 @@ export function EmptyCanvasIllustration({ view }: EmptyCanvasIllustrationProps) 
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  stroke={link.suggested ? '#C4B5FD' : '#CBD5E1'}
+                  stroke={link.suggested ? '#C4B5FD' : '#D3D8D6'}
                   strokeWidth={1.5}
                   strokeDasharray={link.suggested ? '4 3' : undefined}
                 />
@@ -283,7 +283,7 @@ function Icon({ status, radius, score }: IconProps) {
   switch (status) {
     case 'BARU':
       return (
-        <g transform={transform} stroke="#64748B" strokeWidth={2} {...common}>
+        <g transform={transform} stroke="#606563" strokeWidth={2} {...common}>
           <path d="M12 7v14" />
           <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
         </g>
@@ -316,7 +316,7 @@ function Icon({ status, radius, score }: IconProps) {
       )
     case 'BELUM_DIBUKA':
       return (
-        <g transform={transform} stroke="#64748B" strokeWidth={2} {...common}>
+        <g transform={transform} stroke="#606563" strokeWidth={2} {...common}>
           <rect x={5} y={11} width={14} height={10} rx={2} />
           <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         </g>

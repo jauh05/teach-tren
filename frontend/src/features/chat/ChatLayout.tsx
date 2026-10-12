@@ -46,7 +46,7 @@ export function ChatLayout() {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col p-3 md:p-4">
         <div className="flex h-12 shrink-0 items-center px-3 lg:hidden">
           <button
             type="button"
@@ -57,7 +57,9 @@ export function ChatLayout() {
             <PanelLeft size={20} aria-hidden="true" />
           </button>
         </div>
-        <Outlet />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-sm">
+          <Outlet />
+        </div>
       </div>
     </div>
   )

@@ -107,7 +107,7 @@ export function JadwalPage() {
 
           <div className="flex w-full flex-wrap items-center gap-1.5 md:w-auto md:shrink-0">
             <div className="flex items-center gap-1.5">
-            <div role="radiogroup" aria-label="Tampilan kalender" className="flex overflow-hidden rounded-[10px] border border-[#CBD5E1]">
+            <div role="radiogroup" aria-label="Tampilan kalender" className="flex overflow-hidden rounded-[10px] border border-line">
               {VIEW_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -128,13 +128,13 @@ export function JadwalPage() {
               type="button"
               aria-pressed={memoryOpen}
               onClick={() => setMemoryOpen((value) => !value)}
-              className="hidden min-h-[32px] items-center rounded-[10px] border border-[#CBD5E1] bg-white px-3 text-xs font-semibold text-ink hover:bg-slate-50 md:inline-flex"
+              className="hidden min-h-[32px] items-center rounded-[10px] border border-line bg-white px-3 text-xs font-semibold text-ink hover:bg-slate-50 md:inline-flex"
             >
               {memoryOpen ? 'Sembunyikan Ingatan AI' : 'Ingatan AI'}
             </button>
             <Link
               to="/jadwal/ingatan"
-              className="inline-flex min-h-[36px] items-center rounded-[10px] border border-[#CBD5E1] bg-white px-3 text-xs font-semibold text-ink md:hidden"
+              className="inline-flex min-h-[36px] items-center rounded-[10px] border border-line bg-white px-3 text-xs font-semibold text-ink md:hidden"
             >
               Ingatan AI
             </Link>
@@ -144,7 +144,7 @@ export function JadwalPage() {
               type="button"
               aria-label={view === 'bulan' ? 'Bulan sebelumnya' : 'Minggu sebelumnya'}
               onClick={() => shift(-1)}
-              className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#CBD5E1] bg-white text-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-line bg-white text-ink"
             >
               <ChevronLeft size={16} aria-hidden="true" />
             </button>
@@ -155,7 +155,7 @@ export function JadwalPage() {
               type="button"
               aria-label={view === 'bulan' ? 'Bulan berikutnya' : 'Minggu berikutnya'}
               onClick={() => shift(1)}
-              className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#CBD5E1] bg-white text-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-line bg-white text-ink"
             >
               <ChevronRight size={16} aria-hidden="true" />
             </button>

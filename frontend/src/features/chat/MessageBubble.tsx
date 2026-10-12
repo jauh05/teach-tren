@@ -16,7 +16,7 @@ export function MessageBubble({ message, onCopy, onRegenerate, onCreateQuiz, onM
   if (message.role === 'user') {
     return (
       <div className="flex max-w-[70%] flex-col items-end gap-1 self-end">
-        <div className="whitespace-pre-wrap rounded-2xl bg-brand-soft px-3.5 py-2.5 text-[14px] text-ink">{message.content}</div>
+        <div className="whitespace-pre-wrap rounded-2xl border border-line bg-white px-4 py-2.5 text-[14px] text-ink shadow-sm">{message.content}</div>
         {onMakeTopic && <ActionButton icon={Plus} label="Jadikan bulat" onClick={onMakeTopic} />}
       </div>
     )
@@ -26,7 +26,7 @@ export function MessageBubble({ message, onCopy, onRegenerate, onCreateQuiz, onM
 
   return (
     <div className="flex max-w-[92%] flex-col gap-2 self-start">
-      <div className="text-[14px] leading-7 text-ink">
+      <div className="rounded-2xl bg-brand-soft px-4 py-3.5 text-[14px] leading-7 text-ink">
         {message.status === 'streaming' ? (
           <div className="whitespace-pre-wrap">
             {message.content}

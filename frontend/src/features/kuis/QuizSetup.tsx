@@ -162,7 +162,7 @@ function OptionCard({ label, hint, icon: Icon, selected, onSelect }: OptionCardP
       <span
         className={clsx(
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-          selected ? 'bg-brand text-white' : 'bg-brand-soft text-brand-dark',
+          selected ? 'bg-ink text-white' : 'bg-brand-soft text-brand-dark',
         )}
       >
         <Icon size={18} aria-hidden="true" />
