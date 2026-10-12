@@ -4,59 +4,71 @@ import { colors } from '../../theme/tokens'
 // mint green, dark green, black, and white. Everything is inline SVG, and it is hidden from screen readers
 // because the page headings carry the meaning.
 
-const TORSO = 'M44 220 C44 170 52 138 78 128 Q100 136 122 128 C148 138 156 170 156 220 Z'
+const SWEATER = 'M42 222 C42 176 46 148 72 134 Q100 124 128 134 C154 148 158 176 158 222 Z'
 
-// One person holding a phone, in the flat line style of the reference. Drawn in a 200 x 220 box, so it can be placed with a transform.
+// A man in a turtleneck, looking down at a phone held at the chest. Drawn in a 200 x 220 box, so it can be placed with a transform.
 function PersonFigure() {
   return (
     <g strokeLinecap="round" strokeLinejoin="round">
       <defs>
-        <pattern id="auth-person-dots" width="9" height="9" patternUnits="userSpaceOnUse">
-          <circle cx="2.5" cy="2.5" r="1.3" fill={colors.ink} />
-          <circle cx="7" cy="7" r="1.3" fill={colors.ink} />
+        <pattern id="auth-person-dots" width="12" height="12" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="4" r="1.5" fill={colors.ink} />
+          <circle cx="9" cy="10" r="1.5" fill={colors.ink} />
         </pattern>
       </defs>
-      {/* Neck and ears, behind the head */}
-      <path d="M92 100 L92 124 M108 100 L108 124" fill="none" stroke={colors.ink} strokeWidth="3" />
-      <path d="M74 70 C67 68 66 82 74 86 M126 70 C133 68 134 82 126 86" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
-      {/* Head and short curly hair */}
-      <path
-        d="M74 70 C74 46 86 40 100 40 C114 40 126 46 126 70 C126 90 116 102 100 102 C84 102 74 90 74 70 Z"
-        fill="#FFFFFF"
-        stroke={colors.ink}
-        strokeWidth="3"
-      />
-      <path d="M72 66 C68 44 82 34 100 34 C118 34 132 44 128 66 C124 54 116 50 100 50 C88 50 78 54 72 66 Z" fill={colors.ink} />
-      <circle cx="86" cy="38" r="6" fill={colors.ink} />
-      <circle cx="100" cy="34" r="6" fill={colors.ink} />
-      <circle cx="114" cy="38" r="6" fill={colors.ink} />
-      {/* Face */}
-      <circle cx="88" cy="74" r="3" fill={colors.ink} />
-      <circle cx="112" cy="74" r="3" fill={colors.ink} />
-      <path d="M99 80 Q96 87 101 88" fill="none" stroke={colors.ink} strokeWidth="2.4" />
-      <path d="M90 93 Q100 101 110 93" fill="none" stroke={colors.ink} strokeWidth="2.6" />
-      {/* Torso with a dotted sweater and a collar */}
-      <path d={TORSO} fill="#FFFFFF" />
-      <path d={TORSO} fill="url(#auth-person-dots)" />
-      <path d="M86 124 L100 140 L114 124" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
-      <path d={TORSO} fill="none" stroke={colors.ink} strokeWidth="3" />
-      {/* Left arm bent up to the chest */}
-      <path
-        d="M56 140 C42 152 38 184 46 202 C50 212 62 212 68 204 L86 180 C90 172 88 162 80 156 C74 152 66 146 62 140 Z"
-        fill="#FFFFFF"
-        stroke={colors.ink}
-        strokeWidth="3"
-      />
-      {/* Phone with a small chart on the screen */}
-      <g transform="rotate(-10 100 168)">
-        <rect x="84" y="142" width="32" height="54" rx="6" fill={colors.ink} />
-        <rect x="88" y="148" width="24" height="42" rx="2.5" fill={colors.brand.DEFAULT} />
-        <path d="M92 180 L98 170 L103 175 L110 162" fill="none" stroke="#FFFFFF" strokeWidth="2.4" />
+
+      {/* Head, tilted a little toward the phone. The ear sits behind the face. */}
+      <g transform="rotate(-6 100 96)">
+        <path d="M128 70 C136 68 138 84 128 88" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
+        <path
+          d="M76 72 C76 48 88 40 102 40 C118 40 128 50 128 72 C128 90 118 106 102 106 C86 106 76 92 76 72 Z"
+          fill="#FFFFFF"
+          stroke={colors.ink}
+          strokeWidth="3"
+        />
+        {/* Short hair, swept to one side */}
+        <path
+          d="M74 68 C68 46 80 30 100 30 C120 30 134 42 130 64 C126 56 120 50 112 48 C104 52 96 46 90 40 C84 48 78 56 74 68 Z"
+          fill={colors.ink}
+        />
+        <circle cx="92" cy="40" r="4" fill={colors.ink} />
+        <circle cx="106" cy="34" r="4" fill={colors.ink} />
+        {/* Brows, eyes, nose, and a small smile */}
+        <path d="M88 66 Q92 63 96 66 M108 66 Q112 63 116 66" fill="none" stroke={colors.ink} strokeWidth="2.2" />
+        <circle cx="92" cy="74" r="2.7" fill={colors.ink} />
+        <circle cx="112" cy="74" r="2.7" fill={colors.ink} />
+        <path d="M104 78 Q101 84 106 85" fill="none" stroke={colors.ink} strokeWidth="2.2" />
+        <path d="M94 94 Q103 101 112 94" fill="none" stroke={colors.ink} strokeWidth="2.6" />
       </g>
-      {/* Hand holding the phone */}
-      <ellipse cx="84" cy="176" rx="9" ry="8" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" transform="rotate(-20 84 176)" />
+
+      {/* Turtleneck */}
+      <path d="M86 102 L86 124 Q100 130 114 124 L114 102" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
+
+      {/* Sweater with sparse dots */}
+      <path d={SWEATER} fill="#FFFFFF" />
+      <path d={SWEATER} fill="url(#auth-person-dots)" />
+      <path d={SWEATER} fill="none" stroke={colors.ink} strokeWidth="3" />
+      <path d="M86 124 Q100 130 114 124" fill="none" stroke={colors.ink} strokeWidth="3" />
+
+      {/* Left arm bent up, forearm holding the phone */}
+      <path
+        d="M62 142 C48 156 44 186 48 204 C56 212 66 208 72 200 L88 180 C94 172 96 164 92 156 C88 150 76 146 62 142 Z"
+        fill="#FFFFFF"
+        stroke={colors.ink}
+        strokeWidth="3"
+      />
+
+      {/* Phone tilted toward the face, with a small chart on the screen */}
+      <g transform="rotate(-14 100 160)">
+        <rect x="82" y="134" width="30" height="50" rx="6" fill={colors.ink} />
+        <rect x="86" y="140" width="22" height="38" rx="2.5" fill={colors.brand.DEFAULT} />
+        <path d="M90 166 L95 158 L99 162 L106 152" fill="none" stroke="#FFFFFF" strokeWidth="2.2" />
+      </g>
+      {/* Hand around the phone */}
+      <ellipse cx="88" cy="172" rx="9" ry="8" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" transform="rotate(-20 88 172)" />
+
       {/* Right arm hanging at the side */}
-      <path d="M144 140 C160 158 162 190 158 214 C156 224 144 226 140 218 C138 202 136 178 130 162 Z" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
+      <path d="M140 142 C156 160 160 190 156 222 L136 224 C138 200 134 178 128 160 Z" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
     </g>
   )
 }
