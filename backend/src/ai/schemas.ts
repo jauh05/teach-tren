@@ -32,6 +32,18 @@ export const polaSuggestionsSchema = z.object({
 
 export type PolaSuggestions = z.infer<typeof polaSuggestionsSchema>
 
+// Roadmap of a learning plan: the branches (cabang) in learning order. The count and the subjects are checked by the caller.
+export const roadmapSchema = z.object({
+  cabang: z.array(
+    z.object({
+      mapel: z.string().min(1).max(60),
+      nama: z.string().min(1).max(60),
+    }),
+  ),
+})
+
+export type Roadmap = z.infer<typeof roadmapSchema>
+
 export const materiBulatSchema = z.object({
   judul: z.string().min(1).max(80),
   isi: z.string().min(1).max(4000),

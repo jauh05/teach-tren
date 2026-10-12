@@ -3,8 +3,10 @@ import { Prisma, type LearningPlan } from '../generated/prisma/client.js'
 import { requireUser, userIdOf } from '../auth/requireUser.js'
 import { prisma } from '../db.js'
 import { AppError } from '../http/errors.js'
-import { CURRICULUM } from '../kurikulum/catalog.js'
-import { planSchema } from './plan.js'
+import { CURRICULUM, findLevel } from '../kurikulum/catalog.js'
+import { SlidingWindowLimiter } from '../chat/rateLimit.js'
+import { pilihanSchema, planSchema } from './plan.js'
+import { generateRoadmap } from './roadmapAi.js'
 import { CENTER } from '../topics/placement.js'
 import { buildRoadmap, LANE_GAP } from './roadmap.js'
 
@@ -18,6 +20,26 @@ kurikulumRouter.get('/', (_req, res) => {
 // The learning plan of the signed-in account (one per account).
 export const rencanaRouter = Router()
 rencanaRouter.use(requireUser)
+
+// Roadmaps are written by the AI, so each account may ask a few times an hour.
+const ROADMAP_PER_HOUR = 10
+const roadmapLimiter = new SlidingWindowLimiter(ROADMAP_PER_HOUR, 60 * 60 * 1000)
+
+// Writes a roadmap of 6 to 12 branches for the chosen level, grade, and subjects. Nothing is saved yet:
+// the user looks at the branches first, then saves them with POST /api/rencana.
+rencanaRouter.post('/roadmap', async (req, res) => {
+  const input = pilihanSchema.parse(req.body ?? {})
+  const userId = userIdOf(req)
+  if (!roadmapLimiter.take(userId)) {
+    throw new AppError(429, 'Roadmap sudah sering dibuat. Coba lagi nanti.', 'TERLALU_CEPAT')
+  }
+  const level = findLevel(input.levelId)
+  if (!level) {
+    throw new AppError(400, 'Jenjang tidak dikenal.')
+  }
+  const roadmap = await generateRoadmap({ level, grade: input.grade, subjects: input.subjects })
+  res.json(roadmap)
+})
 
 rencanaRouter.get('/', async (req, res) => {
   const plan = await prisma.learningPlan.findUnique({ where: { userId: userIdOf(req) } })

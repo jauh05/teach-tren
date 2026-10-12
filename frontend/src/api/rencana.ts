@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CurriculumLevel, PlanPayload } from '../domain/rencana'
+import type { CurriculumLevel, DraftRoadmap, PlanPayload } from '../domain/rencana'
 import { apiRequest } from './http'
 
 // The learning plan is saved on the account, so it is read and written through the backend.
@@ -45,7 +45,21 @@ export async function getRencana(): Promise<SavedPlan> {
   return rencanaSchema.parse(await apiRequest('GET', '/api/rencana')).rencana
 }
 
-// Saves the plan. The server makes one topic per material, so the Learning canvas shows the roadmap at once.
+const roadmapSchema = z.object({
+  cabang: z.array(z.object({ mapel: z.string(), nama: z.string() })),
+  sumber: z.enum(['ai', 'katalog']),
+})
+
+// Writes the roadmap for the chosen level, grade, and subjects. Nothing is saved until the user accepts it.
+export async function generateRoadmap(choices: { levelId: string; grade: number; subjects: string[] }): Promise<DraftRoadmap> {
+  const roadmap = roadmapSchema.parse(await apiRequest('POST', '/api/rencana/roadmap', choices))
+  return {
+    sumber: roadmap.sumber,
+    cabang: roadmap.cabang.map((item) => ({ subject: item.mapel, name: item.nama })),
+  }
+}
+
+// Saves the plan. The server makes one topic per branch of the roadmap, so the Learning canvas shows it at once.
 export async function saveRencana(plan: PlanPayload): Promise<number> {
   return saveSchema.parse(await apiRequest('POST', '/api/rencana', plan)).bulat
 }

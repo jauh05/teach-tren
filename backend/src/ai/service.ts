@@ -20,6 +20,7 @@ export type AiTask =
   | 'REPAIR_JSON'
   | 'MODERASI'
   | 'MATERI_RINGKAS'
+  | 'RENCANA_ROADMAP'
 
 export type ChainName = 'chat' | 'kuis' | 'ringan'
 
@@ -35,6 +36,8 @@ const CHAIN_OF: Record<AiTask, ChainName> = {
   VERIFIKASI_KUNCI: 'ringan',
   JADWAL_SARAN: 'ringan',
   POLA_SARAN: 'ringan',
+  // The roadmap of a learning plan: a short list of branches, so it uses the light chain.
+  RENCANA_ROADMAP: 'ringan',
   // A material part is a longer text, so it gets the quiz chain and its longer time limit.
   MATERI_BULAT: 'kuis',
   KLASIFIKASI: 'ringan',

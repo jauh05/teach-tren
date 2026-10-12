@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { ArrowLeft, Check, CircleAlert, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { getKurikulum, getRencana, RENCANA_QUERY_KEY, saveRencana } from '../../api/rencana'
+import { generateRoadmap, getKurikulum, getRencana, RENCANA_QUERY_KEY, saveRencana } from '../../api/rencana'
 import { PersonFigure } from '../../components/illustrations/PersonFigure'
 import { Button } from '../../components/ui/Button'
 import {
@@ -12,29 +12,32 @@ import {
   chooseGrade,
   chooseLevel,
   EMPTY_DRAFT,
-  isTopicSelected,
+  hasValidRoadmap,
+  MAX_CABANG,
   MAX_SUBJECTS,
+  MIN_CABANG,
   nextStep,
   previousStep,
+  setRoadmap,
   toggleSubject,
-  toggleTopic,
   WIZARD_STEPS,
   type CurriculumLevel,
+  type DraftRoadmap,
   type PlanDraft,
   type WizardStep,
 } from '../../domain/rencana'
 
 const STEP_TEXT: Record<WizardStep, { title: string; subtitle: string }> = {
   kelas: { title: 'Kamu kelas berapa?', subtitle: 'Pilih jenjang dan kelas. Pilihanmu dipakai untuk menyusun roadmap.' },
-  mapel: { title: 'Mata pelajaran apa?', subtitle: 'Pilih satu atau lebih mata pelajaran. Setiap mata pelajaran menjadi satu jalur.' },
-  materi: {
-    title: 'Materi apa yang ingin dipelajari?',
-    subtitle: 'Setiap materi menjadi bulat di Learning. Langkah ini boleh dilewati.',
+  mapel: { title: 'Mata pelajaran apa?', subtitle: 'Pilih satu atau lebih mata pelajaran. Roadmap dibuat dari pilihan ini.' },
+  roadmap: {
+    title: 'Roadmap belajarmu',
+    subtitle: `Roadmap berisi ${MIN_CABANG} sampai ${MAX_CABANG} cabang. Setiap cabang menjadi bulat di Learning.`,
   },
 }
 
-// The first visit to Learning for a signed-in account: choose the level, the subjects, and the materials.
-// The saved choices become the roadmap on the canvas.
+// The first visit to Learning for a signed-in account: choose the level and the subjects, then accept the roadmap.
+// The accepted roadmap becomes the topics on the canvas.
 export function MulaiPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -44,6 +47,17 @@ export function MulaiPage() {
 
   const curriculumQuery = useQuery({ queryKey: ['kurikulum'], queryFn: getKurikulum, staleTime: Infinity })
   const planQuery = useQuery({ queryKey: RENCANA_QUERY_KEY, queryFn: getRencana })
+
+  const roadmapMutation = useMutation({
+    mutationFn: generateRoadmap,
+    onSuccess: (roadmap: DraftRoadmap) => {
+      setServerError(null)
+      setDraft((current) => setRoadmap(current, roadmap))
+    },
+    onError: (error) => {
+      setServerError(error instanceof Error ? error.message : 'Roadmap belum bisa dibuat. Coba lagi.')
+    },
+  })
 
   const save = useMutation({
     mutationFn: saveRencana,
@@ -72,15 +86,22 @@ export function MulaiPage() {
   const stepNumber = WIZARD_STEPS.indexOf(step) + 1
   const previous = previousStep(step)
   const next = nextStep(step)
+  const payload = buildPayload(draft)
 
-  // Saves the plan. "Lewati materi" saves it without materials, so the roadmap starts empty.
-  function submit(skipMaterials: boolean) {
-    const payload = buildPayload(draft, level)
+  function requestRoadmap() {
+    if (!draft.levelId || draft.grade === null) {
+      return
+    }
+    setServerError(null)
+    roadmapMutation.mutate({ levelId: draft.levelId, grade: draft.grade, subjects: draft.subjects })
+  }
+
+  function saveRoadmap() {
     if (!payload) {
       return
     }
     setServerError(null)
-    save.mutate(skipMaterials ? { ...payload, topics: [] } : payload)
+    save.mutate(payload)
   }
 
   return (
@@ -112,11 +133,11 @@ export function MulaiPage() {
             <p className="mt-1 text-sm text-muted">{STEP_TEXT[step].subtitle}</p>
           </div>
 
-          {step === 'kelas' && <KelasStep levels={levels} draft={draft} onLevel={(id) => setDraft(chooseLevel(draft, id))} onGrade={(grade) => setDraft(chooseGrade(draft, grade))} />}
-          {step === 'mapel' && level && <MapelStep level={level} draft={draft} onToggle={(name) => setDraft(toggleSubject(draft, name))} />}
-          {step === 'materi' && level && (
-            <MateriStep level={level} draft={draft} onToggle={(subject, name) => setDraft(toggleTopic(draft, subject, name))} />
+          {step === 'kelas' && (
+            <KelasStep levels={levels} draft={draft} onLevel={(id) => setDraft(chooseLevel(draft, id))} onGrade={(grade) => setDraft(chooseGrade(draft, grade))} />
           )}
+          {step === 'mapel' && level && <MapelStep level={level} draft={draft} onToggle={(name) => setDraft(toggleSubject(draft, name))} />}
+          {step === 'roadmap' && <RoadmapStep draft={draft} pending={roadmapMutation.isPending} onGenerate={requestRoadmap} />}
 
           <ProgressDots index={stepNumber - 1} />
 
@@ -127,33 +148,19 @@ export function MulaiPage() {
             </div>
           )}
 
-          {step === 'materi' ? (
+          {step === 'roadmap' ? (
             <div className="flex flex-col gap-3">
-              <Button className="min-h-[52px] w-full rounded-full text-[15px]" disabled={save.isPending || !buildPayload(draft, level)} onClick={() => submit(false)}>
+              <Button className="min-h-[52px] w-full rounded-full text-[15px]" disabled={save.isPending || !payload} onClick={saveRoadmap}>
                 {save.isPending && <LoaderCircle size={16} className="animate-spin" aria-hidden="true" />}
-                Buat rencana
+                Simpan roadmap
               </Button>
-              <div className="flex items-center justify-between text-sm">
-                <button type="button" onClick={() => setStep(previous ?? 'kelas')} className="font-semibold text-muted hover:text-ink">
-                  Kembali
-                </button>
-                <button
-                  type="button"
-                  disabled={save.isPending}
-                  onClick={() => submit(true)}
-                  className="font-semibold text-brand-dark hover:underline disabled:opacity-50"
-                >
-                  Lewati materi
-                </button>
-              </div>
+              <button type="button" onClick={() => setStep(previous ?? 'kelas')} className="text-center text-sm font-semibold text-muted hover:text-ink">
+                Kembali
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <Button
-                className="min-h-[52px] w-full rounded-full text-[15px]"
-                disabled={!canContinue(step, draft)}
-                onClick={() => next && setStep(next)}
-              >
+              <Button className="min-h-[52px] w-full rounded-full text-[15px]" disabled={!canContinue(step, draft)} onClick={() => next && setStep(next)}>
                 Lanjut
               </Button>
               {previous && (
@@ -254,8 +261,8 @@ function MapelStep({ level, draft, onToggle }: { level: CurriculumLevel; draft: 
               <span className="font-semibold text-ink">{subject.name}</span>
               <span
                 className={clsx(
-                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border',
-                  picked ? 'border-brand-dark bg-brand text-ink' : 'border-line',
+                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold',
+                  picked ? 'border-brand-dark bg-brand text-ink' : 'border-line text-transparent',
                 )}
                 aria-hidden="true"
               >
@@ -270,46 +277,47 @@ function MapelStep({ level, draft, onToggle }: { level: CurriculumLevel; draft: 
   )
 }
 
-function MateriStep({ level, draft, onToggle }: { level: CurriculumLevel; draft: PlanDraft; onToggle: (subject: string, name: string) => void }) {
-  if (draft.subjects.length === 0) {
-    return <p className="text-sm text-muted">Belum ada mata pelajaran dipilih.</p>
+// Asks the AI for the roadmap, then shows its branches. The user can ask again before saving.
+function RoadmapStep({ draft, pending, onGenerate }: { draft: PlanDraft; pending: boolean; onGenerate: () => void }) {
+  if (!draft.roadmap) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted">Roadmap dibuat dari kelas dan mata pelajaran yang kamu pilih.</p>
+        <Button className="min-h-[48px] w-full rounded-full" disabled={pending} onClick={onGenerate}>
+          {pending && <LoaderCircle size={16} className="animate-spin" aria-hidden="true" />}
+          {pending ? 'Menyusun roadmap...' : 'Buat roadmap'}
+        </Button>
+      </div>
+    )
   }
+
+  const { cabang, sumber } = draft.roadmap
   return (
-    <div className="flex flex-col gap-6">
-      {draft.subjects.map((subjectName) => {
-        const subject = level.subjects.find((item) => item.name === subjectName)
-        if (!subject) {
-          return null
-        }
-        const count = draft.topics.filter((topic) => topic.subject === subjectName).length
-        return (
-          <section key={subjectName} aria-label={subjectName} className="flex flex-col gap-3">
-            <div className="flex items-baseline justify-between">
-              <h2 className="font-semibold text-ink">{subjectName}</h2>
-              <span className="text-xs text-muted">{count} dipilih</span>
+    <div className="flex flex-col gap-4">
+      <p className="text-xs text-muted">
+        {sumber === 'ai' ? 'Disusun AI sesuai kelas dan mata pelajaranmu.' : 'Disusun dari daftar kurikulum untuk kelas dan mata pelajaranmu.'}
+      </p>
+      <ol className="flex flex-col gap-2.5" aria-label="Cabang roadmap">
+        {cabang.map((item, index) => (
+          <li key={`${item.subject}-${item.name}-${index}`} className="flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand-dark">
+              {index + 1}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-ink">{item.name}</p>
+              <p className="text-xs text-muted">{item.subject}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {subject.topics.map((topic) => {
-                const picked = isTopicSelected(draft, subjectName, topic)
-                return (
-                  <button
-                    key={topic}
-                    type="button"
-                    aria-pressed={picked}
-                    onClick={() => onToggle(subjectName, topic)}
-                    className={clsx(
-                      'rounded-full border px-3.5 py-1.5 text-left text-sm font-medium transition-colors',
-                      picked ? 'border-brand-dark bg-brand text-ink' : 'border-line text-ink hover:border-brand-dark',
-                    )}
-                  >
-                    {topic}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-        )
-      })}
+          </li>
+        ))}
+      </ol>
+      {!hasValidRoadmap(draft) && (
+        <p className="text-xs text-red-700">
+          Roadmap harus punya {MIN_CABANG} sampai {MAX_CABANG} cabang.
+        </p>
+      )}
+      <button type="button" disabled={pending} onClick={onGenerate} className="text-center text-sm font-semibold text-brand-dark hover:underline disabled:opacity-50">
+        {pending ? 'Menyusun ulang...' : 'Buat ulang roadmap'}
+      </button>
     </div>
   )
 }

@@ -14,6 +14,11 @@ test.describe('Rencana belajar', () => {
     await page.goto('/learning')
   }
 
+  // The branches list shown after the roadmap is made.
+  function roadmapList(page: Page) {
+    return page.getByRole('list', { name: 'Cabang roadmap' })
+  }
+
   test('akun baru diminta memilih rencana sebelum Learning dibuka', async ({ page, account }, testInfo) => {
     await registerNewAccount(page, account)
     await expect(page).toHaveURL(/\/belajar\/mulai$/)
@@ -26,24 +31,29 @@ test.describe('Rencana belajar', () => {
     await page.getByRole('button', { name: 'Lanjut' }).click()
     await page.getByRole('button', { name: 'Matematika' }).click()
     await page.getByRole('button', { name: 'Lanjut' }).click()
-    await page.getByRole('button', { name: 'Pecahan sederhana' }).click()
-    await page.getByRole('button', { name: 'Buat rencana' }).click()
+    await page.getByRole('button', { name: 'Buat roadmap' }).click()
+    await expect(roadmapList(page).getByRole('listitem').first()).toBeVisible()
+    await page.getByRole('button', { name: 'Simpan roadmap' }).click()
 
     await expect(page).toHaveURL(/\/learning$/)
-    // The chosen material is already on the canvas as a topic of the roadmap. Each topic is a button named after it.
-    await expect(page.getByRole('button', { name: /^Pecahan sederhana/ })).toBeVisible()
+    // The first branch is on the canvas, as a topic of the roadmap. Each topic is a button named after it.
+    await expect(page.getByRole('button', { name: /^Bilangan cacah/ })).toBeVisible()
   })
 
-  test('materi boleh dilewati, lalu Learning tetap terbuka', async ({ page, account }) => {
+  test('roadmap bisa dibuat ulang sebelum disimpan', async ({ page, account }) => {
     await registerNewAccount(page, account)
     await page.getByRole('radio', { name: 'SMP' }).click()
     await page.getByRole('radio', { name: 'Kelas 7' }).click()
     await page.getByRole('button', { name: 'Lanjut' }).click()
     await page.getByRole('button', { name: 'IPS' }).click()
     await page.getByRole('button', { name: 'Lanjut' }).click()
-    await page.getByRole('button', { name: 'Lewati materi' }).click()
+    await page.getByRole('button', { name: 'Buat roadmap' }).click()
+    await expect(roadmapList(page)).toBeVisible()
 
-    await expect(page).toHaveURL(/\/learning$/)
+    await page.getByRole('button', { name: 'Buat ulang roadmap' }).click()
+    await expect(roadmapList(page)).toBeVisible()
+    // Nothing is saved yet, so the page is still the wizard.
+    await expect(page).toHaveURL(/\/belajar\/mulai$/)
   })
 
   test('rencana yang sudah ada langsung membuka Learning', async ({ page, account }) => {
@@ -53,7 +63,9 @@ test.describe('Rencana belajar', () => {
     await page.getByRole('button', { name: 'Lanjut' }).click()
     await page.getByRole('button', { name: 'Fisika' }).click()
     await page.getByRole('button', { name: 'Lanjut' }).click()
-    await page.getByRole('button', { name: 'Lewati materi' }).click()
+    await page.getByRole('button', { name: 'Buat roadmap' }).click()
+    await expect(roadmapList(page)).toBeVisible()
+    await page.getByRole('button', { name: 'Simpan roadmap' }).click()
     await expect(page).toHaveURL(/\/learning$/)
 
     await page.goto('/belajar/mulai')

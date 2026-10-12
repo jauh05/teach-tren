@@ -5,20 +5,24 @@ import { createTestApp, registerAgent, resetDatabase } from './helpers.js'
 
 const app = createTestApp()
 
-// Validation errors carry one message per field in "rincian". The top-level "pesan" is the same for all of them.
-function messagesOf(body: { rincian?: { pesan: string }[] }): string[] {
-  return (body.rincian ?? []).map((issue) => issue.pesan)
-}
-
+// Six branches: four in Matematika and two in IPA.
 const PLAN = {
   levelId: 'sd',
   grade: 4,
   subjects: ['Matematika', 'IPA'],
   topics: [
+    { subject: 'Matematika', name: 'Bilangan cacah' },
     { subject: 'Matematika', name: 'Pecahan sederhana' },
     { subject: 'Matematika', name: 'Bangun datar' },
+    { subject: 'Matematika', name: 'Pengukuran' },
     { subject: 'IPA', name: 'Tubuh manusia' },
+    { subject: 'IPA', name: 'Siklus air' },
   ],
+}
+
+// Validation errors carry one message per field in "rincian". The top-level "pesan" is the same for all of them.
+function messagesOf(body: { rincian?: { pesan: string }[] }): string[] {
+  return (body.rincian ?? []).map((issue) => issue.pesan)
 }
 
 describe('kurikulum', () => {
@@ -48,24 +52,25 @@ describe('rencana belajar', () => {
     expect(response.body.rencana).toBeNull()
   })
 
-  it('rencana membuat satu bulat per materi, dengan satu jalur per mata pelajaran', async () => {
+  it('rencana membuat satu bulat per cabang, dengan satu jalur per mata pelajaran', async () => {
     const agent = await registerAgent(app)
     const saved = await agent.post('/api/rencana').send(PLAN)
     expect(saved.status).toBe(201)
-    expect(saved.body.bulat).toBe(3)
+    expect(saved.body.bulat).toBe(6)
     expect(saved.body.rencana.subjects).toEqual(['Matematika', 'IPA'])
 
     const user = await prisma.user.findUniqueOrThrow({ where: { email: 'siswa@contoh.id' } })
     const topics = await prisma.topic.findMany({ where: { userId: user.id }, orderBy: { x: 'asc' } })
     const matematika = topics.filter((topic) => topic.subject === 'Matematika')
     const ipa = topics.filter((topic) => topic.subject === 'IPA')
-    expect(matematika.map((topic) => topic.name)).toEqual(['Pecahan sederhana', 'Bangun datar'])
+    expect(matematika.map((topic) => topic.name)).toEqual(['Bilangan cacah', 'Pecahan sederhana', 'Bangun datar', 'Pengukuran'])
     expect(matematika[0].y).toBe(matematika[1].y)
     expect(ipa[0].y).toBeGreaterThan(matematika[0].y)
 
-    // Each topic links to the next one of its lane, and lanes are not linked to each other.
+    // Each branch links to the next one of its lane, and lanes are not linked to each other: 3 + 1 links.
     const links = await prisma.topicLink.findMany({ where: { userId: user.id } })
-    expect(links).toEqual([expect.objectContaining({ sourceId: matematika[0].id, targetId: matematika[1].id })])
+    expect(links).toHaveLength(4)
+    expect(links).toContainEqual(expect.objectContaining({ sourceId: matematika[0].id, targetId: matematika[1].id }))
   })
 
   it('rencana yang sudah dibuat tidak bisa dibuat ulang', async () => {
@@ -78,19 +83,38 @@ describe('rencana belajar', () => {
     expect(read.body.rencana.grade).toBe(4)
   })
 
-  it('materi boleh dilewati, dan rencana tetap tersimpan', async () => {
+  it('roadmap harus punya 6 sampai 12 cabang', async () => {
     const agent = await registerAgent(app)
-    const saved = await agent.post('/api/rencana').send({ ...PLAN, topics: [] })
-    expect(saved.status).toBe(201)
-    expect(saved.body.bulat).toBe(0)
+    const tooFew = await agent.post('/api/rencana').send({ ...PLAN, topics: PLAN.topics.slice(0, 5) })
+    expect(tooFew.status).toBe(400)
+    expect(tooFew.body.pesan).toBe('Data yang dikirim tidak valid.')
+
+    const extra = Array.from({ length: 7 }, (_, index) => ({ subject: 'Matematika', name: `Cabang ${index + 1}` }))
+    const tooMany = await agent.post('/api/rencana').send({ ...PLAN, topics: [...PLAN.topics, ...extra] })
+    expect(tooMany.status).toBe(400)
   })
 
-  it('materi yang namanya sudah dipakai bulat lain dilewati', async () => {
+  it('nama cabang dari AI boleh di luar daftar kurikulum', async () => {
+    const agent = await registerAgent(app)
+    const topics = [
+      { subject: 'Matematika', name: 'Menghitung dengan jari' },
+      { subject: 'Matematika', name: 'Tebak bilangan' },
+      { subject: 'Matematika', name: 'Pola bilangan' },
+      { subject: 'Matematika', name: 'Hitung cepat' },
+      { subject: 'IPA', name: 'Hewan di sekitar' },
+      { subject: 'IPA', name: 'Tanaman rumah' },
+    ]
+    const saved = await agent.post('/api/rencana').send({ ...PLAN, topics })
+    expect(saved.status).toBe(201)
+    expect(saved.body.bulat).toBe(6)
+  })
+
+  it('cabang yang namanya sudah dipakai bulat lain dilewati', async () => {
     const agent = await registerAgent(app)
     await agent.post('/api/topics').send({ name: 'pecahan sederhana' }).expect(201)
     const saved = await agent.post('/api/rencana').send(PLAN)
     expect(saved.status).toBe(201)
-    expect(saved.body.bulat).toBe(2)
+    expect(saved.body.bulat).toBe(5)
   })
 
   it('roadmap diletakkan di bawah bulat yang sudah ada', async () => {
@@ -104,13 +128,13 @@ describe('rencana belajar', () => {
     await agent.post('/api/rencana').send(PLAN).expect(201)
     const created = await prisma.topic.findMany({ where: { userId: user.id } })
     const roadmap = created.filter((topic) => !existingIds.has(topic.id))
-    expect(roadmap).toHaveLength(3)
+    expect(roadmap).toHaveLength(6)
     expect(Math.min(...roadmap.map((topic) => topic.y))).toBeGreaterThan(lowestRoadmapY)
   })
 
   it('pilihan di luar katalog ditolak', async () => {
     const agent = await registerAgent(app)
-    const response = await agent.post('/api/rencana').send({ ...PLAN, subjects: ['Fisika'] })
+    const response = await agent.post('/api/rencana').send({ ...PLAN, subjects: ['Fisika'], topics: [] })
     expect(response.status).toBe(400)
     expect(messagesOf(response.body)).toContain('Fisika tidak ada di SD.')
   })
@@ -122,25 +146,11 @@ describe('rencana belajar', () => {
     expect(messagesOf(response.body)).toContain('Kelas 7 tidak ada untuk SD.')
   })
 
-  it('materi harus dari mata pelajaran yang dipilih', async () => {
+  it('cabang harus dari mata pelajaran yang dipilih', async () => {
     const agent = await registerAgent(app)
-    const response = await agent.post('/api/rencana').send({
-      ...PLAN,
-      subjects: ['Matematika'],
-      topics: [{ subject: 'IPA', name: 'Tubuh manusia' }],
-    })
+    const response = await agent.post('/api/rencana').send({ ...PLAN, subjects: ['Matematika'] })
     expect(response.status).toBe(400)
     expect(messagesOf(response.body)).toContain('Tubuh manusia harus dari mata pelajaran yang dipilih.')
-  })
-
-  it('materi yang tidak ada di mata pelajarannya ditolak', async () => {
-    const agent = await registerAgent(app)
-    const response = await agent.post('/api/rencana').send({
-      ...PLAN,
-      topics: [{ subject: 'Matematika', name: 'Tubuh manusia' }],
-    })
-    expect(response.status).toBe(400)
-    expect(messagesOf(response.body)).toContain('Tubuh manusia tidak ada di Matematika.')
   })
 
   it('minimal satu mata pelajaran harus dipilih', async () => {
@@ -148,5 +158,33 @@ describe('rencana belajar', () => {
     const response = await agent.post('/api/rencana').send({ ...PLAN, subjects: [] })
     expect(response.status).toBe(400)
     expect(messagesOf(response.body)).toContain('Pilih minimal satu mata pelajaran.')
+  })
+})
+
+describe('roadmap dari AI atau katalog', () => {
+  beforeEach(resetDatabase)
+
+  it('tamu tidak bisa membuat roadmap', async () => {
+    const response = await request(app).post('/api/rencana/roadmap').set('X-Guest-Id', crypto.randomUUID()).send({ levelId: 'sd', grade: 4, subjects: ['Matematika'] })
+    expect(response.status).toBe(403)
+  })
+
+  it('roadmap berisi 6 sampai 12 cabang dari mata pelajaran yang dipilih', async () => {
+    const agent = await registerAgent(app)
+    const response = await agent.post('/api/rencana/roadmap').send({ levelId: 'sd', grade: 4, subjects: ['Matematika', 'IPA'] })
+    expect(response.status).toBe(200)
+    expect(response.body.cabang.length).toBeGreaterThanOrEqual(6)
+    expect(response.body.cabang.length).toBeLessThanOrEqual(12)
+    const subjects = new Set(response.body.cabang.map((item: { mapel: string }) => item.mapel))
+    expect([...subjects].sort()).toEqual(['IPA', 'Matematika'])
+    // Mock mode (the test setting) builds the roadmap from the curriculum list.
+    expect(response.body.sumber).toBe('katalog')
+  })
+
+  it('pilihan roadmap yang tidak sesuai katalog ditolak', async () => {
+    const agent = await registerAgent(app)
+    const response = await agent.post('/api/rencana/roadmap').send({ levelId: 'sd', grade: 4, subjects: ['Fisika'] })
+    expect(response.status).toBe(400)
+    expect(messagesOf(response.body)).toContain('Fisika tidak ada di SD.')
   })
 })

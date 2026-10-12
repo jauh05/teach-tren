@@ -1,78 +1,75 @@
 import { colors } from '../../theme/tokens'
 
-// A cartoon man in a sweater, looking down at a phone held at the chest. Used by the sign-in pages and the learning-plan wizard.
-// Drawn in a 200 x 230 box, so it can be placed with a transform.
+// A young man in a crew-neck sweater, looking down at a phone held at the chest. He looks at the screen, so we see the back of the phone.
+// Used by the sign-in pages and the learning-plan wizard. Drawn in a 200 x 230 box, so it can be placed with a transform.
 
-const SWEATER = 'M28 222 C28 172 38 144 64 132 L82 124 Q100 130 118 124 L136 132 C162 144 172 172 172 222 Z'
+const SWEATER = 'M36 224 C36 178 42 150 64 138 Q84 128 100 128 Q116 128 136 138 C158 150 164 178 164 224 Z'
 
 export function PersonFigure() {
   return (
     <g strokeLinecap="round" strokeLinejoin="round">
       <defs>
-        <pattern id="person-dots" width="13" height="13" patternUnits="userSpaceOnUse">
-          <circle cx="3.5" cy="4" r="1.6" fill={colors.ink} />
-          <circle cx="10" cy="10.5" r="1.6" fill={colors.ink} />
+        <pattern id="person-dots" width="12" height="12" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3.5" r="1.3" fill={colors.ink} />
+          <circle cx="9" cy="9" r="1.3" fill={colors.ink} />
         </pattern>
       </defs>
 
-      {/* Neck, hidden behind the sweater collar */}
-      <path d="M88 100 L88 126 M112 100 L112 126" fill="none" stroke={colors.ink} strokeWidth="3" />
+      {/* Neck, behind the sweater collar */}
+      <path d="M90 98 L90 120 M110 98 L110 120" fill="none" stroke={colors.ink} strokeWidth="3" />
 
-      {/* Sweater with a dotted pattern and two fold lines */}
+      {/* Sweater with a light dotted pattern and soft fold lines */}
       <path d={SWEATER} fill="#FFFFFF" />
       <path d={SWEATER} fill="url(#person-dots)" />
-      <path d={SWEATER} fill="none" stroke={colors.ink} strokeWidth="3.5" />
-      <path d="M52 186 Q60 198 56 212 M148 186 Q140 198 144 212" fill="none" stroke={colors.ink} strokeWidth="2.2" />
+      <path d={SWEATER} fill="none" stroke={colors.ink} strokeWidth="3.2" />
+      <path d="M72 188 Q78 202 74 218 M128 188 Q122 202 126 218" fill="none" stroke={colors.ink} strokeWidth="1.8" />
 
-      {/* Turtleneck band across the collar */}
-      <path d="M82 118 Q100 134 118 118 L120 132 Q100 148 80 132 Z" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.5" />
+      {/* Crew neck collar */}
+      <path d="M84 118 Q100 134 116 118" fill="none" stroke={colors.ink} strokeWidth="3" />
 
-      {/* Head, tilted toward the phone */}
-      <g transform="rotate(-6 100 100)">
+      {/* Head, tilted a little down toward the phone */}
+      <g transform="rotate(-4 100 96)">
         {/* Right ear, behind the face */}
-        <path d="M132 70 C141 68 143 84 132 90" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.5" />
+        <path d="M126 64 C132 62 134 76 126 80" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3" />
         {/* Face */}
         <path
-          d="M68 72 C68 46 82 34 100 34 C118 34 132 46 132 72 C132 92 124 108 110 112 Q100 116 90 112 C76 108 68 92 68 72 Z"
+          d="M74 68 C74 46 86 38 100 38 C114 38 126 46 126 68 C126 86 118 100 106 104 Q100 107 94 104 C82 100 74 86 74 68 Z"
           fill="#FFFFFF"
           stroke={colors.ink}
-          strokeWidth="3.5"
+          strokeWidth="3.2"
         />
-        {/* Voluminous hair with light strands */}
-        <path d="M64 76 C56 46 74 22 102 22 C126 22 142 40 138 68 C134 58 128 50 118 46 C108 52 96 44 86 38 C78 46 70 58 64 76 Z" fill={colors.ink} />
-        <path d="M92 30 Q98 36 96 44 M108 28 Q116 34 116 42" fill="none" stroke="#FFFFFF" strokeWidth="2.2" />
-        {/* Brows, eyes with highlights, nose, smile, and cheeks */}
-        <path d="M82 64 Q88 60 95 63 M108 63 Q115 60 121 64" fill="none" stroke={colors.ink} strokeWidth="3" />
-        <ellipse cx="88" cy="75" rx="4.2" ry="5.2" fill={colors.ink} />
-        <ellipse cx="114" cy="75" rx="4.2" ry="5.2" fill={colors.ink} />
-        <circle cx="89.5" cy="73.5" r="1.5" fill="#FFFFFF" />
-        <circle cx="115.5" cy="73.5" r="1.5" fill="#FFFFFF" />
-        <path d="M102 80 Q99 88 104 89" fill="none" stroke={colors.ink} strokeWidth="2.2" />
-        <path d="M90 96 Q101 107 112 96" fill="none" stroke={colors.ink} strokeWidth="2.8" />
-        <circle cx="80" cy="91" r="4.5" fill={colors.brand.DEFAULT} fillOpacity="0.55" />
-        <circle cx="120" cy="91" r="4.5" fill={colors.brand.DEFAULT} fillOpacity="0.55" />
+        {/* Short hair, swept to one side */}
+        <path d="M72 64 C68 46 80 34 100 34 C118 34 130 44 128 62 C124 54 116 48 106 46 C96 50 84 48 78 54 C75 57 73 60 72 64 Z" fill={colors.ink} />
+        {/* Brows, eyes, nose, and a calm smile */}
+        <path d="M84 62 Q88 59 93 61 M107 61 Q112 59 116 62" fill="none" stroke={colors.ink} strokeWidth="2.2" />
+        <ellipse cx="88.5" cy="70" rx="2.4" ry="2.9" fill={colors.ink} />
+        <ellipse cx="111.5" cy="70" rx="2.4" ry="2.9" fill={colors.ink} />
+        <path d="M101 74 Q98 80 102 81" fill="none" stroke={colors.ink} strokeWidth="1.9" />
+        <path d="M93 89 Q100 93 107 89" fill="none" stroke={colors.ink} strokeWidth="2.2" />
       </g>
 
-      {/* Left arm bent up, forearm holding the phone */}
+      {/* Left arm bent up, the forearm bringing the phone to the chest */}
       <path
-        d="M46 140 C30 156 24 186 30 210 C36 220 50 218 56 208 L76 180 C82 172 84 164 80 156 C74 148 64 142 46 140 Z"
+        d="M62 142 C48 154 42 180 46 204 C48 214 62 214 68 206 L84 186 C92 176 94 164 88 156 C82 150 72 146 62 142 Z"
         fill="#FFFFFF"
         stroke={colors.ink}
-        strokeWidth="3.5"
+        strokeWidth="3.2"
       />
 
-      {/* Phone tilted toward the face, with a small chart on the screen */}
-      <g transform="rotate(-12 96 158)">
-        <rect x="70" y="126" width="30" height="52" rx="6" fill={colors.ink} />
-        <rect x="74" y="132" width="22" height="40" rx="2.5" fill={colors.brand.DEFAULT} />
-        <path d="M78 160 L83 152 L87 156 L94 146" fill="none" stroke="#FFFFFF" strokeWidth="2.2" />
+      {/* Back of the phone, with a camera module */}
+      <g transform="rotate(-10 92 158)">
+        <rect x="78" y="128" width="28" height="50" rx="6" fill={colors.ink} />
+        <rect x="83" y="133" width="10" height="10" rx="2.5" fill="#FFFFFF" />
+        <circle cx="86" cy="137" r="1.6" fill={colors.ink} />
+        <circle cx="90" cy="141" r="1.6" fill={colors.ink} />
       </g>
-      {/* Hand around the phone */}
-      <ellipse cx="78" cy="168" rx="10" ry="9" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.5" transform="rotate(-20 78 168)" />
+      {/* Hand around the lower part of the phone, with the thumb on the edge */}
+      <ellipse cx="88" cy="172" rx="10" ry="8.5" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.2" transform="rotate(-14 88 172)" />
+      <ellipse cx="79" cy="164" rx="4" ry="3" fill="#FFFFFF" stroke={colors.ink} strokeWidth="2.4" transform="rotate(-20 79 164)" />
 
-      {/* Right arm hanging at the side, with a hand */}
-      <path d="M154 140 C170 160 174 190 170 222 L150 224 C152 200 148 180 142 162 Z" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.5" />
-      <ellipse cx="160" cy="226" rx="9" ry="8" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.5" />
+      {/* Right arm hanging at the side, relaxed */}
+      <path d="M152 142 C166 158 170 188 166 224 L146 226 C148 202 144 180 138 162 Z" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.2" />
+      <ellipse cx="156" cy="228" rx="8" ry="7.5" fill="#FFFFFF" stroke={colors.ink} strokeWidth="3.2" />
     </g>
   )
 }

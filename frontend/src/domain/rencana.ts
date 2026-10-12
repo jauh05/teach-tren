@@ -16,9 +16,16 @@ export interface CurriculumLevel {
   subjects: CurriculumSubject[]
 }
 
+// One branch (cabang) of the roadmap: the subject it belongs to and its name.
 export interface PlanTopic {
   subject: string
   name: string
+}
+
+// The roadmap made for the current choices. Each change to the choices makes it out of date.
+export interface DraftRoadmap {
+  sumber: 'ai' | 'katalog'
+  cabang: PlanTopic[]
 }
 
 // What the user has picked so far. Nothing is saved until the last step.
@@ -26,7 +33,7 @@ export interface PlanDraft {
   levelId: LevelId | null
   grade: number | null
   subjects: string[]
-  topics: PlanTopic[]
+  roadmap: DraftRoadmap | null
 }
 
 export interface PlanPayload {
@@ -36,49 +43,49 @@ export interface PlanPayload {
   topics: PlanTopic[]
 }
 
-export type WizardStep = 'kelas' | 'mapel' | 'materi'
+export type WizardStep = 'kelas' | 'mapel' | 'roadmap'
 
-export const WIZARD_STEPS: WizardStep[] = ['kelas', 'mapel', 'materi']
+export const WIZARD_STEPS: WizardStep[] = ['kelas', 'mapel', 'roadmap']
 export const MAX_SUBJECTS = 6
+// A roadmap has 6 to 12 branches (cabang), as in the backend.
+export const MIN_CABANG = 6
+export const MAX_CABANG = 12
 
-export const EMPTY_DRAFT: PlanDraft = { levelId: null, grade: null, subjects: [], topics: [] }
+export const EMPTY_DRAFT: PlanDraft = { levelId: null, grade: null, subjects: [], roadmap: null }
 
 // Subjects belong to one level, so a different level starts the choice again.
 export function chooseLevel(draft: PlanDraft, levelId: LevelId): PlanDraft {
   if (draft.levelId === levelId) {
     return draft
   }
-  return { levelId, grade: null, subjects: [], topics: [] }
+  return { levelId, grade: null, subjects: [], roadmap: null }
 }
 
 export function chooseGrade(draft: PlanDraft, grade: number): PlanDraft {
-  return { ...draft, grade }
+  if (draft.grade === grade) {
+    return draft
+  }
+  return { ...draft, grade, roadmap: null }
 }
 
-// Deselecting a subject also drops its materials. A subject can be picked up to MAX_SUBJECTS times.
+// A subject can be picked up to MAX_SUBJECTS times. Any change to the subjects makes the roadmap out of date.
 export function toggleSubject(draft: PlanDraft, name: string): PlanDraft {
   if (draft.subjects.includes(name)) {
-    return {
-      ...draft,
-      subjects: draft.subjects.filter((subject) => subject !== name),
-      topics: draft.topics.filter((topic) => topic.subject !== name),
-    }
+    return { ...draft, subjects: draft.subjects.filter((subject) => subject !== name), roadmap: null }
   }
   if (draft.subjects.length >= MAX_SUBJECTS) {
     return draft
   }
-  return { ...draft, subjects: [...draft.subjects, name] }
+  return { ...draft, subjects: [...draft.subjects, name], roadmap: null }
 }
 
-export function isTopicSelected(draft: PlanDraft, subject: string, name: string): boolean {
-  return draft.topics.some((topic) => topic.subject === subject && topic.name === name)
+export function setRoadmap(draft: PlanDraft, roadmap: DraftRoadmap): PlanDraft {
+  return { ...draft, roadmap }
 }
 
-export function toggleTopic(draft: PlanDraft, subject: string, name: string): PlanDraft {
-  if (isTopicSelected(draft, subject, name)) {
-    return { ...draft, topics: draft.topics.filter((topic) => !(topic.subject === subject && topic.name === name)) }
-  }
-  return { ...draft, topics: [...draft.topics, { subject, name }] }
+export function hasValidRoadmap(draft: PlanDraft): boolean {
+  const count = draft.roadmap?.cabang.length ?? 0
+  return count >= MIN_CABANG && count <= MAX_CABANG
 }
 
 export function canContinue(step: WizardStep, draft: PlanDraft): boolean {
@@ -88,8 +95,7 @@ export function canContinue(step: WizardStep, draft: PlanDraft): boolean {
   if (step === 'mapel') {
     return draft.subjects.length > 0
   }
-  // Materials are optional, so the last step can always be saved.
-  return true
+  return hasValidRoadmap(draft)
 }
 
 export function stepIndex(step: WizardStep): number {
@@ -104,18 +110,10 @@ export function previousStep(step: WizardStep): WizardStep | null {
   return WIZARD_STEPS[stepIndex(step) - 1] ?? null
 }
 
-// The body sent to the server. Materials follow the order of the curriculum, so each lane reads from the start of the subject.
-// Returns null while the level or grade is still missing.
-export function buildPayload(draft: PlanDraft, level: CurriculumLevel | undefined): PlanPayload | null {
-  if (!draft.levelId || draft.grade === null || !level) {
+// The body sent to the server. Returns null while the choices or the roadmap are incomplete.
+export function buildPayload(draft: PlanDraft): PlanPayload | null {
+  if (!draft.levelId || draft.grade === null || !hasValidRoadmap(draft) || !draft.roadmap) {
     return null
   }
-  const topics = draft.topics
-    .map((topic) => {
-      const subject = level.subjects.find((item) => item.name === topic.subject)
-      return { topic, order: subject ? subject.topics.indexOf(topic.name) : -1 }
-    })
-    .sort((a, b) => a.topic.subject.localeCompare(b.topic.subject) || a.order - b.order)
-    .map(({ topic }) => topic)
-  return { levelId: draft.levelId, grade: draft.grade, subjects: draft.subjects, topics }
+  return { levelId: draft.levelId, grade: draft.grade, subjects: draft.subjects, topics: draft.roadmap.cabang }
 }

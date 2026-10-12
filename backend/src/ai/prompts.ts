@@ -76,6 +76,26 @@ export function polaSuggestionSystemPrompt(contextJson: string): string {
   ].join('\n')
 }
 
+// Task RENCANA_ROADMAP: the branches of a learning roadmap for one level, grade, and set of subjects.
+export function roadmapSystemPrompt(contextJson: string): string {
+  return [
+    RULES,
+    '',
+    'PERAN',
+    'Kamu menyusun roadmap belajar untuk pelajar Indonesia, sesuai kurikulum Indonesia pada jenjang dan kelas yang diberikan.',
+    'KONTEKS (alias, ringkas)',
+    contextJson,
+    'ATURAN',
+    '1. Susun 6 sampai 12 cabang. Setiap cabang adalah satu materi yang bisa dipelajari sendiri.',
+    '2. Setiap cabang harus termasuk salah satu mata pelajaran di konteks. Isi "mapel" dengan nama mata pelajaran itu persis.',
+    '3. Urutkan cabang dari dasar ke lanjutan di tiap mata pelajaran, dan sebar jumlahnya secara wajar antar mata pelajaran.',
+    '4. Nama cabang singkat, maksimal 60 karakter, tanpa nomor urut. Jangan ada nama yang sama.',
+    'SKEMA JSON',
+    '{ "cabang": [ { "mapel": "string", "nama": "string" } ] }',
+    'Keluarkan HANYA JSON valid.',
+  ].join('\n')
+}
+
 // Task MATERI_BULAT: one part of the study material of a topic. The parts are written in order.
 export function materiBulatSystemPrompt(contextJson: string): string {
   return [

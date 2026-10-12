@@ -35,13 +35,14 @@ Aplikasi meminta `guestId` sekali per perangkat, lalu mengirimnya di header `X-G
 
 ## Rencana belajar
 
-Sebelum pertama kali membuka Learning, akun memilih jenjang, kelas, mata pelajaran, dan materi. Materi yang dipilih menjadi bulat roadmap, satu jalur per mata pelajaran. Rencana hanya bisa dibuat sekali.
+Sebelum pertama kali membuka Learning, akun memilih jenjang, kelas, dan mata pelajaran. AI lalu menyusun roadmap berisi 6 sampai 12 cabang. Pengguna melihat cabang-cabang itu, dan menyimpannya sebagai rencana. Setiap cabang menjadi bulat di Learning, dengan satu jalur per mata pelajaran. Rencana hanya bisa dibuat sekali.
 
 | Metode | Alamat | Isi permintaan | Hasil |
 | --- | --- | --- | --- |
-| GET | `/api/kurikulum` | - | 200 `{ jenjang: [{ id, label, gradeUnit, grades, subjects: [{ name, topics }] }] }`. Publik, tanpa masuk. `id` berupa `sd`, `smp`, `sma`, atau `kuliah` |
+| GET | `/api/kurikulum` | - | 200 `{ jenjang: [{ id, label, gradeUnit, grades, subjects: [{ name, topics }] }] }`. Publik, tanpa masuk. `id` berupa `sd`, `smp`, `sma`, atau `kuliah`. `topics` adalah daftar awal materi per mata pelajaran |
 | GET | `/api/rencana` | - | 200 `{ rencana }`, atau `{ rencana: null }` kalau belum dibuat. `rencana`: `levelId`, `grade`, `subjects`, `dibuatPada`. Tamu: 403 `HANYA_MASUK` |
-| POST | `/api/rencana` | `levelId`, `grade` (kelas atau semester sesuai jenjang), `subjects` (1 sampai 6 nama mata pelajaran), `topics` (opsional, `{ subject, name }`, sampai 60) | 201 `{ rencana, bulat }`: jumlah bulat yang dibuat. Setiap pilihan harus ada di katalog (`GET /api/kurikulum`) dan sesuai jenjangnya, kalau tidak: 400 dengan pesan per field di `rincian`. Nama materi yang sudah dipakai bulat lain dilewati. Rencana sudah ada: 409 `SUDAH_ADA`. Tamu: 403 `HANYA_MASUK` |
+| POST | `/api/rencana/roadmap` | `levelId`, `grade` (kelas atau semester sesuai jenjang), `subjects` (1 sampai 6 nama mata pelajaran dari katalog) | 200 `{ cabang: [{ mapel, nama }], sumber }`. `sumber` bernilai `ai` kalau AI yang menyusun, atau `katalog` kalau memakai daftar kurikulum (mode mock, AI tidak tersedia, atau jawaban AI tidak memenuhi aturan). Jumlah cabang selalu 6 sampai 12. Tidak menyimpan apa pun. Pilihan di luar katalog: 400. Akun melewati 10 permintaan per jam: 429 `TERLALU_CEPAT`. Tamu: 403 `HANYA_MASUK` |
+| POST | `/api/rencana` | `levelId`, `grade`, `subjects` (1 sampai 6), `topics` (6 sampai 12 cabang, `{ subject, name }`). `subject` harus salah satu mata pelajaran yang dipilih. Nama cabang boleh di luar katalog, tetapi tidak boleh berulang | 201 `{ rencana, bulat }`: jumlah bulat yang dibuat. Pilihan jenjang, kelas, dan mata pelajaran harus ada di katalog. Jumlah cabang di luar 6 sampai 12: 400 dengan pesan per field di `rincian`. Nama cabang yang sudah dipakai bulat lain dilewati. Rencana sudah ada: 409 `SUDAH_ADA`. Tamu: 403 `HANYA_MASUK` |
 
 ## Bulat
 
