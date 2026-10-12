@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Every job starts its own PostgreSQL. Tests run only on the _test database, so nothing reaches development data.
+# The secrets below are throwaway values for this test database. No API key is used: AI_MODE is mock.
+jobs:
+  backend:
+    name: Backend (tipe, build, tes)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: teach_tren_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/teach_tren_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/teach_tren_test
+      JWT_SECRET: ci-only-jwt-secret-minimal-32-karakter
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npx tsc --noEmit -p tsconfig.json
+      - run: npm run build
+      - run: npm test
+
+  frontend:
+    name: Frontend (lint, tipe, tes unit, e2e)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: teach_tren_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/teach_tren_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/teach_tren_test
+      JWT_SECRET: ci-only-jwt-secret-minimal-32-karakter
+    steps:
+      - uses: actions/checkout@v4
+      # The end-to-end fixtures import backend code (the Prisma client), so the backend dependencies are needed too.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Pasang dependensi backend
+        run: npm ci
+        working-directory: backend
+      - name: Pasang dependensi frontend
+        run: npm ci
+        working-directory: frontend
+      - name: Pasang browser untuk Playwright
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run lint
+        working-directory: frontend
+      - run: npx tsc -b
+        working-directory: frontend
+      - run: npx vitest run
+        working-directory: frontend
+      - run: npm run e2e
+        working-directory: frontend
