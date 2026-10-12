@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { TourArt } from '../../components/illustrations/WelcomeArt'
 import { continueAsGuest, useSessionStore } from '../../stores/sessionStore'
 
@@ -27,7 +27,7 @@ const SLIDES: { scene: 'memory' | 'chat' | 'roadmap' | 'progress'; title: string
   },
 ]
 
-// Short slides after "Mulai", a tutorial before sign-up or sign-in. The last slide leads to sign-up or to the guest mode.
+// The order of the first screens: welcome, then this tutorial, then the sign-in page. The last slide leads to sign-in or to the guest mode.
 export function TourRoute() {
   const mode = useSessionStore((state) => state.mode)
   if (mode === 'signedIn') {
@@ -76,10 +76,10 @@ function TourPage() {
             <>
               <button
                 type="button"
-                onClick={() => navigate('/daftar')}
+                onClick={() => navigate('/masuk')}
                 className="min-h-[52px] w-full rounded-full bg-brand text-[15px] font-semibold text-ink hover:bg-brand-dark hover:text-white"
               >
-                Daftar akun
+                Masuk
               </button>
               <button
                 type="button"
@@ -91,6 +91,12 @@ function TourPage() {
               >
                 Lanjut sebagai tamu
               </button>
+              <p className="text-center text-sm text-muted">
+                Belum punya akun?{' '}
+                <Link to="/daftar" className="font-semibold text-brand-dark hover:underline">
+                  Daftar
+                </Link>
+              </p>
             </>
           ) : (
             <button

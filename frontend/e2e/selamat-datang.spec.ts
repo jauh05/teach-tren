@@ -23,6 +23,18 @@ test.describe('Selamat datang', () => {
     await expect(page).toHaveURL(/\/chat$/)
   })
 
+  test('urutan awal: selamat datang, penjelasan, lalu halaman masuk', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Belajar lebih terarah, satu neuron satu langkah' })).toBeVisible()
+    await page.getByRole('button', { name: 'Mulai' }).click()
+    await expect(page).toHaveURL(/\/tur$/)
+    await page.getByRole('button', { name: 'Lanjut' }).click()
+    await page.getByRole('button', { name: 'Lanjut' }).click()
+    await page.getByRole('button', { name: 'Lanjut' }).click()
+    await page.getByRole('button', { name: 'Masuk', exact: true }).click()
+    await expect(page).toHaveURL(/\/masuk$/)
+  })
+
   test('tamu bisa langsung lanjut sebagai tamu dari selamat datang', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Lanjut sebagai tamu' }).click()
