@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowLeft, Check, CircleAlert, LoaderCircle, Plus, Trash2 } from 'lucide-react'
+import { CircleAlert, Check, LoaderCircle, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { generateRoadmap, getKurikulum, getRencana, RENCANA_QUERY_KEY, saveRencana } from '../../api/rencana'
 import { PersonFigure } from '../../components/illustrations/PersonFigure'
 import { Button } from '../../components/ui/Button'
+import { useSessionStore } from '../../stores/sessionStore'
 import { colors } from '../../theme/tokens'
 import {
   buildPayload,
@@ -46,6 +47,7 @@ const STEP_TEXT: Record<WizardStep, { title: string; subtitle: string }> = {
 export function MulaiPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const signOut = useSessionStore((state) => state.signOut)
   const [step, setStep] = useState<WizardStep>('kelas')
   const [draft, setDraft] = useState<PlanDraft>(EMPTY_DRAFT)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -123,13 +125,17 @@ export function MulaiPage() {
               <PersonFigure />
             </g>
           </svg>
-          <Link
-            to="/chat"
-            aria-label="Kembali ke chat"
-            className="absolute left-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-sm"
+          {/* The wizard comes before the rest of the app, so the way out is signing out, not going back. */}
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut()
+              navigate('/chat', { replace: true })
+            }}
+            className="absolute left-5 top-5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink shadow-sm hover:bg-canvas"
           >
-            <ArrowLeft size={18} aria-hidden="true" />
-          </Link>
+            Keluar
+          </button>
           <p className="absolute bottom-14 left-6 font-heading text-2xl font-bold text-ink">Rencana belajar</p>
         </header>
 

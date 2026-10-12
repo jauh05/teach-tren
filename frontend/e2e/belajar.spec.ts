@@ -91,4 +91,18 @@ test.describe('Rencana belajar', () => {
     await expect(page).toHaveURL(/\/learning$/)
     await expect(page.getByRole('button', { name: /^Penjumlahan/ })).toBeVisible()
   })
+
+  test('akun baru yang daftar langsung diminta rencana belajar, di halaman mana pun', async ({ page, account }) => {
+    await page.goto('/daftar')
+    await page.getByLabel('Nama').fill('Rani Putri')
+    await page.getByLabel('Email').fill(account.email)
+    await page.getByLabel('Kata sandi').fill(account.password)
+    await page.getByRole('button', { name: 'Buat akun' }).click()
+
+    // Signing up lands on the chat by default, but the wizard comes first.
+    await expect(page).toHaveURL(/\/belajar\/mulai$/)
+    await page.goto('/chat')
+    await expect(page).toHaveURL(/\/belajar\/mulai$/)
+  })
 })
+

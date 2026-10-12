@@ -70,3 +70,20 @@ async function seedExampleTopics(email: string): Promise<void> {
     await db.$disconnect()
   }
 }
+
+// Gives an account a learning plan, so the app opens its pages without the wizard. Only the test database is used.
+export async function seedLearningPlan(email: string): Promise<void> {
+  const url = process.env.TEST_DATABASE_URL ?? ''
+  const db = createE2eDatabase(url)
+  try {
+    const user = await db.user.findUniqueOrThrow({ where: { email } })
+    await db.learningPlan.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id, levelId: 'sma', grade: 10, subjects: ['Matematika'] },
+      update: {},
+    })
+  } finally {
+    await db.$disconnect()
+  }
+}
+

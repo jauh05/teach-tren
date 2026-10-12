@@ -51,16 +51,16 @@ export default function App() {
         <BrowserRouter>
           <QuizSetupDialog />
           <Routes>
-            <Route element={<AppShell />}>
+            {/* A signed-in account without a learning plan sees the wizard first, on whatever page it opens. */}
+            <Route
+              element={
+                <RequireRencana>
+                  <AppShell />
+                </RequireRencana>
+              }
+            >
               <Route index element={<Navigate to="/chat" replace />} />
-              <Route
-                path="learning"
-                element={
-                  <RequireRencana>
-                    <LearningPage />
-                  </RequireRencana>
-                }
-              />
+              <Route path="learning" element={<LearningPage />} />
               <Route path="jadwal" element={<JadwalPage />} />
               <Route path="jadwal/ingatan" element={<MemoryPage />} />
               <Route element={<ChatLayout />}>

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from './fixtures'
+import { expect, seedLearningPlan, test, type Page } from './fixtures'
 import { expectNoHorizontalScroll, signOutFromMenu } from './helpers'
 
 // Switches the app to guest mode through the avatar menu, the same way a signed-in user would.
@@ -111,6 +111,8 @@ test.describe('Impor riwayat tamu', () => {
     // The account exists on the server, but this page stays a guest until it signs in.
     const registered = await request.post('/api/auth/register', { data: { name: 'Rafi Arkan', email: account.email, password: account.password } })
     expect(registered.ok()).toBeTruthy()
+    // The account has a learning plan, so signing in opens the chat rather than the wizard.
+    await seedLearningPlan(account.email)
 
     await page.goto('/chat')
     const input = page.getByRole('textbox', { name: 'Tulis pertanyaan' })
