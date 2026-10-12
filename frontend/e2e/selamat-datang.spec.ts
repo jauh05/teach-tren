@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures'
+import { expect, seedLearningPlan, test } from './fixtures'
 import { expectNoHorizontalScroll } from './helpers'
 
 // The welcome screen is the front door. A guest can start from it, and a signed-in account never sees it.
@@ -56,6 +56,17 @@ test.describe('Selamat datang', () => {
     await page.goto('/')
     // The account has no learning plan yet, so it goes to the wizard instead of the welcome screen.
     await expect(page).toHaveURL(/\/belajar\/mulai$/)
+  })
+
+  test('akun yang sudah punya rencana dibuka langsung ke Learning dari halaman awal', async ({ page, account }) => {
+    const registered = await page.context().request.post('/api/auth/register', {
+      data: { name: 'Rani Putri', email: account.email, password: account.password },
+    })
+    expect(registered.ok()).toBeTruthy()
+    await seedLearningPlan(account.email)
+
+    await page.goto('/')
+    await expect(page).toHaveURL(/\/learning$/)
   })
 
   test('Masuk dengan Google belum tersedia di perangkat ini, dan halaman masuk menjelaskannya', async ({ page }) => {

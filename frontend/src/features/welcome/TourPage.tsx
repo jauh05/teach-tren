@@ -31,7 +31,7 @@ const SLIDES: { scene: 'memory' | 'chat' | 'roadmap' | 'progress'; title: string
 export function TourRoute() {
   const mode = useSessionStore((state) => state.mode)
   if (mode === 'signedIn') {
-    return <Navigate to="/chat" replace />
+    return <Navigate to="/learning" replace />
   }
   return <TourPage />
 }
@@ -52,7 +52,7 @@ function TourPage() {
           </button>
         </header>
 
-        <div className="mt-4 h-[340px] w-full rounded-[32px] bg-white px-4 py-3 md:col-start-2 md:row-span-3 md:row-start-1 md:mt-0 md:h-[600px] md:px-10 md:py-8">
+        <div className="mx-6 mt-4 h-[340px] rounded-[32px] bg-white px-2 py-3 md:col-start-2 md:row-span-3 md:row-start-1 md:mx-0 md:mt-0 md:h-[600px] md:w-full md:px-10 md:py-8">
           <TourArt scene={slide.scene} />
         </div>
 

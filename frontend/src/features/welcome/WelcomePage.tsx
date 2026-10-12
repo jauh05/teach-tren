@@ -4,11 +4,11 @@ import { BrandLink } from '../../components/layout/BrandLink'
 import { continueAsGuest, useSessionStore } from '../../stores/sessionStore'
 
 // The first screen for a guest. The rest of the app can be used from here, as a guest or after signing in.
-// A signed-in account skips it and goes to the chat, where the learning plan is checked.
+// A signed-in account skips it and goes to Learning, where the learning plan is checked.
 export function WelcomeRoute() {
   const mode = useSessionStore((state) => state.mode)
   if (mode === 'signedIn') {
-    return <Navigate to="/chat" replace />
+    return <Navigate to="/learning" replace />
   }
   return <WelcomePage />
 }

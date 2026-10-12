@@ -32,10 +32,14 @@ const NODE_FILL: Record<TopicStatus, string> = {
 }
 
 const MAX_NODES = 8
+const VIEW_SIZE = 400
 const CENTER = 200
 const RING = 128
 const NODE_RADIUS = 26
 const CORE_RADIUS = 50
+const LABEL_HEIGHT = 26
+// Large enough to stay readable on a phone, where the picture is scaled down.
+const LABEL_FONT_SIZE = 15
 
 function shortName(name: string): string {
   return name.length > 13 ? `${name.slice(0, 12)}…` : name
@@ -43,7 +47,17 @@ function shortName(name: string): string {
 
 // Width of the name pill, from the number of letters.
 function labelWidth(name: string): number {
-  return shortName(name).length * 7.4 + 18
+  return shortName(name).length * 8.5 + 20
+}
+
+// The name sits outside its neuron: above the upper half, below the lower half, so no spoke from the core runs through it.
+// At the left and right edges the name is pulled inside the picture.
+function labelPlacement(point: { x: number; y: number }, name: string): { x: number; top: number; width: number } {
+  const width = labelWidth(name)
+  const above = point.y < CENTER
+  const top = above ? point.y - NODE_RADIUS - 6 - LABEL_HEIGHT : point.y + NODE_RADIUS + 6
+  const x = Math.min(Math.max(point.x, width / 2 + 4), VIEW_SIZE - width / 2 - 4)
+  return { x, top, width }
 }
 
 export function MemoryDiagram({ nodes }: { nodes: MemoryNode[] }) {
@@ -57,7 +71,7 @@ export function MemoryDiagram({ nodes }: { nodes: MemoryNode[] }) {
   const label = shown.length > 0 ? `Diagram Learning memory: ${shown.map((node) => node.name).join(', ')}` : 'Diagram Learning memory'
 
   return (
-    <svg viewBox="0 0 400 400" className="h-full w-full" role="img" aria-label={label} focusable="false">
+    <svg viewBox={`0 0 ${VIEW_SIZE} ${VIEW_SIZE}`} className="h-full w-full" role="img" aria-label={label} focusable="false">
       <circle cx={CENTER} cy={CENTER} r="172" fill="none" stroke={colors.brand.DEFAULT} strokeWidth="2" strokeDasharray="2 8" opacity="0.6" />
       <circle cx={CENTER} cy={CENTER} r="92" fill={colors.brand.soft} stroke={colors.brand.dark} strokeWidth="2" strokeDasharray="3 7" />
 
@@ -97,22 +111,23 @@ export function MemoryDiagram({ nodes }: { nodes: MemoryNode[] }) {
 
       {shown.map((node, index) => {
         const point = positions[index]
+        const nameTag = labelPlacement(point, node.name)
         return (
           <g key={`neuron-${node.name}-${index}`}>
             <circle cx={point.x} cy={point.y} r={NODE_RADIUS} fill={NODE_FILL[node.status]} stroke={colors.ink} strokeWidth="3" />
             <circle cx={point.x} cy={point.y} r="6" fill="#FFFFFF" />
             {/* The name sits on a white pill, so the links and rings behind it do not cut through the text. */}
             <rect
-              x={point.x - labelWidth(node.name) / 2}
-              y={point.y + NODE_RADIUS + 6}
-              width={labelWidth(node.name)}
-              height="22"
-              rx="11"
+              x={nameTag.x - nameTag.width / 2}
+              y={nameTag.top}
+              width={nameTag.width}
+              height={LABEL_HEIGHT}
+              rx={LABEL_HEIGHT / 2}
               fill="#FFFFFF"
               stroke={colors.line}
               strokeWidth="1.5"
             />
-            <text x={point.x} y={point.y + NODE_RADIUS + 21} textAnchor="middle" fontSize="13" fontWeight="600" fill={colors.ink}>
+            <text x={nameTag.x} y={nameTag.top + 18.5} textAnchor="middle" fontSize={LABEL_FONT_SIZE} fontWeight="600" fill={colors.ink}>
               {shortName(node.name)}
             </text>
           </g>
