@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle, Sparkles, X } from 'lucide-react'
+import { LoaderCircle, Sparkles, Target, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -54,9 +54,9 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
 
   return (
     <aside aria-label="Chat topik" className="flex h-full min-h-0 flex-col bg-white">
-      <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-2.5">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 border-b border-line px-4 py-2.5">
         {topic ? (
-          <div className="min-w-0">
+          <div className="min-w-0 basis-full">
             {/* Three clicks on the name open the rename form. The button for materials sits on the right. */}
             <h2
               className="select-none truncate font-heading text-base font-semibold text-ink"
@@ -273,17 +273,38 @@ function StatusChip({ status }: { status: TopicStatus }) {
   )
 }
 
-// The last score as a bar, with a mark at the target score.
+// The last score next to the target it has to reach. The bar fills as the score rises, and a tick marks the target.
 function ScoreBar({ score }: { score: number | null }) {
-  const width = Math.min(100, Math.max(0, score ?? 0))
+  const value = score ?? 0
+  const width = Math.min(100, Math.max(0, value))
+  const reached = score !== null && score >= TARGET_SCORE
+  const remaining = TARGET_SCORE - value
+
   return (
-    <div className="flex flex-col gap-1">
-      <div className="relative h-2 w-full max-w-[240px] overflow-hidden rounded-full bg-canvas" role="progressbar" aria-label="Skor terakhir" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score ?? 0}>
-        <div className="h-full rounded-full bg-brand" style={{ width: `${width}%` }} />
-        <span className="absolute top-0 h-full w-0.5 bg-ink" style={{ left: `${TARGET_SCORE}%` }} aria-hidden="true" />
+    <div className="flex w-full max-w-[280px] flex-col gap-2 rounded-xl border border-line bg-white px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Skor</span>
+          <span className="font-heading text-lg font-bold leading-none text-ink">{score ?? '—'}</span>
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-dark">
+          <Target size={12} aria-hidden="true" />
+          Target {TARGET_SCORE}
+        </span>
       </div>
-      <p className="text-xs text-muted">
-        {score === null ? 'Belum ada skor' : `Skor ${score}`} · target {TARGET_SCORE}
+      <div
+        className="relative h-2.5 w-full rounded-full bg-canvas"
+        role="progressbar"
+        aria-label="Skor terakhir"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={score ?? 0}
+      >
+        <div className="h-full rounded-full bg-brand transition-[width] duration-500" style={{ width: `${width}%` }} />
+        <span className="absolute -bottom-1 -top-1 w-0.5 rounded-full bg-ink" style={{ left: `calc(${TARGET_SCORE}% - 1px)` }} aria-hidden="true" />
+      </div>
+      <p className={`text-xs ${reached ? 'font-semibold text-brand-dark' : 'text-muted'}`}>
+        {score === null ? 'Belum ada skor. Kerjakan kuis untuk mengisinya.' : reached ? 'Target tercapai' : `Kurang ${remaining} poin lagi`}
       </p>
     </div>
   )
