@@ -1,11 +1,12 @@
 import type { Topic } from '../../domain/types'
+import { roadPalette } from '../../theme/tokens'
 
 // Subject used for a topic without one. The backend uses the same name (backend/src/topics/routes.ts).
 export const DEFAULT_SUBJECT = 'Umum'
 
-// Soft accent colors for subject titles, their links, and the ring around each topic. They are muted on purpose, so the
-// roadmap stays calm, and they never replace the status colors of the topics.
-export const SUBJECT_COLORS = ['#5BA89B', '#6B8FD6', '#D9A05B', '#D47A9E', '#5FA8C0', '#8DB36B'] as const
+// Accent colors for subject titles, their links, and the halo around each topic. They are the colors of the roadmap
+// stops (roadPalette), so the Learning canvas and the roadmap match. They never replace the status colors of the topics.
+export const SUBJECT_COLORS = roadPalette
 
 // Mixes a color with white. `amount` is the share of the color: 0 is white, 1 is the color itself.
 export function tintOf(color: string, amount: number): string {

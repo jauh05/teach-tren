@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ApiError } from '../../api/http'
 import { fetchQuiz, type QuizView } from '../../api/quizzes'
 import { Button } from '../../components/ui/Button'
-import { RoadLoader } from '../../components/ui/RoadLoader'
+import { CapsuleLoader } from '../../components/ui/CapsuleLoader'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { QuizSettings } from '../../domain/quiz'
 import { useSessionStore } from '../../stores/sessionStore'
+import { useUiStore } from '../../stores/uiStore'
 import { GuestLimitCard } from '../guest/GuestLimitCard'
 import { QuizRunner } from './QuizRunner'
 
@@ -30,6 +31,13 @@ export function QuizSession({ quizId, settings, onExit }: QuizSessionProps) {
     // The user decides with the "Coba lagi" button.
     retry: false,
   })
+  // The Generate soal button in the topic panel shows this while the quiz is being prepared.
+  const setQuizLoading = useUiStore((state) => state.setQuizLoading)
+  // A query that is switched off stays "pending" in React Query, so it must not count as loading.
+  const loading = isPending && !(isGuest && isGuestLimitReached(guestActionsUsed))
+  useEffect(() => {
+    setQuizLoading(loading)
+  }, [loading, setQuizLoading])
 
   // Guests who used their free actions cannot start another quiz.
   if (isGuest && isGuestLimitReached(guestActionsUsed)) {
@@ -58,14 +66,14 @@ export function QuizSession({ quizId, settings, onExit }: QuizSessionProps) {
   const quiz = current ?? data
   if (isPending && !quiz) {
     return (
-      <RoadLoader
+      <CapsuleLoader
         message="Menyiapkan soal..."
         detail="AI membuat soal dan memeriksa kuncinya. Untuk kuis yang panjang, ini bisa memakan waktu beberapa menit."
       />
     )
   }
   if (!quiz) {
-    return <RoadLoader message="Menyiapkan soal..." />
+    return <CapsuleLoader message="Menyiapkan soal..." />
   }
 
   return (

@@ -17,12 +17,21 @@ export function NextStepsCard({ conversationId }: NextStepsCardProps) {
   const isGuest = useSessionStore((state) => state.mode === 'guest')
   const guestActionsUsed = useSessionStore((state) => state.guestActionsUsed)
   const openQuizSetup = useUiStore((state) => state.openQuizSetup)
+  const requestAddTopic = useUiStore((state) => state.requestAddTopic)
 
   // Quiz settings open as a pop-up over the chat. The other steps are pages.
+  // "Buat" opens the add-topic dialog on Learning. Going to /learning alone does nothing when the user is already there.
   const steps = [
     { label: 'Kerjakan kuis', action: 'Mulai', run: () => openQuizSetup(conversationId) },
     { label: 'Jadwalkan belajar', action: 'Atur', run: () => navigate('/jadwal') },
-    { label: 'Buat materi lanjutan (tambah neuron)', action: 'Buat', run: () => navigate('/learning') },
+    {
+      label: 'Buat materi lanjutan (tambah neuron)',
+      action: 'Buat',
+      run: () => {
+        requestAddTopic()
+        navigate('/learning')
+      },
+    },
   ]
 
   return (

@@ -1,6 +1,10 @@
 // Single source of design tokens. Used by tailwind.config.ts and by tests.
 // The palette follows the reference image docs/design/acuan-palet-baru.png (documented in docs/design/palet.md).
 
+// Circle colors of the roadmap stops and of the topic groups on the Learning canvas, from docs/design/acuan-roadmap-2.png.
+// They are light, and the text on them is always ink.
+export const roadPalette = ['#6EE7C5', '#5FDCDC', '#4FCFEA', '#7CA7F5', '#9088EE'] as const
+
 // Circle colors of the learning memory and the roadmap stops, from docs/design/acuan-kartu-warna.png. Circles take them
 // in turn. The text color on each one keeps the number or name readable.
 export const cardPalette = [

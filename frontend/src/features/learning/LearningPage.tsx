@@ -74,6 +74,9 @@ export function LearningPage() {
   const [adding, setAdding] = useState(false)
   // Learning is the canvas of topics. Roadmap shows the same topics as a route. Both show the same chat on the right.
   const [view, setView] = useState<'learning' | 'roadmap'>('learning')
+  // A button elsewhere (the next steps under an answer) asks for the add-topic dialog. Closing the dialog clears the request.
+  const addTopicRequested = useUiStore((state) => state.addTopicRequested)
+  const clearAddTopicRequest = useUiStore((state) => state.clearAddTopicRequest)
   const [ratio, setRatio] = useState(readStoredRatio)
   const sectionRef = useRef<HTMLElement>(null)
   const { data, isPending, isError } = useQuery({
@@ -139,8 +142,8 @@ export function LearningPage() {
           <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} onViewChange={setCanvasView} />
         ) : (
           // The roadmap shows the same topics as the canvas. Tapping a card opens that topic on the canvas.
-          <div className="flex min-h-0 flex-1 justify-center px-4 pb-4 pt-14">
-            <div className="h-full max-h-[720px] w-full max-w-[360px]">
+          <div className="flex min-h-0 flex-1 px-3 pb-3 pt-14">
+            <div className="h-full min-w-0 w-full">
               <RoadmapCard
                 steps={data.topics.map((topic) => ({ id: topic.id, title: topic.name, detail: TOPIC_STATUS_LABEL[topicStatusOf(topic)] }))}
                 onSelect={(id) => {
@@ -192,9 +195,12 @@ export function LearningPage() {
           </div>
         )}
         <AddTopicDialog
-          open={adding}
+          open={adding || addTopicRequested}
           locked={mode === 'guest' && data.topics.length >= GUEST_TOPIC_LIMIT}
-          onClose={() => setAdding(false)}
+          onClose={() => {
+            setAdding(false)
+            clearAddTopicRequest()
+          }}
           onCreated={(topicId) => setSelectedId(topicId)}
         />
       </div>

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle, X } from 'lucide-react'
+import { LoaderCircle, Sparkles, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -9,9 +9,11 @@ import { fetchMateriParts, generateMateriPart, renameTopic } from '../../api/top
 import { RichText } from '../../components/markdown/RichText'
 import { Button } from '../../components/ui/Button'
 import { topicNameSchema } from '../../domain/topicNames'
-import { TOPIC_STATUS_LABEL, topicStatusOf } from '../../domain/topicStatus'
+import { MASTERED_MIN_SCORE, TOPIC_STATUS_LABEL, topicStatusOf, type TopicStatus } from '../../domain/topicStatus'
 import type { Topic } from '../../domain/types'
 import type { SessionMode } from '../../stores/sessionStore'
+import { useUiStore } from '../../stores/uiStore'
+import { colors } from '../../theme/tokens'
 import { ConversationThread } from '../chat/ConversationThread'
 
 // Conversation used when no topic is selected. Its messages are kept like any other chat.
@@ -37,6 +39,8 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
     queryFn: () => fetchConversationMessages(conversationId),
   })
   const topicId = topic?.id ?? ''
+  // The quiz of this chat is being prepared: the Generate soal button shows the sweep until the quiz arrives.
+  const quizPreparing = useUiStore((state) => state.quizLoading && state.chatQuiz?.quizId === topic?.id)
   const partsQuery = useQuery({
     queryKey: ['materi-bulat', topicId],
     queryFn: () => fetchMateriParts(topicId),
@@ -65,10 +69,11 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
             >
               {topic.name}
             </h2>
-            <p className="mt-0.5 text-xs text-muted">
-              {TOPIC_STATUS_LABEL[topicStatusOf(topic)]} · skor {topic.lastScore ?? 'belum ada'}
-              {topic.materials.length > 0 && ` · Materi: ${topic.materials.join(', ')}`}
-            </p>
+            <div className="mt-1 flex flex-col gap-1.5">
+              <StatusChip status={topicStatusOf(topic)} />
+              <ScoreBar score={topic.lastScore} />
+              {topic.materials.length > 0 && <p className="text-xs text-muted">Materi: {topic.materials.join(', ')}</p>}
+            </div>
           </div>
         ) : (
           <div className="min-w-0">
@@ -90,13 +95,18 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
               </>
             ) : (
               <>
-                <Button variant="secondary" className="min-h-[36px] px-2.5 py-1 text-xs md:min-h-0" onClick={onGenerateQuiz}>
+                <Button
+                  variant="secondary"
+                  className={`min-h-[36px] px-2.5 py-1 text-xs md:min-h-0${quizPreparing ? ' btn-sweep' : ''}`}
+                  disabled={quizPreparing}
+                  onClick={onGenerateQuiz}
+                >
                   Generate soal
                 </Button>
                 <Button
                   variant="secondary"
-                  className="min-h-[36px] px-2.5 py-1 text-xs md:min-h-0"
                   disabled={generatePart.isPending}
+                  className={`min-h-[36px] px-2.5 py-1 text-xs md:min-h-0${generatePart.isPending ? ' btn-sweep' : ''}`}
                   onClick={() => generatePart.mutate()}
                 >
                   {generatePart.isPending && <LoaderCircle size={14} className="animate-spin" aria-hidden="true" />}
@@ -131,7 +141,12 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
             </p>
           )}
           {!isGuest && partsQuery.data?.length === 0 && (
-            <p className="text-xs text-muted">Belum ada materi. Tekan Generate materi, satu bagian setiap kali.</p>
+            <div className="flex items-center gap-3 rounded-xl border border-dashed border-line bg-brand-soft px-3 py-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand-dark">
+                <Sparkles size={16} aria-hidden="true" />
+              </span>
+              <p className="text-xs text-ink">Belum ada materi. Tekan Generate materi, satu bagian setiap kali.</p>
+            </div>
           )}
           {!isGuest && partsQuery.data && partsQuery.data.length > 0 && (
             <ol className="flex flex-col gap-3">
@@ -233,5 +248,43 @@ function RenameForm({ topicId, currentName, onDone }: RenameFormProps) {
         </Button>
       </div>
     </form>
+  )
+}
+
+const STATUS_COLOR: Record<TopicStatus, string> = {
+  DIKUASAI: colors.status.kuasai,
+  SEDANG: colors.status.sedang,
+  PERLU_DIULANG: colors.status.ulang,
+  BARU: colors.status.baru,
+  BELUM_DIBUKA: colors.status.belum,
+  SARAN: colors.status.saran,
+}
+
+// Score a topic needs to count as mastered (docs/role.md 4.1). The bar shows it as the target.
+const TARGET_SCORE = MASTERED_MIN_SCORE
+
+// The status of the topic as a colored chip, so it can be read at a glance.
+function StatusChip({ status }: { status: TopicStatus }) {
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-canvas px-2.5 py-1 text-xs font-semibold text-ink">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} aria-hidden="true" />
+      {TOPIC_STATUS_LABEL[status]}
+    </span>
+  )
+}
+
+// The last score as a bar, with a mark at the target score.
+function ScoreBar({ score }: { score: number | null }) {
+  const width = Math.min(100, Math.max(0, score ?? 0))
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="relative h-2 w-full max-w-[240px] overflow-hidden rounded-full bg-canvas" role="progressbar" aria-label="Skor terakhir" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score ?? 0}>
+        <div className="h-full rounded-full bg-brand" style={{ width: `${width}%` }} />
+        <span className="absolute top-0 h-full w-0.5 bg-ink" style={{ left: `${TARGET_SCORE}%` }} aria-hidden="true" />
+      </div>
+      <p className="text-xs text-muted">
+        {score === null ? 'Belum ada skor' : `Skor ${score}`} · target {TARGET_SCORE}
+      </p>
+    </div>
   )
 }
