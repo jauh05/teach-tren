@@ -92,7 +92,7 @@ export default function App() {
               />
               <Route path="*" element={<PlaceholderPage title="Halaman tidak ditemukan" />} />
             </Route>
-            {/* The welcome screen is the front door for guests. A signed-in account is sent to the chat from here. */}
+            {/* The welcome screen is the front door for guests. A signed-in account is sent to Learning from here. */}
             <Route path="/" element={<WelcomeRoute />} />
             <Route path="tur" element={<TourRoute />} />
             <Route path="masuk" element={<AuthPage kind="masuk" />} />

@@ -35,6 +35,8 @@ export interface MemoryEntry {
 export interface Topic {
   id: string
   name: string
+  // Mata pelajaran of the topic, for example Matematika. Topics without one are "Umum". The canvas titles groups with it.
+  subject: string
   lastScore: number | null
   unlocked: boolean
   pendingSuggestion: boolean

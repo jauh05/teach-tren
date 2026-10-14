@@ -58,7 +58,7 @@ Sebelum pertama kali membuka Learning, akun memilih jenjang, kelas, dan mata pel
 | Metode | Alamat | Isi permintaan | Hasil |
 | --- | --- | --- | --- |
 | GET | `/api/topics` | - | 200 `{ topics, links }` |
-| POST | `/api/topics` | `name`, `dariId` (opsional, id bulat asal) | 201 `{ topic: { id, name } }`. Dengan `dariId`, bulat baru dihubungkan dari bulat asal (tautan). Nama sama (tanpa memperhatikan huruf besar dan spasi tepi) menghasilkan 409. `dariId` yang bukan milik akun: 404 |
+| POST | `/api/topics` | `name`, `dariId` (opsional, id bulat asal) | 201 `{ topic: { id, name } }`. Dengan `dariId`, bulat baru dihubungkan dari bulat asal (tautan) dan mengambil mapel bulat asal. Tanpa `dariId`, mapelnya `Umum`. Nama sama (tanpa memperhatikan huruf besar dan spasi tepi) menghasilkan 409. `dariId` yang bukan milik akun: 404 |
 | POST | `/api/topics/tautan` | `dariId`, `keId` | 201 `{ link: { source, target, suggested } }`. Menghubungkan dua bulat milik akun. Sama dengan diri sendiri: 400. Sudah terhubung: 409. Bulat tidak ada: 404 |
 | POST | `/api/topics/saran` | `polaId` (akun), atau `nama` dan `sudahAda` (tamu, pola di perangkat), dan/atau `tujuan` (teks, 120 karakter) | 200 `{ saran: [{ nama, alasan }] }`. Tiga usulan dari AI. Tidak membuat bulat. Nama yang sudah ada dibuang. Tamu: satu generate per perangkat, terpisah dari kuota chat. Generate kedua: 429 `KUOTA_HABIS` dengan pesan untuk masuk. `polaId` dari tamu: 400. Akun melewati `POLA_SARAN_PER_HOUR` per jam: 429 `TERLALU_CEPAT`. `AI_MODE=mock` memberi contoh |
 | GET | `/api/topics/:id/materi-ai` | - | 200 `{ materi: [{ id, position, judul, isi }] }`, diurutkan menurut `position`. Bulat tidak ada: 404. Tamu: 403 `HANYA_MASUK` |
@@ -66,7 +66,7 @@ Sebelum pertama kali membuka Learning, akun memilih jenjang, kelas, dan mata pel
 | PATCH | `/api/topics/:id` | `name` | 200 `{ topic: { id, name } }` |
 | POST | `/api/topics/:id/scores` | `percent` (bilangan bulat 0 sampai 100) | 201 `{ lastScore }`. Mencatat satu kali kuis dan menjadikannya skor terbaru |
 
-Setiap item di `topics`: `id`, `name`, `x`, `y`, `lastScore` (atau `null`), `unlocked`, `pendingSuggestion`, `materials` (judul materi yang dikaitkan).
+Setiap item di `topics`: `id`, `name`, `subject` (mata pelajaran, misalnya `Matematika`, atau `Umum`), `x`, `y`, `lastScore` (atau `null`), `unlocked`, `pendingSuggestion`, `materials` (judul materi yang dikaitkan).
 Setiap item di `links`: `source`, `target`, `suggested`.
 
 ## Percakapan

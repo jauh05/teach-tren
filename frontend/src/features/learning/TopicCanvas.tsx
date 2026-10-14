@@ -2,6 +2,7 @@ import { Minus, Plus, RotateCcw } from 'lucide-react'
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -23,10 +24,12 @@ import {
   type Point,
   type View,
 } from './canvasMath'
+import { SUBJECT_TITLE_RADIUS, SubjectTitle } from './SubjectTitle'
+import { SUBJECT_COLORS, isSubjectTitle, subjectGroupsOf, subjectOf, type SubjectGroup } from './subjectGroups'
 import { TopicLegend } from './TopicLegend'
 import { TopicNode } from './TopicNode'
 import { topicVisualOf } from './topicVisual'
-import { useTopicLayout } from './useTopicLayout'
+import { useTopicLayout, type LayoutLinkInput, type LayoutNodeInput } from './useTopicLayout'
 
 // Movement below this distance (px) counts as a tap, not a drag.
 const TAP_SLOP = 5
@@ -61,22 +64,21 @@ interface TopicCanvasProps {
 export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange }: TopicCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const size = useElementSize(containerRef)
-  // Layout starts from the topics on mount. Later data changes (renames, statuses) keep the same positions.
-  const [layoutInput] = useState(() => ({
-    nodes: topics.map((topic) => ({
-      id: topic.id,
-      name: topic.name,
-      radius: topicVisualOf(topicStatusOf(topic)).radius,
-      x: topic.initialX,
-      y: topic.initialY,
-    })),
-    links: links.map((link) => ({ source: link.source, target: link.target })),
-  }))
+  const groups = subjectGroupsOf(topics)
+  const colorBySubject = new Map(groups.map((group) => [group.subject, group.color]))
+  // The layout runs again only when topics or links are added or removed, not on every drag, rename, or status change.
+  // The hook keeps the place of circles that already exist, so a new topic appears without moving the others.
+  const structureKey = structureKeyOf(topics, links)
+  // oxlint-disable react-hooks/exhaustive-deps
+  const layoutInput = useMemo(() => buildLayoutInput(topics, links, groups), [structureKey])
+  // oxlint-enable react-hooks/exhaustive-deps
   const { positions, startDrag, dragTo, endDrag, nudge } = useTopicLayout(
     layoutInput.nodes,
     layoutInput.links,
     WORLD_CENTER,
   )
+  const seedById = new Map(layoutInput.nodes.map((node) => [node.id, { x: node.x, y: node.y }]))
+  const pointOf = (id: string): Point => positions[id] ?? seedById.get(id) ?? WORLD_CENTER
 
   // null means "not moved yet": the view is centered on the seed layout (also the reset state).
   const [viewState, setViewState] = useState<View | null>(null)
@@ -150,8 +152,9 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
     }
 
     if (target instanceof Element) {
-      const nodeElement = target.closest('[data-topic-id]')
-      const id = nodeElement?.getAttribute('data-topic-id')
+      // Topics and subject titles can both be dragged. Their elements carry data-node-id.
+      const nodeElement = target.closest('[data-node-id]')
+      const id = nodeElement?.getAttribute('data-node-id')
       if (id) {
         gestureRef.current = {
           kind: 'node',
@@ -218,8 +221,8 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
       if (gesture.moved) {
         endDrag(gesture.id)
         setDraggingId(null)
-      } else if (!cancelled) {
-        // Tapping a topic or its plus button opens that topic's chat.
+      } else if (!cancelled && !isSubjectTitle(gesture.id)) {
+        // Tapping a topic or its plus button opens that topic's chat. A subject title only moves.
         onSelect(gesture.id)
       }
       gestureRef.current = { kind: 'none' }
@@ -273,7 +276,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
       nudge(id, delta.x, delta.y)
       return
     }
-    const next = neighborInDirection(id, direction, positions)
+    const next = neighborInDirection(id, direction, withoutTitles(positions))
     if (next) {
       containerRef.current?.querySelector<SVGGElement>(`[data-topic-id="${next}"][role="button"]`)?.focus()
     }
@@ -301,8 +304,8 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
       >
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
           {links.map((link) => {
-            const from = positions[link.source] ?? seedPoint(topics, link.source)
-            const to = positions[link.target] ?? seedPoint(topics, link.target)
+            const from = pointOf(link.source)
+            const to = pointOf(link.target)
             return (
               <line
                 key={`${link.source}-${link.target}`}
@@ -316,9 +319,41 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
               />
             )
           })}
+          {/* A line from each subject title to its topics, in the subject's color. Drawn under the circles. */}
+          {groups.flatMap((group) =>
+            group.topicIds.map((topicId) => {
+              const from = pointOf(group.titleId)
+              const to = pointOf(topicId)
+              return (
+                <line
+                  key={`${group.titleId}-${topicId}`}
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                  stroke={group.color}
+                  strokeWidth={1.5}
+                  opacity={0.35}
+                />
+              )
+            }),
+          )}
+          {groups.map((group) => {
+            const point = pointOf(group.titleId)
+            return (
+              <SubjectTitle
+                key={group.titleId}
+                id={group.titleId}
+                name={group.subject}
+                color={group.color}
+                x={point.x}
+                y={point.y}
+              />
+            )
+          })}
           {topics.map((topic) => {
             const index = topicIndex.get(topic.id) ?? 0
-            const point = positions[topic.id] ?? { x: topic.initialX, y: topic.initialY }
+            const point = pointOf(topic.id)
             return (
               <TopicNode
                 key={topic.id}
@@ -328,6 +363,7 @@ export function TopicCanvas({ topics, links, selectedId, onSelect, onViewChange 
                 y={point.y}
                 selected={topic.id === selectedId}
                 drift={draggingId === topic.id ? null : { delay: -index * 0.9, duration: 6 + (index % 4) }}
+                accent={colorBySubject.get(subjectOf(topic)) ?? SUBJECT_COLORS[0]}
               />
             )
           })}
@@ -423,7 +459,48 @@ function moveDelta(direction: Direction): Point {
   }
 }
 
-function seedPoint(topics: Topic[], id: string): Point {
-  const topic = topics.find((item) => item.id === id)
-  return { x: topic?.initialX ?? 0, y: topic?.initialY ?? 0 }
+// Changes only when a topic or a link is added or removed. Used to decide when the layout runs again.
+function structureKeyOf(topics: Topic[], links: TopicLink[]): string {
+  const nodes = topics.map((topic) => `${topic.id}:${subjectOf(topic)}`).join('|')
+  const edges = links.map((link) => `${link.source}>${link.target}`).join('|')
+  return `${nodes}#${edges}`
+}
+
+// Layout input: one circle per topic, one title per subject, and the links between them. A title is linked to each
+// topic of its subject. The starting positions are the seeds from the backend; the hook keeps positions that exist.
+function buildLayoutInput(
+  topics: Topic[],
+  links: TopicLink[],
+  groups: SubjectGroup[],
+): { nodes: LayoutNodeInput[]; links: LayoutLinkInput[] } {
+  const topicNodes = topics.map((topic) => ({
+    id: topic.id,
+    name: topic.name,
+    radius: topicVisualOf(topicStatusOf(topic)).radius,
+    x: topic.initialX,
+    y: topic.initialY,
+  }))
+  const titleNodes = groups.map((group) => {
+    const members = topics.filter((topic) => group.topicIds.includes(topic.id))
+    const start = centerOf(members)
+    return { id: group.titleId, name: group.subject, radius: SUBJECT_TITLE_RADIUS, x: start.x, y: start.y }
+  })
+  const topicLinks = links.map((link) => ({ source: link.source, target: link.target }))
+  const titleLinks = groups.flatMap((group) => group.topicIds.map((topicId) => ({ source: group.titleId, target: topicId })))
+  return { nodes: [...titleNodes, ...topicNodes], links: [...topicLinks, ...titleLinks] }
+}
+
+// Average of the starting positions of the topics. A new subject title starts in the middle of its topics.
+function centerOf(topics: Topic[]): Point {
+  if (topics.length === 0) {
+    return WORLD_CENTER
+  }
+  const x = topics.reduce((sum, topic) => sum + topic.initialX, 0) / topics.length
+  const y = topics.reduce((sum, topic) => sum + topic.initialY, 0) / topics.length
+  return { x, y }
+}
+
+// Subject titles are not topics, so keyboard movement between topics skips them.
+function withoutTitles(points: Record<string, Point>): Record<string, Point> {
+  return Object.fromEntries(Object.entries(points).filter(([id]) => !isSubjectTitle(id)))
 }

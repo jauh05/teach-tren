@@ -99,7 +99,7 @@ test.describe('Rencana belajar', () => {
     await page.getByLabel('Kata sandi').fill(account.password)
     await page.getByRole('button', { name: 'Buat akun' }).click()
 
-    // Signing up lands on the chat by default, but the wizard comes first.
+    // Signing up lands on Learning, but the wizard comes first for an account without a plan.
     await expect(page).toHaveURL(/\/belajar\/mulai$/)
     await page.goto('/chat')
     await expect(page).toHaveURL(/\/belajar\/mulai$/)

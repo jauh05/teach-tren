@@ -23,6 +23,7 @@ const graphSchema = z.object({
     z.object({
       id: z.string(),
       name: z.string(),
+      subject: z.string(),
       x: z.number(),
       y: z.number(),
       lastScore: z.number().nullable(),
@@ -75,6 +76,7 @@ function toTopic(topic: GuestTopic): Topic {
   return {
     id: topic.id,
     name: topic.name,
+    subject: 'Umum',
     lastScore: null,
     unlocked: true,
     pendingSuggestion: false,
@@ -94,6 +96,7 @@ export async function fetchTopicGraph(): Promise<TopicGraph> {
     topics: data.topics.map((topic) => ({
       id: topic.id,
       name: topic.name,
+      subject: topic.subject,
       lastScore: topic.lastScore,
       unlocked: topic.unlocked,
       pendingSuggestion: topic.pendingSuggestion,

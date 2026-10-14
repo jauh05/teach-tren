@@ -99,6 +99,8 @@ topicsRouter.get('/', async (req, res) => {
     topics: topics.map((topic) => ({
       id: topic.id,
       name: topic.name,
+      // Mata pelajaran of the topic. The canvas groups topics under a title with this name.
+      subject: topic.subject,
       x: topic.x,
       y: topic.y,
       lastScore: topic.lastScore,
@@ -111,11 +113,13 @@ topicsRouter.get('/', async (req, res) => {
   })
 })
 
-// Creates a pattern. With dariId, the new pattern follows that one (a link from it to the new pattern).
+// Creates a pattern. With dariId, the new pattern follows that one (a link from it to the new pattern), and it takes
+// the subject of that pattern. Without dariId, the subject is "Umum".
 topicsRouter.post('/', async (req, res) => {
   const input = createSchema.parse(req.body ?? {})
   const userId = userIdOf(req)
-  if (input.dariId && !(await findOwnTopic(userId, input.dariId))) {
+  const source = input.dariId ? await findOwnTopic(userId, input.dariId) : null
+  if (input.dariId && !source) {
     throw new AppError(404, 'Neuron asal tidak ditemukan.')
   }
   if (await isNameTaken(userId, input.name, null)) {
@@ -124,8 +128,9 @@ topicsRouter.post('/', async (req, res) => {
   const placed = await prisma.topic.findMany({ where: { userId }, select: { x: true, y: true } })
   const spot = freePosition(placed)
   const id = crypto.randomUUID()
+  const subject = source?.subject ?? 'Umum'
   await prisma.$transaction(async (tx) => {
-    await tx.topic.create({ data: { userId, id, name: input.name, x: spot.x, y: spot.y } })
+    await tx.topic.create({ data: { userId, id, name: input.name, subject, x: spot.x, y: spot.y } })
     if (input.dariId) {
       await tx.topicLink.create({ data: { userId, sourceId: input.dariId, targetId: id, suggested: false } })
     }

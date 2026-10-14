@@ -23,10 +23,12 @@ interface TopicNodeProps {
   selected: boolean
   // Idle drift settings. Null disables the drift, for example while the topic is dragged.
   drift: { delay: number; duration: number } | null
+  // Color of the subject this topic belongs to. It draws a ring around the topic.
+  accent: string
 }
 
 // One topic on the canvas. Coordinates are in world units. The canvas applies zoom and pan.
-export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodeProps) {
+export function TopicNode({ topic, status, x, y, selected, drift, accent }: TopicNodeProps) {
   const visual = topicVisualOf(status)
   const radius = visual.radius
   const score = topic.lastScore
@@ -48,10 +50,14 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
           role="button"
           tabIndex={0}
           data-topic-id={topic.id}
+          data-node-id={topic.id}
           aria-label={ariaLabel}
           aria-pressed={selected}
         >
           {selected && <circle r={radius + 7} fill="none" stroke="#15795A" strokeWidth={1.5} />}
+          {/* A faint halo and a ring in the subject's color. The status color stays on the circle itself. */}
+          <circle r={radius + 10} fill={accent} opacity={0.07} />
+          <circle r={radius + 4} fill="none" stroke={accent} strokeWidth={2} />
           <circle className="topic-ring" r={radius + 6} fill="none" stroke="#15795A" strokeWidth={2.5} />
           <circle
             r={radius}
@@ -84,6 +90,7 @@ export function TopicNode({ topic, status, x, y, selected, drift }: TopicNodePro
         {/* Plus button: starts a chat about this topic. It is a pointer target only; keyboard users press Enter on the node. */}
         <g
           data-topic-id={topic.id}
+          data-node-id={topic.id}
           data-topic-action="chat"
           aria-hidden="true"
           transform={`translate(${radius * 0.72} ${-radius * 0.72})`}

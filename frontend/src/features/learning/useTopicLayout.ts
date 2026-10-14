@@ -98,13 +98,18 @@ export function useTopicLayout(nodes: LayoutNodeInput[], links: LayoutLinkInput[
   const [positions, setPositions] = useState<Record<string, Point>>({})
 
   useEffect(() => {
-    const simNodes: SimNode[] = nodes.map((node) => ({
-      id: node.id,
-      name: node.name,
-      radius: node.radius,
-      x: node.x,
-      y: node.y,
-    }))
+    // Circles that are already on the canvas keep their current place. Only new circles start from the given position.
+    const previous = nodesByIdRef.current
+    const simNodes: SimNode[] = nodes.map((node) => {
+      const kept = previous.get(node.id)
+      return {
+        id: node.id,
+        name: node.name,
+        radius: node.radius,
+        x: kept?.x ?? node.x,
+        y: kept?.y ?? node.y,
+      }
+    })
     const simLinks: SimLink[] = links.map((link) => ({ source: link.source, target: link.target }))
 
     let simulation = forceSimulation<SimNode>(simNodes)

@@ -66,6 +66,25 @@ describe('pola berikutnya', () => {
     expect(graph.links).toContainEqual({ source: 'bilangan', target: created.body.topic.id, suggested: false })
   })
 
+  it('neuron yang dibuat dari neuron lain mengambil mapel neuron asal', async () => {
+    const agent = await registerWithExampleGraph(app)
+    const before = (await agent.get('/api/topics').expect(200)).body
+    const source = before.topics.find((topic: { id: string }) => topic.id === 'bilangan')
+    const created = await agent.post('/api/topics').send({ name: 'Pecahan campuran', dariId: 'bilangan' }).expect(201)
+
+    const after = (await agent.get('/api/topics').expect(200)).body
+    const topic = after.topics.find((item: { id: string }) => item.id === created.body.topic.id)
+    expect(topic.subject).toBe(source.subject)
+  })
+
+  it('neuron tanpa neuron asal masuk ke mapel Umum', async () => {
+    const agent = await registerAgent(app)
+    await agent.post('/api/topics').send({ name: 'Catatan bebas' }).expect(201)
+
+    const graph = (await agent.get('/api/topics').expect(200)).body
+    expect(graph.topics[0].subject).toBe('Umum')
+  })
+
   it('neuron asal yang tidak dimiliki akun ditolak', async () => {
     const agent = await registerWithExampleGraph(app)
     const response = await agent.post('/api/topics').send({ name: 'Pecahan campuran', dariId: 'tidak-ada' })
