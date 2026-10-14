@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { Check, X } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { answerQuizItem, retryWrongQuestions, submitQuiz, type AnswerView, type QuizQuestionView, type QuizView, type ResultView } from '../../api/quizzes'
@@ -44,6 +45,7 @@ interface QuizRunnerProps {
 // One question per screen. The server grades each answer. Essays are graded when the quiz is submitted.
 export function QuizRunner({ quiz, onExit, onNewRun, onRepeat }: QuizRunnerProps) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const mode = useSessionStore((state) => state.mode)
   const isGuest = mode === 'guest'
 
@@ -138,6 +140,8 @@ export function QuizRunner({ quiz, onExit, onNewRun, onRepeat }: QuizRunnerProps
     setError(null)
     try {
       setResult(await submitQuiz(quiz.id))
+      // The first full run changes the score of its neuron (backend). Refresh the canvas and the memory so the new status shows.
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ['topics'] }), queryClient.invalidateQueries({ queryKey: ['memory'] })])
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Kuis belum bisa dikumpulkan. Coba lagi.')
     } finally {

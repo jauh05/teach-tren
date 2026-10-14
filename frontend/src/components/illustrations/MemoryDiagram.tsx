@@ -31,6 +31,10 @@ const NODE_FILL: Record<TopicStatus, string> = {
   SARAN: colors.status.saran,
 }
 
+// Fill colors of the neurons, taken from the color cards in docs/design/acuan-kartu-warna.png. Neurons take them in turn.
+// The status color is the ring around each neuron, so the status still reads at a glance.
+const CARD_PALETTE = ['#F2C14E', '#3B2E8C', '#E0457B', '#B9B2EA'] as const
+
 const MAX_NODES = 8
 const VIEW_SIZE = 400
 const CENTER = 200
@@ -114,7 +118,10 @@ export function MemoryDiagram({ nodes }: { nodes: MemoryNode[] }) {
         const nameTag = labelPlacement(point, node.name)
         return (
           <g key={`neuron-${node.name}-${index}`}>
-            <circle cx={point.x} cy={point.y} r={NODE_RADIUS} fill={NODE_FILL[node.status]} stroke={colors.ink} strokeWidth="3" />
+            {/* A soft shadow under the neuron, then the card color, then a status ring and a small white center. */}
+            <circle cx={point.x + 2} cy={point.y + 4} r={NODE_RADIUS} fill={colors.ink} opacity="0.12" />
+            <circle cx={point.x} cy={point.y} r={NODE_RADIUS} fill={CARD_PALETTE[index % CARD_PALETTE.length]} stroke={NODE_FILL[node.status]} strokeWidth="4" />
+            <circle cx={point.x} cy={point.y} r="20" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.6" />
             <circle cx={point.x} cy={point.y} r="6" fill="#FFFFFF" />
             {/* The name sits on a white pill, so the links and rings behind it do not cut through the text. */}
             <rect

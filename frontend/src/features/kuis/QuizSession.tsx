@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { ApiError } from '../../api/http'
 import { fetchQuiz, type QuizView } from '../../api/quizzes'
 import { Button } from '../../components/ui/Button'
+import { RoadLoader } from '../../components/ui/RoadLoader'
 import { isGuestLimitReached } from '../../domain/guestQuota'
 import type { QuizSettings } from '../../domain/quiz'
 import { useSessionStore } from '../../stores/sessionStore'
@@ -57,13 +58,14 @@ export function QuizSession({ quizId, settings, onExit }: QuizSessionProps) {
   const quiz = current ?? data
   if (isPending && !quiz) {
     return (
-      <p role="status" className="p-6 text-sm text-muted">
-        Menyiapkan soal... Ini bisa memakan waktu sampai dua menit.
-      </p>
+      <RoadLoader
+        message="Menyiapkan soal..."
+        detail="AI membuat soal dan memeriksa kuncinya. Untuk kuis yang panjang, ini bisa memakan waktu beberapa menit."
+      />
     )
   }
   if (!quiz) {
-    return <p className="p-6 text-sm text-muted">Menyiapkan soal...</p>
+    return <RoadLoader message="Menyiapkan soal..." />
   }
 
   return (

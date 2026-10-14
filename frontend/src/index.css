@@ -130,6 +130,17 @@ h3 {
   animation-iteration-count: infinite;
 }
 
+/* Road-line loader: the white center line of the road keeps moving while the server works. */
+@keyframes road-dash {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+.road-dash {
+  animation: road-dash 0.7s linear infinite;
+}
+
 .topic-node:focus {
   outline: none;
 }
@@ -143,7 +154,8 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .topic-idle {
+  .topic-idle,
+  .road-dash {
     animation: none;
   }
 }
