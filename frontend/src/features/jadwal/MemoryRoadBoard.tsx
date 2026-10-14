@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { GripHorizontal } from 'lucide-react'
 import { RoadmapCard, type RoadStep } from './RoadmapCard'
 
 type CardId = 'memori' | 'roadmap'
@@ -58,6 +59,10 @@ export function MemoryRoadBoard({ memory, steps }: MemoryRoadBoardProps) {
   const boardHeight = boardWidth >= WIDE_BOARD ? WIDE_HEIGHT : positions.roadmap.y + CARD_SIZE.roadmap.height + 16
 
   function handlePointerDown(id: CardId, event: PointerEvent<HTMLDivElement>) {
+    // Only the handle at the top of a card moves it. The rest of the card (the roadmap, for example) keeps its own gestures.
+    if (!(event.target instanceof Element) || event.target.closest('[data-drag-handle]') === null) {
+      return
+    }
     const rect = boardRef.current?.getBoundingClientRect()
     if (!rect || !positions) {
       return
@@ -133,10 +138,13 @@ function DraggableCard({ id, position, label, children, onPointerDown }: Draggab
       role="group"
       aria-label={label}
       onPointerDown={(event) => onPointerDown(id, event)}
-      className="absolute cursor-grab touch-none select-none rounded-3xl border border-line bg-white p-3 shadow-sm active:cursor-grabbing"
+      className="absolute flex touch-none select-none flex-col rounded-3xl border border-line bg-white p-3 shadow-sm"
       style={{ left: position.x, top: position.y, width: size.width, height: size.height }}
     >
-      {children}
+      <div data-drag-handle className="flex h-6 shrink-0 cursor-grab items-center justify-center text-muted active:cursor-grabbing">
+        <GripHorizontal size={18} aria-label={`Geser ${label}`} />
+      </div>
+      <div className="min-h-0 flex-1">{children}</div>
     </div>
   )
 }

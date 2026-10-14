@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react'
+import { useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 import { colors, roadPalette } from '../../theme/tokens'
 import { wrapLabel } from '../learning/wrapLabel'
 import { DRAWING_HEIGHT, drawingWidthOf, labelTopOf, roadPathOf, roadPointsOf, stopPoints } from './roadPath'
@@ -31,15 +31,73 @@ interface RoadmapCardProps {
   onSelect?: (id: string) => void
 }
 
+// A press moves the roadmap by dragging, in any direction. Movement smaller than this counts as a click.
+const DRAG_SLOP = 5
+
 export function RoadmapCard({ steps, onSelect }: RoadmapCardProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const pan = useRef<{ id: number; startX: number; startY: number; left: number; top: number; moved: boolean } | null>(null)
+  // Set after a drag, so the click at its end does not open a step.
+  const justDragged = useRef(false)
   const stops = stopPoints(steps.length)
   const width = drawingWidthOf(steps.length)
   const path = roadPathOf(roadPointsOf(steps.length))
   const labelTop = labelTopOf()
   const interactive = onSelect !== undefined
 
+  // Mouse and pen drag the roadmap. Touch already scrolls it natively, so touch is left alone.
+  function startPan(event: PointerEvent<HTMLDivElement>) {
+    const element = scrollRef.current
+    if (!element || event.pointerType === 'touch') {
+      return
+    }
+    pan.current = { id: event.pointerId, startX: event.clientX, startY: event.clientY, left: element.scrollLeft, top: element.scrollTop, moved: false }
+  }
+
+  function movePan(event: PointerEvent<HTMLDivElement>) {
+    const current = pan.current
+    const element = scrollRef.current
+    if (!current || !element || current.id !== event.pointerId) {
+      return
+    }
+    const dx = event.clientX - current.startX
+    const dy = event.clientY - current.startY
+    if (!current.moved && Math.hypot(dx, dy) > DRAG_SLOP) {
+      current.moved = true
+      element.setPointerCapture(event.pointerId)
+    }
+    if (current.moved) {
+      element.scrollLeft = current.left - dx
+      element.scrollTop = current.top - dy
+    }
+  }
+
+  function endPan() {
+    if (pan.current?.moved) {
+      justDragged.current = true
+    }
+    pan.current = null
+  }
+
+  // A drag that ended on a step must not open it.
+  function ignoreClickAfterDrag(event: MouseEvent<HTMLDivElement>) {
+    if (justDragged.current) {
+      justDragged.current = false
+      event.stopPropagation()
+      event.preventDefault()
+    }
+  }
+
   return (
-    <div className="h-full w-full overflow-auto">
+    <div
+      ref={scrollRef}
+      className="h-full w-full cursor-grab overflow-auto active:cursor-grabbing"
+      onPointerDown={startPan}
+      onPointerMove={movePan}
+      onPointerUp={endPan}
+      onPointerCancel={endPan}
+      onClickCapture={ignoreClickAfterDrag}
+    >
       <svg
         width={width}
         height={DRAWING_HEIGHT}
