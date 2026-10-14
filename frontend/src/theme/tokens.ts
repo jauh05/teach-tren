@@ -1,6 +1,15 @@
 // Single source of design tokens. Used by tailwind.config.ts and by tests.
 // The palette follows the reference image docs/design/acuan-palet-baru.png (documented in docs/design/palet.md).
 
+// Circle colors of the learning memory and the roadmap stops, from docs/design/acuan-kartu-warna.png. Circles take them
+// in turn. The text color on each one keeps the number or name readable.
+export const cardPalette = [
+  { fill: '#F2C14E', text: '#141414' },
+  { fill: '#3B2E8C', text: '#FFFFFF' },
+  { fill: '#E0457B', text: '#FFFFFF' },
+  { fill: '#B9B2EA', text: '#141414' },
+] as const
+
 export const colors = {
   // Mint green is the accent. Dark green is for text on white. Black is for the main buttons.
   brand: {

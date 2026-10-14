@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Maximize2, Minimize2, Plus } from 'lucide-react'
+import { Maximize2, Minimize2, Plus, Route } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchTopicGraph, GUEST_TOPIC_LIMIT } from '../../api/topics'
 import type { View } from './canvasMath'
 import { useSessionStore } from '../../stores/sessionStore'
@@ -145,6 +146,13 @@ export function LearningPage() {
             <Plus size={14} aria-hidden="true" />
             Tambah belajar
           </button>
+          <Link
+            to="/jadwal/ingatan?roadmap=1"
+            className="flex min-h-[36px] items-center gap-1.5 rounded-xl border border-line bg-white px-3 text-micro font-semibold text-ink shadow-sm hover:bg-slate-50 md:min-h-[32px]"
+          >
+            <Route size={14} aria-hidden="true" />
+            Roadmap
+          </Link>
         </div>
         {data.topics.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14 md:justify-center md:pt-0">

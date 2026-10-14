@@ -57,13 +57,12 @@ export function TopicNode({ topic, status, x, y, selected, drift, accent }: Topi
           {selected && <circle r={radius + 7} fill="none" stroke="#15795A" strokeWidth={1.5} />}
           {/* A faint halo and a ring in the subject's color. The status color stays on the circle itself. */}
           <circle r={radius + 10} fill={accent} opacity={0.07} />
-          <circle r={radius + 4} fill="none" stroke={accent} strokeWidth={2} />
           <circle className="topic-ring" r={radius + 6} fill="none" stroke="#15795A" strokeWidth={2.5} />
           <circle
             r={radius}
             fill={visual.fill}
-            stroke={visual.stroke}
-            strokeWidth={visual.strokeWidth}
+            stroke={selected || visual.dashed ? visual.stroke : 'none'}
+            strokeWidth={selected || visual.dashed ? visual.strokeWidth : 0}
             strokeDasharray={visual.dashed ? '4 3' : undefined}
           />
           {visual.scoreInCenter && score !== null && (

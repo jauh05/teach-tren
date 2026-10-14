@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { X } from 'lucide-react'
+import { LoaderCircle, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -99,7 +99,8 @@ export function LearningChatPanel({ topic, mode, onClose, onGenerateQuiz }: Lear
                   disabled={generatePart.isPending}
                   onClick={() => generatePart.mutate()}
                 >
-                  Generate materi
+                  {generatePart.isPending && <LoaderCircle size={14} className="animate-spin" aria-hidden="true" />}
+                  {generatePart.isPending ? 'Membuat materi...' : 'Generate materi'}
                 </Button>
               </>
             )}

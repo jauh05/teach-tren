@@ -23,8 +23,7 @@ export function SubjectTitle({ id, name, color, x, y }: SubjectTitleProps) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <g data-node-id={id} role="img" aria-label={`Mapel ${name}`}>
-        <circle r={SUBJECT_TITLE_RADIUS + 5} fill="none" stroke={color} strokeWidth={1} strokeDasharray="2 6" />
-        <circle r={SUBJECT_TITLE_RADIUS} fill={tintOf(color, 0.22)} stroke={color} strokeWidth={1.5} />
+        <circle r={SUBJECT_TITLE_RADIUS} fill={tintOf(color, 0.22)} />
         <text textAnchor="middle" fontSize={13} fontWeight={700} fill="#141414">
           {lines.map((line, index) => (
             <tspan key={index} x={0} y={firstLineY + LINE_HEIGHT * index}>

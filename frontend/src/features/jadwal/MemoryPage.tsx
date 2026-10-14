@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, Route } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { fetchMemory } from '../../api/memory'
 import { SAMPLE_MEMORY_NODES } from '../../components/illustrations/MemoryDiagram'
 import { TOPIC_STATUS_LABEL } from '../../domain/topicStatus'
@@ -15,7 +15,9 @@ import type { RoadStep } from './RoadmapCard'
 // The Roadmap button puts the roadmap next to the diagram, on one board where both cards can be dragged.
 export function MemoryPage() {
   const isGuest = useSessionStore((state) => state.mode === 'guest')
-  const [showRoad, setShowRoad] = useState(false)
+  // ?roadmap=1 opens the board straight away. The Learning page links here that way.
+  const [params] = useSearchParams()
+  const [showRoad, setShowRoad] = useState(params.get('roadmap') === '1')
   const { data = [] } = useQuery({
     queryKey: ['memory'],
     queryFn: fetchMemory,
