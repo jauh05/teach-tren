@@ -6,7 +6,8 @@ export const ROAD_VIEW = { width: 360, height: 600 } as const
 const ROAD_TOP = 36
 const ROAD_BOTTOM = ROAD_VIEW.height - 36
 const CENTER_X = ROAD_VIEW.width / 2
-const BEND = 34
+// Half the width of the bends. Kept narrow so that the cards on both sides fit inside the view box.
+const BEND = 28
 const BENDS = 1.5
 
 export interface RoadPoint {

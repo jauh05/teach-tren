@@ -1,7 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { Maximize2, Minimize2, Plus, Route } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
-import { Link } from 'react-router-dom'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
+import { TOPIC_STATUS_LABEL, topicStatusOf } from '../../domain/topicStatus'
+import { RoadmapCard } from '../jadwal/RoadmapCard'
 import { fetchTopicGraph, GUEST_TOPIC_LIMIT } from '../../api/topics'
 import type { View } from './canvasMath'
 import { useSessionStore } from '../../stores/sessionStore'
@@ -64,6 +72,8 @@ export function LearningPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [boardExpanded, setBoardExpanded] = useState(false)
   const [adding, setAdding] = useState(false)
+  // Learning is the canvas of topics. Roadmap shows the same topics as a route. Both show the same chat on the right.
+  const [view, setView] = useState<'learning' | 'roadmap'>('learning')
   const [ratio, setRatio] = useState(readStoredRatio)
   const sectionRef = useRef<HTMLElement>(null)
   const { data, isPending, isError } = useQuery({
@@ -125,7 +135,22 @@ export function LearningPage() {
         className="relative flex min-h-[180px] min-w-0 flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-sm md:min-h-0"
         style={{ flex: isDesktop ? `0 0 ${boardShare * 100}%` : boardExpanded ? 3 : 1 }}
       >
-        <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} onViewChange={setCanvasView} />
+        {view === 'learning' ? (
+          <TopicCanvas topics={data.topics} links={data.links} selectedId={selectedId} onSelect={setSelectedId} onViewChange={setCanvasView} />
+        ) : (
+          // The roadmap shows the same topics as the canvas. Tapping a card opens that topic on the canvas.
+          <div className="flex min-h-0 flex-1 justify-center px-4 pb-4 pt-14">
+            <div className="h-full max-h-[720px] w-full max-w-[360px]">
+              <RoadmapCard
+                steps={data.topics.map((topic) => ({ id: topic.id, title: topic.name, detail: TOPIC_STATUS_LABEL[topicStatusOf(topic)] }))}
+                onSelect={(id) => {
+                  setSelectedId(id)
+                  setView('learning')
+                }}
+              />
+            </div>
+          </div>
+        )}
         {/* The sample moves over the whole board. It keeps off the controls and the add circle (data-canvas-obstacle). */}
         {data.topics.length === 0 && <EmptyCanvasIllustration view={canvasView} />}
         <div data-canvas-obstacle className="absolute left-3 top-3 flex gap-2">
@@ -146,13 +171,20 @@ export function LearningPage() {
             <Plus size={14} aria-hidden="true" />
             Tambah belajar
           </button>
-          <Link
-            to="/jadwal/ingatan?roadmap=1"
-            className="flex min-h-[36px] items-center gap-1.5 rounded-xl border border-line bg-white px-3 text-micro font-semibold text-ink shadow-sm hover:bg-slate-50 md:min-h-[32px]"
-          >
-            <Route size={14} aria-hidden="true" />
+        </div>
+        <div
+          data-canvas-obstacle
+          role="group"
+          aria-label="Tampilan"
+          className="absolute right-3 top-3 flex overflow-hidden rounded-xl border border-line bg-white p-0.5 text-micro font-semibold shadow-sm"
+        >
+          <ViewButton active={view === 'learning'} onClick={() => setView('learning')}>
+            Learning
+          </ViewButton>
+          <ViewButton active={view === 'roadmap'} onClick={() => setView('roadmap')}>
+            <Route size={13} aria-hidden="true" />
             Roadmap
-          </Link>
+          </ViewButton>
         </div>
         {data.topics.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-14 md:justify-center md:pt-0">
@@ -201,5 +233,25 @@ export function LearningPage() {
         />
       </div>
     </section>
+  )
+}
+
+interface ViewButtonProps {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}
+
+// One side of the Learning / Roadmap switch. The active side is black, as the main buttons are.
+function ViewButton({ active, onClick, children }: ViewButtonProps) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`flex min-h-[32px] items-center gap-1 rounded-lg px-3 ${active ? 'bg-ink text-white' : 'text-ink hover:bg-canvas'}`}
+    >
+      {children}
+    </button>
   )
 }
